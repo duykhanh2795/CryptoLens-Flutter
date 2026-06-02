@@ -1,7 +1,15 @@
-part of '../screens/trending_wallets_screen.dart';
+import 'package:flutter/material.dart';
 
-class _WalletDetailHero extends StatelessWidget {
-  const _WalletDetailHero({
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/state/wallet_detail_state.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_colors.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_format_helpers.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_transaction_sheet.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_visual_painters.dart';
+
+class WalletDetailHero extends StatelessWidget {
+  const WalletDetailHero({
     required this.detail,
     required this.selectedTab,
     required this.isAdding,
@@ -9,6 +17,7 @@ class _WalletDetailHero extends StatelessWidget {
     required this.onBack,
     required this.onAddToWatchlist,
     required this.onTabChanged,
+    super.key,
   });
 
   final TrendingWalletDetail detail;
@@ -24,7 +33,7 @@ class _WalletDetailHero extends StatelessWidget {
     final wallet = detail.wallet;
     final total = detail.totalValueUsd ?? wallet.valueUsd;
     return Container(
-      color: _Dark.surface,
+      color: WalletColors.surface,
       child: Column(
         children: [
           Padding(
@@ -34,9 +43,9 @@ class _WalletDetailHero extends StatelessWidget {
                 IconButton(
                   onPressed: onBack,
                   icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                  color: _Dark.textPrimary,
+                  color: WalletColors.textPrimary,
                 ),
-                const Text('USD', style: _Dark.topCurrency),
+                const Text('USD', style: WalletColors.topCurrency),
                 const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -44,10 +53,13 @@ class _WalletDetailHero extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: _Dark.surfaceVariant,
+                    color: WalletColors.surfaceVariant,
                     borderRadius: BorderRadius.circular(99),
                   ),
-                  child: Text(wallet.displayName, style: _Dark.topAddress),
+                  child: Text(
+                    wallet.displayName,
+                    style: WalletColors.topAddress,
+                  ),
                 ),
                 const Spacer(),
                 WalletAvatar(
@@ -58,19 +70,19 @@ class _WalletDetailHero extends StatelessWidget {
               ],
             ),
           ),
-          Text(wallet.chain.label, style: _Dark.chainLabel),
+          Text(wallet.chain.label, style: WalletColors.chainLabel),
           const SizedBox(height: 16),
           Text(
             total == null ? 'Value unavailable' : formatCompactUsd(total),
-            style: _Dark.heroValue,
+            style: WalletColors.heroValue,
           ),
           const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                '${_formatNative(wallet.nativeBalance)} ${wallet.chain.nativeSymbol}',
-                style: _Dark.sub,
+                '${formatNativeAmount(wallet.nativeBalance)} ${wallet.chain.nativeSymbol}',
+                style: WalletColors.sub,
               ),
               const SizedBox(width: 8),
               ChangePill(percent: wallet.changePercent24h),
@@ -81,7 +93,7 @@ class _WalletDetailHero extends StatelessWidget {
                   height: 12,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: _Dark.yellow,
+                    color: WalletColors.yellow,
                   ),
                 ),
               ],
@@ -98,9 +110,9 @@ class _WalletDetailHero extends StatelessWidget {
                     icon: const Icon(Icons.star_border_rounded, size: 18),
                     label: Text(isAdding ? 'Adding...' : 'Add to Watchlist'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: _Dark.textPrimary,
+                      foregroundColor: WalletColors.textPrimary,
                       minimumSize: const Size.fromHeight(48),
-                      side: const BorderSide(color: _Dark.border),
+                      side: const BorderSide(color: WalletColors.border),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -113,17 +125,17 @@ class _WalletDetailHero extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: _Dark.border),
+                    border: Border.all(color: WalletColors.border),
                   ),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.account_balance_wallet_outlined,
-                        color: _Dark.textSecondary,
+                        color: WalletColors.textSecondary,
                         size: 18,
                       ),
                       const SizedBox(width: 6),
-                      Text('${wallet.txCount} tx', style: _Dark.sub),
+                      Text('${wallet.txCount} tx', style: WalletColors.sub),
                     ],
                   ),
                 ),
@@ -137,8 +149,8 @@ class _WalletDetailHero extends StatelessWidget {
   }
 }
 
-class _AssetsTab extends StatelessWidget {
-  const _AssetsTab({required this.detail});
+class WalletAssetsTab extends StatelessWidget {
+  const WalletAssetsTab({required this.detail, super.key});
 
   final TrendingWalletDetail detail;
 
@@ -156,18 +168,20 @@ class _AssetsTab extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Row(
             children: [
-              Expanded(child: Text('Qty. Total', style: _Dark.columnHeader)),
+              Expanded(
+                child: Text('Qty. Total', style: WalletColors.columnHeader),
+              ),
               Expanded(
                 child: Text(
                   '24h',
-                  style: _Dark.columnHeader,
+                  style: WalletColors.columnHeader,
                   textAlign: TextAlign.center,
                 ),
               ),
               Expanded(
                 child: Text(
                   'Price',
-                  style: _Dark.columnHeader,
+                  style: WalletColors.columnHeader,
                   textAlign: TextAlign.end,
                 ),
               ),
@@ -177,7 +191,7 @@ class _AssetsTab extends StatelessWidget {
         for (final asset in detail.assets) ...[
           AssetRow(asset: asset),
           const Divider(
-            color: _Dark.divider,
+            color: WalletColors.divider,
             height: 1,
             indent: 76,
             endIndent: 20,
@@ -188,13 +202,14 @@ class _AssetsTab extends StatelessWidget {
   }
 }
 
-class _HistoryTab extends StatelessWidget {
-  const _HistoryTab({
+class WalletHistoryTab extends StatelessWidget {
+  const WalletHistoryTab({
     required this.detail,
     required this.query,
     required this.filter,
     required this.onFilterChanged,
     required this.onQueryChanged,
+    super.key,
   });
 
   final TrendingWalletDetail detail;
@@ -225,7 +240,7 @@ class _HistoryTab extends StatelessWidget {
           tx.networkLabel.toLowerCase().contains(needle);
       return matchesFilter && matchesQuery;
     }).toList();
-    final groups = _groupByDay(filtered);
+    final groups = groupWalletTransactionsByDay(filtered);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
@@ -240,12 +255,12 @@ class _HistoryTab extends StatelessWidget {
           child: TextField(
             controller: query,
             onChanged: onQueryChanged,
-            style: _Dark.body,
+            style: WalletColors.body,
             decoration: InputDecoration(
               filled: true,
-              fillColor: _Dark.surfaceVariant,
+              fillColor: WalletColors.surfaceVariant,
               hintText: 'Search token, hash, address',
-              hintStyle: _Dark.sub,
+              hintStyle: WalletColors.sub,
               prefixIcon: const Icon(Icons.search_rounded),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -266,15 +281,15 @@ class _HistoryTab extends StatelessWidget {
                     selected: filter == item,
                     label: Text(item.label),
                     onSelected: (_) => onFilterChanged(item),
-                    selectedColor: _Dark.yellow.withValues(alpha: 0.16),
-                    checkmarkColor: _Dark.yellow,
+                    selectedColor: WalletColors.yellow.withValues(alpha: 0.16),
+                    checkmarkColor: WalletColors.yellow,
                     labelStyle: TextStyle(
                       color: filter == item
-                          ? _Dark.yellow
-                          : _Dark.textSecondary,
+                          ? WalletColors.yellow
+                          : WalletColors.textSecondary,
                       fontWeight: FontWeight.w700,
                     ),
-                    backgroundColor: _Dark.surface,
+                    backgroundColor: WalletColors.surface,
                     side: BorderSide.none,
                   ),
                 ),
@@ -287,7 +302,7 @@ class _HistoryTab extends StatelessWidget {
             padding: EdgeInsets.only(top: 40),
             child: Text(
               'No transactions match this filter.',
-              style: _Dark.sub,
+              style: WalletColors.sub,
               textAlign: TextAlign.center,
             ),
           )
@@ -295,11 +310,11 @@ class _HistoryTab extends StatelessWidget {
           for (final entry in groups.entries) ...[
             Padding(
               padding: const EdgeInsets.only(bottom: 10, top: 6),
-              child: Text(entry.key, style: _Dark.dayHeader),
+              child: Text(entry.key, style: WalletColors.dayHeader),
             ),
             Container(
               decoration: BoxDecoration(
-                color: _Dark.surface,
+                color: WalletColors.surface,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Column(
@@ -308,11 +323,11 @@ class _HistoryTab extends StatelessWidget {
                     TransactionRow(
                       tx: entry.value[i],
                       onTap: () =>
-                          _showTransactionSheet(context, entry.value[i]),
+                          showTransactionSheet(context, entry.value[i]),
                     ),
                     if (i < entry.value.length - 1)
                       const Divider(
-                        color: _Dark.divider,
+                        color: WalletColors.divider,
                         height: 1,
                         indent: 72,
                       ),
@@ -323,61 +338,6 @@ class _HistoryTab extends StatelessWidget {
             const SizedBox(height: 14),
           ],
       ],
-    );
-  }
-}
-
-class WalletAvatar extends StatelessWidget {
-  const WalletAvatar({
-    required this.chain,
-    required this.seed,
-    required this.size,
-    super.key,
-  });
-
-  final WalletChain chain;
-  final int seed;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    const colors = [
-      _Dark.yellow,
-      Color(0xFF8A8F98),
-      Color(0xFF7C6FE8),
-      Color(0xFF56606B),
-      Color(0xFFFF7182),
-    ];
-    final base = colors[seed.abs() % colors.length];
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          CustomPaint(
-            size: Size.square(size),
-            painter: _AvatarPainter(seed: seed, base: base, colors: colors),
-          ),
-          Container(
-            width: size * 0.37,
-            height: size * 0.37,
-            decoration: const BoxDecoration(
-              color: _Dark.surface,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              chain.nativeSymbol.substring(0, 1),
-              style: TextStyle(
-                color: _Dark.yellow,
-                fontSize: size * 0.22,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

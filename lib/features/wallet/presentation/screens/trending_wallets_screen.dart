@@ -1,23 +1,15 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cryptolens_flutter/features/wallet/data/wallet_indexer_service.dart';
 import 'package:cryptolens_flutter/features/wallet/data/wallet_store.dart';
 import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
-import 'package:cryptolens_flutter/core/theme/app_theme.dart';
-import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
-
-part '../widgets/trending_wallet_list_widgets.dart';
-part '../widgets/wallet_detail_widgets.dart';
-part '../widgets/wallet_visual_painters.dart';
-part '../widgets/wallet_transaction_sheet.dart';
-part '../widgets/wallet_colors.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/state/wallet_detail_state.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/trending_wallet_list_widgets.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_colors.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_detail_widgets.dart';
 
 class TrendingWalletsScreen extends StatefulWidget {
   const TrendingWalletsScreen({required this.controller, super.key});
@@ -50,11 +42,11 @@ class _TrendingWalletsScreenState extends State<TrendingWalletsScreen> {
         )
         .toList();
     return Scaffold(
-      backgroundColor: _Dark.background,
+      backgroundColor: WalletColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            _TrendingTopBar(
+            TrendingTopBar(
               query: _query,
               onBack: () => Navigator.of(context).maybePop(),
               onRefresh: () => setState(() {}),
@@ -64,7 +56,10 @@ class _TrendingWalletsScreenState extends State<TrendingWalletsScreen> {
               padding: EdgeInsets.fromLTRB(20, 14, 20, 8),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Trending Addresses', style: _Dark.sectionTitle),
+                child: Text(
+                  'Trending Addresses',
+                  style: WalletColors.sectionTitle,
+                ),
               ),
             ),
             Expanded(
@@ -73,7 +68,7 @@ class _TrendingWalletsScreenState extends State<TrendingWalletsScreen> {
                 itemCount: wallets.length,
                 itemBuilder: (context, index) {
                   final wallet = wallets[index];
-                  return _TrendingWalletRow(
+                  return TrendingWalletRow(
                     wallet: wallet,
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -134,7 +129,7 @@ class _TrendingWalletDetailScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _Dark.background,
+      backgroundColor: WalletColors.background,
       body: SafeArea(
         child: FutureBuilder<TrendingWalletDetail>(
           future: _detailFuture,
@@ -146,7 +141,7 @@ class _TrendingWalletDetailScreenState
             final detail = snapshot.data ?? fallback;
             return Column(
               children: [
-                _WalletDetailHero(
+                WalletDetailHero(
                   detail: detail,
                   selectedTab: _tab,
                   isAdding: _isAdding,
@@ -158,8 +153,8 @@ class _TrendingWalletDetailScreenState
                 ),
                 Expanded(
                   child: switch (_tab) {
-                    WalletDetailTab.assets => _AssetsTab(detail: detail),
-                    WalletDetailTab.history => _HistoryTab(
+                    WalletDetailTab.assets => WalletAssetsTab(detail: detail),
+                    WalletDetailTab.history => WalletHistoryTab(
                       detail: detail,
                       query: _historyQuery,
                       filter: _filter,

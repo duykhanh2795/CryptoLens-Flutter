@@ -1,7 +1,16 @@
-part of '../screens/trending_wallets_screen.dart';
+import 'dart:math';
 
-class _AvatarPainter extends CustomPainter {
-  const _AvatarPainter({
+import 'package:flutter/material.dart';
+
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/state/wallet_detail_state.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_colors.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_format_helpers.dart';
+
+class AvatarPainter extends CustomPainter {
+  const AvatarPainter({
     required this.seed,
     required this.base,
     required this.colors,
@@ -29,8 +38,63 @@ class _AvatarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _AvatarPainter oldDelegate) =>
+  bool shouldRepaint(covariant AvatarPainter oldDelegate) =>
       oldDelegate.seed != seed || oldDelegate.base != base;
+}
+
+class WalletAvatar extends StatelessWidget {
+  const WalletAvatar({
+    required this.chain,
+    required this.seed,
+    required this.size,
+    super.key,
+  });
+
+  final WalletChain chain;
+  final int seed;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    const colors = [
+      WalletColors.yellow,
+      Color(0xFF8A8F98),
+      Color(0xFF7C6FE8),
+      Color(0xFF56606B),
+      Color(0xFFFF7182),
+    ];
+    final base = colors[seed.abs() % colors.length];
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          CustomPaint(
+            size: Size.square(size),
+            painter: AvatarPainter(seed: seed, base: base, colors: colors),
+          ),
+          Container(
+            width: size * 0.37,
+            height: size * 0.37,
+            decoration: const BoxDecoration(
+              color: WalletColors.surface,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              chain.nativeSymbol.substring(0, 1),
+              style: TextStyle(
+                color: WalletColors.yellow,
+                fontSize: size * 0.22,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class WalletMiniChart extends StatelessWidget {
@@ -122,8 +186,8 @@ class WalletTabs extends StatelessWidget {
                       tab.label,
                       style: TextStyle(
                         color: selectedTab == tab
-                            ? _Dark.yellow
-                            : _Dark.textSecondary,
+                            ? WalletColors.yellow
+                            : WalletColors.textSecondary,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -131,7 +195,7 @@ class WalletTabs extends StatelessWidget {
                   Container(
                     height: 2,
                     color: selectedTab == tab
-                        ? _Dark.yellow
+                        ? WalletColors.yellow
                         : Colors.transparent,
                   ),
                 ],
@@ -192,15 +256,15 @@ class AssetRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${asset.symbol} ${_formatNative(asset.quantity)}',
-                  style: _Dark.assetTitle,
+                  '${asset.symbol} ${formatNativeAmount(asset.quantity)}',
+                  style: WalletColors.assetTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 3),
                 Text(
                   '${asset.displayNetwork}  â€¢  ${asset.valueUsd == null ? 'Value unavailable' : formatCompactUsd(asset.valueUsd!)}',
-                  style: _Dark.sub,
+                  style: WalletColors.sub,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -222,7 +286,7 @@ class AssetRow extends StatelessWidget {
           Expanded(
             child: Text(
               asset.priceUsd == null ? '-' : formatPrice(asset.priceUsd!),
-              style: _Dark.assetTitle,
+              style: WalletColors.assetTitle,
               textAlign: TextAlign.end,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -268,13 +332,13 @@ class TransactionRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(tx.type.label, style: _Dark.assetTitle),
+                  Text(tx.type.label, style: WalletColors.assetTitle),
                   const SizedBox(height: 3),
                   Text(
                     tx.counterparty == null
                         ? tx.networkLabel
                         : '${positive ? 'from' : 'to'} ${shortWalletAddress(tx.counterparty!)}',
-                    style: _Dark.sub,
+                    style: WalletColors.sub,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -285,12 +349,12 @@ class TransactionRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${positive ? '+' : '-'}${_formatNative(tx.amount)} ${tx.symbol}',
+                  '${positive ? '+' : '-'}${formatNativeAmount(tx.amount)} ${tx.symbol}',
                   style: TextStyle(color: color, fontWeight: FontWeight.w900),
                 ),
                 Text(
                   tx.valueUsd == null ? '' : formatPrice(tx.valueUsd!),
-                  style: _Dark.sub,
+                  style: WalletColors.sub,
                 ),
               ],
             ),
@@ -318,41 +382,10 @@ class WalletInfoNotice extends StatelessWidget {
       margin: margin,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _Dark.surfaceVariant,
+        color: WalletColors.surfaceVariant,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Text(message, style: _Dark.notice),
+      child: Text(message, style: WalletColors.notice),
     );
   }
-}
-
-enum WalletDetailTab {
-  assets('ASSETS'),
-  history('HISTORY');
-
-  const WalletDetailTab(this.label);
-  final String label;
-}
-
-enum WalletHistoryFilter {
-  all('All'),
-  received('Received'),
-  sent('Sent'),
-  executed('Contract'),
-  token('Token');
-
-  const WalletHistoryFilter(this.label);
-  final String label;
-}
-
-Map<String, List<WalletTransaction>> _groupByDay(
-  List<WalletTransaction> items,
-) {
-  final formatter = DateFormat('MMM dd, yyyy');
-  final groups = <String, List<WalletTransaction>>{};
-  for (final item in items) {
-    final key = formatter.format(item.timestamp);
-    groups.putIfAbsent(key, () => []).add(item);
-  }
-  return groups;
 }

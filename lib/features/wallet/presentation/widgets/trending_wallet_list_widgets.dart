@@ -1,11 +1,18 @@
-part of '../screens/trending_wallets_screen.dart';
+import 'package:flutter/material.dart';
 
-class _TrendingTopBar extends StatelessWidget {
-  const _TrendingTopBar({
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_colors.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_visual_painters.dart';
+
+class TrendingTopBar extends StatelessWidget {
+  const TrendingTopBar({
     required this.query,
     required this.onBack,
     required this.onRefresh,
     required this.onChanged,
+    super.key,
   });
 
   final TextEditingController query;
@@ -16,14 +23,14 @@ class _TrendingTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: _Dark.surface,
+      color: WalletColors.surface,
       padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
       child: Row(
         children: [
           IconButton(
             onPressed: onBack,
             icon: const Icon(Icons.arrow_back_ios_new_rounded),
-            color: _Dark.textPrimary,
+            color: WalletColors.textPrimary,
           ),
           Expanded(
             child: SizedBox(
@@ -31,12 +38,12 @@ class _TrendingTopBar extends StatelessWidget {
               child: TextField(
                 controller: query,
                 onChanged: onChanged,
-                style: _Dark.body,
+                style: WalletColors.body,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: _Dark.surfaceVariant,
+                  fillColor: WalletColors.surfaceVariant,
                   hintText: 'Explore any address',
-                  hintStyle: _Dark.sub,
+                  hintStyle: WalletColors.sub,
                   prefixIcon: const Icon(Icons.search_rounded),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -49,7 +56,7 @@ class _TrendingTopBar extends StatelessWidget {
           IconButton(
             onPressed: onRefresh,
             icon: const Icon(Icons.refresh_rounded),
-            color: _Dark.textSecondary,
+            color: WalletColors.textSecondary,
           ),
         ],
       ),
@@ -57,8 +64,12 @@ class _TrendingTopBar extends StatelessWidget {
   }
 }
 
-class _TrendingWalletRow extends StatelessWidget {
-  const _TrendingWalletRow({required this.wallet, required this.onTap});
+class TrendingWalletRow extends StatelessWidget {
+  const TrendingWalletRow({
+    required this.wallet,
+    required this.onTap,
+    super.key,
+  });
 
   final TrendingWallet wallet;
   final VoidCallback onTap;
@@ -83,12 +94,12 @@ class _TrendingWalletRow extends StatelessWidget {
                 children: [
                   Text(
                     wallet.displayName,
-                    style: _Dark.rowTitle,
+                    style: WalletColors.rowTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 3),
-                  Text(wallet.chain.label, style: _Dark.sub),
+                  Text(wallet.chain.label, style: WalletColors.sub),
                 ],
               ),
             ),
@@ -99,7 +110,7 @@ class _TrendingWalletRow extends StatelessWidget {
                   wallet.valueUsd == null
                       ? 'Syncing'
                       : formatCompactUsd(wallet.valueUsd!),
-                  style: _Dark.rowValue.copyWith(
+                  style: WalletColors.rowValue.copyWith(
                     color: wallet.isPositive ? AppColors.green : AppColors.red,
                   ),
                 ),

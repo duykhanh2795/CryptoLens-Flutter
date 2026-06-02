@@ -1,10 +1,20 @@
-part of '../screens/trending_wallets_screen.dart';
+import 'dart:async';
 
-void _showTransactionSheet(BuildContext context, WalletTransaction tx) {
-  final explorer = _transactionExplorerUrl(tx);
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_colors.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_format_helpers.dart';
+
+void showTransactionSheet(BuildContext context, WalletTransaction tx) {
+  final explorer = transactionExplorerUrl(tx);
   showModalBottomSheet<void>(
     context: context,
-    backgroundColor: _Dark.surface,
+    backgroundColor: WalletColors.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
     ),
@@ -15,26 +25,26 @@ void _showTransactionSheet(BuildContext context, WalletTransaction tx) {
         children: [
           Row(
             children: [
-              Text(tx.type.label, style: _Dark.sectionTitle),
+              Text(tx.type.label, style: WalletColors.sectionTitle),
               const Spacer(),
               IconButton(
                 onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.close_rounded),
-                color: _Dark.textSecondary,
+                color: WalletColors.textSecondary,
               ),
             ],
           ),
-          _DetailRow('Amount', '${_formatNative(tx.amount)} ${tx.symbol}'),
-          _DetailRow(
+          DetailRow('Amount', '${formatNativeAmount(tx.amount)} ${tx.symbol}'),
+          DetailRow(
             'Value',
             tx.valueUsd == null ? 'Unavailable' : formatPrice(tx.valueUsd!),
           ),
-          _DetailRow(
+          DetailRow(
             'Time',
             DateFormat('MMM dd, yyyy HH:mm').format(tx.timestamp),
           ),
-          _DetailRow('Tx hash', shortWalletAddress(tx.id)),
-          _DetailRow(
+          DetailRow('Tx hash', shortWalletAddress(tx.id)),
+          DetailRow(
             'Counterparty',
             tx.counterparty == null
                 ? 'Unavailable'
@@ -72,7 +82,7 @@ void _showTransactionSheet(BuildContext context, WalletTransaction tx) {
                   ? null
                   : () => unawaited(launchUrl(Uri.parse(explorer))),
               style: FilledButton.styleFrom(
-                backgroundColor: _Dark.yellow,
+                backgroundColor: WalletColors.yellow,
                 foregroundColor: const Color(0xFF1A1400),
               ),
               child: const Text('Open Explorer'),
@@ -84,8 +94,8 @@ void _showTransactionSheet(BuildContext context, WalletTransaction tx) {
   );
 }
 
-class _DetailRow extends StatelessWidget {
-  const _DetailRow(this.label, this.value);
+class DetailRow extends StatelessWidget {
+  const DetailRow(this.label, this.value, {super.key});
 
   final String label;
   final String value;
@@ -96,12 +106,12 @@ class _DetailRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         children: [
-          Text(label, style: _Dark.sub),
+          Text(label, style: WalletColors.sub),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
               value,
-              style: _Dark.body.copyWith(fontWeight: FontWeight.w800),
+              style: WalletColors.body.copyWith(fontWeight: FontWeight.w800),
               textAlign: TextAlign.end,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -111,31 +121,4 @@ class _DetailRow extends StatelessWidget {
       ),
     );
   }
-}
-
-String? _transactionExplorerUrl(WalletTransaction tx) {
-  if (tx.id.startsWith('fallback_') || tx.id.isEmpty) return null;
-  final base = switch (tx.networkLabel.toLowerCase()) {
-    'ethereum' => 'https://etherscan.io/tx/',
-    'polygon' => 'https://polygonscan.com/tx/',
-    'bnb chain' => 'https://bscscan.com/tx/',
-    _ => null,
-  };
-  return base == null ? null : '$base${tx.id}';
-}
-
-String _formatNative(double value) {
-  if (value >= 1) {
-    return value.toStringAsFixed(6).replaceFirst(RegExp(r'\.?0+$'), '');
-  }
-  if (value > 0) return value.toStringAsPrecision(4);
-  return '0';
-}
-
-extension on WalletTransactionType {
-  String get label => switch (this) {
-    WalletTransactionType.received => 'Received',
-    WalletTransactionType.sent => 'Sent',
-    WalletTransactionType.executed => 'Contract',
-  };
 }

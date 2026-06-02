@@ -1,6 +1,8 @@
-part of '../screens/trending_wallets_screen.dart';
+import 'package:flutter/material.dart';
 
-class _Dark {
+class WalletColors {
+  const WalletColors._();
+
   static const background = Color(0xFF050607);
   static const surface = Color(0xFF111112);
   static const surfaceVariant = Color(0xFF1B1C1E);
