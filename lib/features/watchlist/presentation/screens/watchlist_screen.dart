@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
-import 'package:cryptolens_flutter/shared/widgets/empty_state.dart';
-import 'package:cryptolens_flutter/features/market/presentation/coin_detail_screen.dart';
+import 'package:cryptolens_flutter/core/widgets/empty_state.dart';
+import 'package:cryptolens_flutter/features/market/presentation/screens/coin_detail_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 
 enum _WatchlistFilter { all, gainers, losers }

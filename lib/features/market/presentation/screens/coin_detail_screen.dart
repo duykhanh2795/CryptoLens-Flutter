@@ -9,10 +9,10 @@ import 'package:cryptolens_flutter/features/news/data/news_api.dart';
 import 'package:cryptolens_flutter/features/market/data/market_api.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
-import 'package:cryptolens_flutter/features/alerts/presentation/alerts_screen.dart';
-import 'package:cryptolens_flutter/features/news/presentation/news_screen.dart';
-import 'package:cryptolens_flutter/features/portfolio/presentation/portfolio_screen.dart';
-import 'market_controller.dart';
+import 'package:cryptolens_flutter/features/alerts/presentation/screens/alerts_screen.dart';
+import 'package:cryptolens_flutter/features/news/presentation/screens/news_screen.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/screens/portfolio_screen.dart';
+import '../market_controller.dart';
 
 class _DetailColors {
   static const background = Color(0xFF252629);

@@ -6,9 +6,9 @@ import 'package:cryptolens_flutter/features/auth/data/crypto_auth_service.dart';
 import 'package:cryptolens_flutter/features/market/data/market_api.dart';
 import 'package:cryptolens_flutter/features/watchlist/data/watchlist_store.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
-import 'package:cryptolens_flutter/features/auth/presentation/login_screen.dart';
-import 'package:cryptolens_flutter/features/auth/presentation/register_screen.dart';
-import 'package:cryptolens_flutter/features/auth/presentation/splash_screen.dart';
+import 'package:cryptolens_flutter/features/auth/presentation/screens/login_screen.dart';
+import 'package:cryptolens_flutter/features/auth/presentation/screens/register_screen.dart';
+import 'package:cryptolens_flutter/features/auth/presentation/screens/splash_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 import 'package:cryptolens_flutter/app/app_shell.dart';
 

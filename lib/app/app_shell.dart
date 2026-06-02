@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
-import 'package:cryptolens_flutter/features/home/presentation/home_screen.dart';
+import 'package:cryptolens_flutter/features/home/presentation/screens/home_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
-import 'package:cryptolens_flutter/features/market/presentation/markets_screen.dart';
-import 'package:cryptolens_flutter/features/news/presentation/news_screen.dart';
-import 'package:cryptolens_flutter/features/portfolio/presentation/portfolio_screen.dart';
-import 'package:cryptolens_flutter/features/profile/presentation/profile_screen.dart';
-import 'package:cryptolens_flutter/features/wallet/presentation/trending_wallets_screen.dart';
-import 'package:cryptolens_flutter/features/watchlist/presentation/watchlist_screen.dart';
+import 'package:cryptolens_flutter/features/market/presentation/screens/markets_screen.dart';
+import 'package:cryptolens_flutter/features/news/presentation/screens/news_screen.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/screens/portfolio_screen.dart';
+import 'package:cryptolens_flutter/features/profile/presentation/screens/profile_screen.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/screens/trending_wallets_screen.dart';
+import 'package:cryptolens_flutter/features/watchlist/presentation/screens/watchlist_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({

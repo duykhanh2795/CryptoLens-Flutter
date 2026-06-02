@@ -4,11 +4,11 @@ import 'package:cryptolens_flutter/features/auth/data/crypto_auth_service.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/features/profile/data/settings_store.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
-import 'package:cryptolens_flutter/features/alerts/presentation/alerts_screen.dart';
-import 'package:cryptolens_flutter/features/converter/presentation/converter_screen.dart';
-import 'package:cryptolens_flutter/features/exchange/presentation/manage_exchange_screen.dart';
+import 'package:cryptolens_flutter/features/alerts/presentation/screens/alerts_screen.dart';
+import 'package:cryptolens_flutter/features/converter/presentation/screens/converter_screen.dart';
+import 'package:cryptolens_flutter/features/exchange/presentation/screens/manage_exchange_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
-import 'package:cryptolens_flutter/features/wallet/presentation/wallet_watchlist_screen.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/screens/wallet_watchlist_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({

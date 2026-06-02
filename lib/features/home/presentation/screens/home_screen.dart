@@ -6,9 +6,9 @@ import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
-import 'package:cryptolens_flutter/features/market/presentation/coin_detail_screen.dart';
+import 'package:cryptolens_flutter/features/market/presentation/screens/coin_detail_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
-import 'package:cryptolens_flutter/features/news/presentation/news_screen.dart';
+import 'package:cryptolens_flutter/features/news/presentation/screens/news_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({

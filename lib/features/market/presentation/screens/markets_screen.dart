@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
-import 'package:cryptolens_flutter/shared/widgets/coin_row.dart';
-import 'package:cryptolens_flutter/shared/widgets/empty_state.dart';
+import 'package:cryptolens_flutter/core/widgets/coin_row.dart';
+import 'package:cryptolens_flutter/core/widgets/empty_state.dart';
 import 'coin_detail_screen.dart';
-import 'market_controller.dart';
+import '../market_controller.dart';
 
 class MarketsScreen extends StatelessWidget {
   const MarketsScreen({required this.controller, super.key});
