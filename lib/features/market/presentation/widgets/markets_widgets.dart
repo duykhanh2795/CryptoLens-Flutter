@@ -1,7 +1,10 @@
-part of '../screens/markets_screen.dart';
+import 'package:flutter/material.dart';
 
-class _MarketsHeader extends StatelessWidget {
-  const _MarketsHeader({required this.controller});
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
+
+class MarketsHeader extends StatelessWidget {
+  const MarketsHeader({required this.controller, super.key});
 
   final MarketController controller;
 
@@ -60,8 +63,8 @@ class _MarketsHeader extends StatelessWidget {
   }
 }
 
-class _MarketSearchField extends StatelessWidget {
-  const _MarketSearchField({required this.controller});
+class MarketSearchField extends StatelessWidget {
+  const MarketSearchField({required this.controller, super.key});
 
   final MarketController controller;
 
@@ -107,8 +110,8 @@ class _MarketSearchField extends StatelessWidget {
   }
 }
 
-class _MarketTabs extends StatelessWidget {
-  const _MarketTabs({required this.controller});
+class MarketTabs extends StatelessWidget {
+  const MarketTabs({required this.controller, super.key});
 
   final MarketController controller;
 
@@ -164,8 +167,8 @@ class _MarketTabs extends StatelessWidget {
   }
 }
 
-class _MarketTableHeader extends StatelessWidget {
-  const _MarketTableHeader();
+class MarketTableHeader extends StatelessWidget {
+  const MarketTableHeader({super.key});
 
   @override
   Widget build(BuildContext context) {

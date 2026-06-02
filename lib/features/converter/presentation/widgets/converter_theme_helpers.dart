@@ -1,6 +1,8 @@
-part of '../screens/converter_screen.dart';
+import 'package:flutter/material.dart';
 
-class _Dark {
+class ConverterColors {
+  const ConverterColors._();
+
   static const background = Color(0xFF050607);
   static const surface = Color(0xFF111112);
   static const textPrimary = Color(0xFFF4F5F6);
@@ -22,7 +24,7 @@ class _Dark {
   );
 }
 
-String _trim(double value) {
+String trimConverterValue(double value) {
   return value
       .toStringAsFixed(8)
       .replaceFirst(RegExp(r'0+$'), '')

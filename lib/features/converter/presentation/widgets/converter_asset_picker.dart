@@ -1,12 +1,17 @@
-part of '../screens/converter_screen.dart';
+import 'package:flutter/material.dart';
 
-class _AssetPicker extends StatelessWidget {
-  const _AssetPicker({
+import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_coin_picker_sheet.dart';
+import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_theme_helpers.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+
+class ConverterAssetPicker extends StatelessWidget {
+  const ConverterAssetPicker({
     required this.title,
     required this.isUsd,
     required this.coin,
     required this.onUsdChanged,
     required this.onCoinTap,
+    super.key,
   });
 
   final String title;
@@ -20,7 +25,7 @@ class _AssetPicker extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _Dark.surface,
+        color: ConverterColors.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -29,7 +34,7 @@ class _AssetPicker extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              color: _Dark.textSecondary,
+              color: ConverterColors.textSecondary,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -50,12 +55,12 @@ class _AssetPicker extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _Dark.surfaceVariant,
+                  color: ConverterColors.surfaceVariant,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   children: [
-                    _CoinIcon(coin: coin, size: 28),
+                    ConverterCoinIcon(coin: coin, size: 28),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -65,14 +70,14 @@ class _AssetPicker extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: _Dark.textPrimary,
+                          color: ConverterColors.textPrimary,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
                     const Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: _Dark.textSecondary,
+                      color: ConverterColors.textSecondary,
                     ),
                   ],
                 ),

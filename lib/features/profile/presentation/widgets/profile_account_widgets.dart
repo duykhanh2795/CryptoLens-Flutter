@@ -1,7 +1,10 @@
-part of '../screens/profile_screen.dart';
+import 'package:flutter/material.dart';
 
-class _ProfileTopBar extends StatelessWidget {
-  const _ProfileTopBar();
+import 'package:cryptolens_flutter/features/profile/presentation/widgets/profile_colors.dart';
+import 'package:cryptolens_flutter/features/profile/presentation/widgets/profile_dialogs.dart';
+
+class ProfileTopBar extends StatelessWidget {
+  const ProfileTopBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +16,7 @@ class _ProfileTopBar extends StatelessWidget {
             onPressed: () {},
             icon: const Icon(
               Icons.arrow_back_rounded,
-              color: _ProfileColors.textPrimary,
+              color: ProfileColors.textPrimary,
               size: 28,
             ),
           ),
@@ -22,7 +25,7 @@ class _ProfileTopBar extends StatelessWidget {
               'Account Info',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _ProfileColors.textPrimary,
+                color: ProfileColors.textPrimary,
                 fontSize: 22,
                 fontWeight: FontWeight.w900,
               ),
@@ -32,7 +35,7 @@ class _ProfileTopBar extends StatelessWidget {
             width: 48,
             child: Icon(
               Icons.manage_accounts_outlined,
-              color: _ProfileColors.textPrimary,
+              color: ProfileColors.textPrimary,
               size: 27,
             ),
           ),
@@ -42,8 +45,12 @@ class _ProfileTopBar extends StatelessWidget {
   }
 }
 
-class _AccountInfoCard extends StatelessWidget {
-  const _AccountInfoCard({required this.displayName, required this.email});
+class AccountInfoCard extends StatelessWidget {
+  const AccountInfoCard({
+    required this.displayName,
+    required this.email,
+    super.key,
+  });
 
   final String displayName;
   final String email;
@@ -53,7 +60,7 @@ class _AccountInfoCard extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: _ProfileColors.surface,
+        color: ProfileColors.surface,
         borderRadius: BorderRadius.circular(28),
       ),
       child: Stack(
@@ -64,7 +71,7 @@ class _AccountInfoCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               decoration: const BoxDecoration(
-                color: _ProfileColors.surfaceVariant,
+                color: ProfileColors.surfaceVariant,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(18),
                 ),
@@ -72,7 +79,7 @@ class _AccountInfoCard extends StatelessWidget {
               child: const Text(
                 'Standard',
                 style: TextStyle(
-                  color: _ProfileColors.textPrimary,
+                  color: ProfileColors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -84,7 +91,7 @@ class _AccountInfoCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    _ProfileAvatar(name: displayName),
+                    ProfileAvatar(name: displayName),
                     const SizedBox(width: 20),
                     Expanded(
                       child: Text(
@@ -92,7 +99,7 @@ class _AccountInfoCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: _ProfileColors.textPrimary,
+                          color: ProfileColors.textPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
                         ),
@@ -101,20 +108,20 @@ class _AccountInfoCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 26),
-                _AccountInfoLine(
+                AccountInfoLine(
                   label: 'CryptoLens UID',
-                  value: _profileUid(email),
+                  value: profileUid(email),
                   icon: Icons.content_copy_outlined,
                 ),
                 const SizedBox(height: 18),
-                _AccountInfoLine(
+                AccountInfoLine(
                   label: 'Registration info',
                   value: email.isEmpty ? 'Not available' : email,
                   icon: Icons.visibility_outlined,
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Divider(color: _ProfileColors.divider),
+                  child: Divider(color: ProfileColors.divider),
                 ),
                 Row(
                   children: [
@@ -125,7 +132,7 @@ class _AccountInfoCard extends StatelessWidget {
                           const Text(
                             'Upgrade to Pro 1',
                             style: TextStyle(
-                              color: _ProfileColors.textPrimary,
+                              color: ProfileColors.textPrimary,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -133,7 +140,7 @@ class _AccountInfoCard extends StatelessWidget {
                           const Text(
                             'Sync exchanges and wallet activity to level up',
                             style: TextStyle(
-                              color: _ProfileColors.textSecondary,
+                              color: ProfileColors.textSecondary,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -144,28 +151,28 @@ class _AccountInfoCard extends StatelessWidget {
                             child: LinearProgressIndicator(
                               value: 0.08,
                               minHeight: 7,
-                              color: _ProfileColors.yellow,
-                              backgroundColor: _ProfileColors.surfaceVariant,
+                              color: ProfileColors.yellow,
+                              backgroundColor: ProfileColors.surfaceVariant,
                             ),
                           ),
                         ],
                       ),
                     ),
                     TextButton(
-                      onPressed: () => _showComingSoon(context, 'Benefits'),
+                      onPressed: () => showComingSoon(context, 'Benefits'),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             'Benefits',
                             style: TextStyle(
-                              color: _ProfileColors.yellow,
+                              color: ProfileColors.yellow,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                           Icon(
                             Icons.chevron_right_rounded,
-                            color: _ProfileColors.yellow,
+                            color: ProfileColors.yellow,
                           ),
                         ],
                       ),
@@ -181,8 +188,8 @@ class _AccountInfoCard extends StatelessWidget {
   }
 }
 
-class _ProfileAvatar extends StatelessWidget {
-  const _ProfileAvatar({required this.name});
+class ProfileAvatar extends StatelessWidget {
+  const ProfileAvatar({required this.name, super.key});
 
   final String name;
 
@@ -198,7 +205,7 @@ class _ProfileAvatar extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 32,
-          backgroundColor: _ProfileColors.yellow,
+          backgroundColor: ProfileColors.yellow,
           child: Text(
             initial,
             style: const TextStyle(
@@ -216,11 +223,11 @@ class _ProfileAvatar extends StatelessWidget {
             height: 24,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: _ProfileColors.surfaceVariant,
+              color: ProfileColors.surfaceVariant,
             ),
             child: const Icon(
               Icons.edit_outlined,
-              color: _ProfileColors.textPrimary,
+              color: ProfileColors.textPrimary,
               size: 14,
             ),
           ),
@@ -230,11 +237,12 @@ class _ProfileAvatar extends StatelessWidget {
   }
 }
 
-class _AccountInfoLine extends StatelessWidget {
-  const _AccountInfoLine({
+class AccountInfoLine extends StatelessWidget {
+  const AccountInfoLine({
     required this.label,
     required this.value,
     required this.icon,
+    super.key,
   });
 
   final String label;
@@ -250,7 +258,7 @@ class _AccountInfoLine extends StatelessWidget {
           child: Text(
             label,
             style: const TextStyle(
-              color: _ProfileColors.textSecondary,
+              color: ProfileColors.textSecondary,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -262,24 +270,25 @@ class _AccountInfoLine extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.end,
             style: const TextStyle(
-              color: _ProfileColors.textPrimary,
+              color: ProfileColors.textPrimary,
               fontWeight: FontWeight.w700,
             ),
           ),
         ),
         const SizedBox(width: 10),
-        Icon(icon, color: _ProfileColors.textTertiary, size: 19),
+        Icon(icon, color: ProfileColors.textTertiary, size: 19),
       ],
     );
   }
 }
 
-class _ProfileRow extends StatelessWidget {
-  const _ProfileRow({
+class ProfileRow extends StatelessWidget {
+  const ProfileRow({
     required this.icon,
     required this.title,
     required this.onTap,
     this.trailingText,
+    super.key,
   });
 
   final IconData icon;
@@ -299,14 +308,14 @@ class _ProfileRow extends StatelessWidget {
           children: [
             SizedBox(
               width: 34,
-              child: Icon(icon, color: _ProfileColors.textPrimary, size: 25),
+              child: Icon(icon, color: ProfileColors.textPrimary, size: 25),
             ),
             const SizedBox(width: 18),
             Expanded(
               child: Text(
                 title,
                 style: const TextStyle(
-                  color: _ProfileColors.textPrimary,
+                  color: ProfileColors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
                 maxLines: 1,
@@ -325,7 +334,7 @@ class _ProfileRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.right,
                     style: const TextStyle(
-                      color: _ProfileColors.textSecondary,
+                      color: ProfileColors.textSecondary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -338,7 +347,7 @@ class _ProfileRow extends StatelessWidget {
               width: 24,
               child: Icon(
                 Icons.chevron_right_rounded,
-                color: _ProfileColors.textTertiary,
+                color: ProfileColors.textTertiary,
                 size: 22,
               ),
             ),
@@ -349,12 +358,13 @@ class _ProfileRow extends StatelessWidget {
   }
 }
 
-class _CompactProfileAction extends StatelessWidget {
-  const _CompactProfileAction({
+class CompactProfileAction extends StatelessWidget {
+  const CompactProfileAction({
     required this.label,
     required this.icon,
     required this.onTap,
-    this.color = _ProfileColors.textPrimary,
+    this.color = ProfileColors.textPrimary,
+    super.key,
   });
 
   final String label;
@@ -371,7 +381,7 @@ class _CompactProfileAction extends StatelessWidget {
         height: 52,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: _ProfileColors.surface,
+          color: ProfileColors.surface,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(

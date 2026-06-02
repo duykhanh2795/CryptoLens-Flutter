@@ -1,6 +1,10 @@
-part of '../screens/profile_screen.dart';
+import 'package:flutter/material.dart';
 
-class _ProfileColors {
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+
+class ProfileColors {
+  const ProfileColors._();
+
   static const background = AppColors.background;
   static const surface = AppColors.surface;
   static const surfaceVariant = AppColors.surfaceVariant;

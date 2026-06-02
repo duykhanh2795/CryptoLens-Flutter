@@ -1,12 +1,17 @@
-part of '../screens/wallet_watchlist_screen.dart';
+import 'package:flutter/material.dart';
 
-class _WatchedWalletCard extends StatelessWidget {
-  const _WatchedWalletCard({
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
+
+class WatchedWalletCard extends StatelessWidget {
+  const WatchedWalletCard({
     required this.wallet,
     required this.estimatedValue,
     required this.assetCount,
     required this.onDetails,
     required this.onDelete,
+    super.key,
   });
 
   final WatchedWallet wallet;
@@ -23,7 +28,7 @@ class _WatchedWalletCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _Dark.surface,
+          color: WalletWatchlistColors.surface,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
@@ -31,9 +36,14 @@ class _WatchedWalletCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.wallet_rounded, color: _Dark.yellow),
+                const Icon(
+                  Icons.wallet_rounded,
+                  color: WalletWatchlistColors.yellow,
+                ),
                 const SizedBox(width: 10),
-                Expanded(child: Text(wallet.label, style: _Dark.title)),
+                Expanded(
+                  child: Text(wallet.label, style: WalletWatchlistColors.title),
+                ),
                 IconButton(
                   onPressed: onDelete,
                   icon: const Icon(
@@ -43,29 +53,32 @@ class _WatchedWalletCard extends StatelessWidget {
                 ),
               ],
             ),
-            Text(wallet.chain.label, style: _Dark.sub),
+            Text(wallet.chain.label, style: WalletWatchlistColors.sub),
             const SizedBox(height: 4),
             Text(
               wallet.shortAddress,
               style: const TextStyle(
-                color: _Dark.textTertiary,
+                color: WalletWatchlistColors.textTertiary,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const Divider(color: _Dark.surfaceVariant, height: 24),
+            const Divider(
+              color: WalletWatchlistColors.surfaceVariant,
+              height: 24,
+            ),
             Row(
               children: [
                 Expanded(
-                  child: _WalletMetric(
+                  child: WalletMetric(
                     label: 'Estimated',
                     value: formatPrice(estimatedValue),
                   ),
                 ),
                 Expanded(
-                  child: _WalletMetric(label: 'Assets', value: '$assetCount'),
+                  child: WalletMetric(label: 'Assets', value: '$assetCount'),
                 ),
                 const Expanded(
-                  child: _WalletMetric(label: 'Status', value: 'Watching'),
+                  child: WalletMetric(label: 'Status', value: 'Watching'),
                 ),
               ],
             ),
@@ -76,8 +89,8 @@ class _WatchedWalletCard extends StatelessWidget {
   }
 }
 
-class _WalletMetric extends StatelessWidget {
-  const _WalletMetric({required this.label, required this.value});
+class WalletMetric extends StatelessWidget {
+  const WalletMetric({required this.label, required this.value, super.key});
 
   final String label;
   final String value;
@@ -90,7 +103,7 @@ class _WalletMetric extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            color: _Dark.textSecondary,
+            color: WalletWatchlistColors.textSecondary,
             fontSize: 12,
             fontWeight: FontWeight.w800,
           ),
@@ -99,7 +112,7 @@ class _WalletMetric extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            color: _Dark.textPrimary,
+            color: WalletWatchlistColors.textPrimary,
             fontWeight: FontWeight.w900,
           ),
         ),
@@ -108,7 +121,9 @@ class _WalletMetric extends StatelessWidget {
   }
 }
 
-class _Dark {
+class WalletWatchlistColors {
+  const WalletWatchlistColors._();
+
   static const background = Color(0xFF050607);
   static const surface = Color(0xFF111112);
   static const surfaceVariant = Color(0xFF1B1C1E);

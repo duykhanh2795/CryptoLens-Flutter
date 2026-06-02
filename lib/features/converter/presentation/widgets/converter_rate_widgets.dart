@@ -1,7 +1,16 @@
-part of '../screens/converter_screen.dart';
+import 'package:flutter/material.dart';
 
-class _QuickPairs extends StatelessWidget {
-  const _QuickPairs({required this.coins, required this.onSelected});
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_coin_picker_sheet.dart';
+import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_theme_helpers.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+
+class ConverterQuickPairs extends StatelessWidget {
+  const ConverterQuickPairs({
+    required this.coins,
+    required this.onSelected,
+    super.key,
+  });
 
   final List<Coin> coins;
   final void Function(String fromId, String toId) onSelected;
@@ -30,7 +39,7 @@ class _QuickPairs extends StatelessWidget {
         const Text(
           'Quick pairs',
           style: TextStyle(
-            color: _Dark.textSecondary,
+            color: ConverterColors.textSecondary,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -55,12 +64,13 @@ class _QuickPairs extends StatelessWidget {
   }
 }
 
-class _RateCard extends StatelessWidget {
-  const _RateCard({
+class ConverterRateCard extends StatelessWidget {
+  const ConverterRateCard({
     required this.fromLabel,
     required this.toLabel,
     required this.directRate,
     required this.inverseRate,
+    super.key,
   });
 
   final String fromLabel;
@@ -73,7 +83,7 @@ class _RateCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _Dark.surface,
+        color: ConverterColors.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -82,22 +92,28 @@ class _RateCard extends StatelessWidget {
           const Text(
             'Rate',
             style: TextStyle(
-              color: _Dark.textPrimary,
+              color: ConverterColors.textPrimary,
               fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 10),
-          _RateRow('1 $fromLabel', '${_trim(directRate)} $toLabel'),
-          const Divider(color: _Dark.surfaceVariant),
-          _RateRow('1 $toLabel', '${_trim(inverseRate)} $fromLabel'),
+          ConverterRateRow(
+            '1 $fromLabel',
+            '${trimConverterValue(directRate)} $toLabel',
+          ),
+          const Divider(color: ConverterColors.surfaceVariant),
+          ConverterRateRow(
+            '1 $toLabel',
+            '${trimConverterValue(inverseRate)} $fromLabel',
+          ),
         ],
       ),
     );
   }
 }
 
-class _RateRow extends StatelessWidget {
-  const _RateRow(this.label, this.value);
+class ConverterRateRow extends StatelessWidget {
+  const ConverterRateRow(this.label, this.value, {super.key});
 
   final String label;
   final String value;
@@ -106,14 +122,17 @@ class _RateRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(label, style: const TextStyle(color: _Dark.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(color: ConverterColors.textSecondary),
+        ),
         const Spacer(),
         Flexible(
           child: Text(
             value,
             textAlign: TextAlign.end,
             style: const TextStyle(
-              color: _Dark.textPrimary,
+              color: ConverterColors.textPrimary,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -123,8 +142,8 @@ class _RateRow extends StatelessWidget {
   }
 }
 
-class _MarketContext extends StatelessWidget {
-  const _MarketContext({required this.coins});
+class ConverterMarketContext extends StatelessWidget {
+  const ConverterMarketContext({required this.coins, super.key});
 
   final List<Coin> coins;
 
@@ -134,7 +153,7 @@ class _MarketContext extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: _Dark.surface,
+        color: ConverterColors.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -145,20 +164,20 @@ class _MarketContext extends StatelessWidget {
             child: Text(
               'Market context',
               style: TextStyle(
-                color: _Dark.textPrimary,
+                color: ConverterColors.textPrimary,
                 fontWeight: FontWeight.w900,
               ),
             ),
           ),
-          for (final coin in coins) _MarketContextRow(coin: coin),
+          for (final coin in coins) ConverterMarketContextRow(coin: coin),
         ],
       ),
     );
   }
 }
 
-class _MarketContextRow extends StatelessWidget {
-  const _MarketContextRow({required this.coin});
+class ConverterMarketContextRow extends StatelessWidget {
+  const ConverterMarketContextRow({required this.coin, super.key});
 
   final Coin coin;
 
@@ -169,7 +188,7 @@ class _MarketContextRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
-          _CoinIcon(coin: coin, size: 34),
+          ConverterCoinIcon(coin: coin, size: 34),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -178,7 +197,7 @@ class _MarketContextRow extends StatelessWidget {
                 Text(
                   coin.symbol,
                   style: const TextStyle(
-                    color: _Dark.textPrimary,
+                    color: ConverterColors.textPrimary,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
@@ -186,7 +205,7 @@ class _MarketContextRow extends StatelessWidget {
                   coin.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: _Dark.textSecondary),
+                  style: const TextStyle(color: ConverterColors.textSecondary),
                 ),
               ],
             ),
@@ -197,14 +216,14 @@ class _MarketContextRow extends StatelessWidget {
               Text(
                 formatPrice(coin.currentPrice),
                 style: const TextStyle(
-                  color: _Dark.textPrimary,
+                  color: ConverterColors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
               Text(
                 formatPercent(coin.priceChangePercent24h),
                 style: TextStyle(
-                  color: positive ? _Dark.green : _Dark.red,
+                  color: positive ? ConverterColors.green : ConverterColors.red,
                   fontWeight: FontWeight.w800,
                 ),
               ),

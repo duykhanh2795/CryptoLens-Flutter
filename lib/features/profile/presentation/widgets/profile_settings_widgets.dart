@@ -1,13 +1,18 @@
-part of '../screens/profile_screen.dart';
+import 'package:flutter/material.dart';
 
-class _SettingsScreen extends StatefulWidget {
-  const _SettingsScreen();
+import 'package:cryptolens_flutter/features/profile/data/settings_store.dart';
+import 'package:cryptolens_flutter/features/profile/domain/settings.dart';
+import 'package:cryptolens_flutter/features/profile/presentation/widgets/profile_colors.dart';
+import 'package:cryptolens_flutter/features/profile/presentation/widgets/profile_dialogs.dart';
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
 
   @override
-  State<_SettingsScreen> createState() => _SettingsScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<_SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen> {
   final _store = SettingsStore();
   AppSettings _settings = const AppSettings();
 
@@ -31,7 +36,7 @@ class _SettingsScreenState extends State<_SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _ProfileColors.background,
+      backgroundColor: ProfileColors.background,
       body: SafeArea(
         child: ListView(
           children: [
@@ -41,22 +46,22 @@ class _SettingsScreenState extends State<_SettingsScreen> {
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(
                     Icons.arrow_back_ios_new_rounded,
-                    color: _ProfileColors.textPrimary,
+                    color: ProfileColors.textPrimary,
                     size: 20,
                   ),
                 ),
                 const Text(
                   'Settings',
                   style: TextStyle(
-                    color: _ProfileColors.textPrimary,
+                    color: ProfileColors.textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
             ),
-            const _SettingsSectionHeader('General'),
-            _SelectionRow(
+            const SettingsSectionHeader('General'),
+            SelectionRow(
               title: 'Currency',
               value: _settings.currency.label,
               options: AppCurrency.values.map((value) => value.label).toList(),
@@ -69,7 +74,7 @@ class _SettingsScreenState extends State<_SettingsScreen> {
                 ),
               ),
             ),
-            _SelectionRow(
+            SelectionRow(
               title: 'Theme',
               value: _settings.theme.label,
               options: AppThemeMode.values.map((value) => value.label).toList(),
@@ -82,7 +87,7 @@ class _SettingsScreenState extends State<_SettingsScreen> {
                 ),
               ),
             ),
-            _SelectionRow(
+            SelectionRow(
               title: 'Language',
               value: _settings.language.label,
               options: AppLanguage.values.map((value) => value.label).toList(),
@@ -95,7 +100,7 @@ class _SettingsScreenState extends State<_SettingsScreen> {
                 ),
               ),
             ),
-            _SelectionRow(
+            SelectionRow(
               title: 'Price Format',
               value: _settings.priceFormat.label,
               options: PriceDisplayFormat.values
@@ -110,36 +115,36 @@ class _SettingsScreenState extends State<_SettingsScreen> {
                 ),
               ),
             ),
-            const _SettingsDivider(),
-            const _SettingsSectionHeader('Privacy'),
-            _SwitchRow(
+            const SettingsDivider(),
+            const SettingsSectionHeader('Privacy'),
+            SwitchRow(
               title: 'Show Portfolio Value',
               value: _settings.showPortfolioValue,
               onChanged: (value) =>
                   _save(_settings.copyWith(showPortfolioValue: value)),
             ),
-            _SwitchRow(
+            SwitchRow(
               title: 'Biometric Lock',
               value: _settings.biometricLock,
               onChanged: (value) =>
                   _save(_settings.copyWith(biometricLock: value)),
             ),
-            const _SettingsDivider(),
-            const _SettingsSectionHeader('Notifications'),
-            _SwitchRow(
+            const SettingsDivider(),
+            const SettingsSectionHeader('Notifications'),
+            SwitchRow(
               title: 'Push Notifications',
               value: _settings.enableNotifications,
               onChanged: (value) =>
                   _save(_settings.copyWith(enableNotifications: value)),
             ),
-            const _SettingsDivider(),
-            const _SettingsSectionHeader('Data'),
-            const _InfoRow(title: 'Data Source', value: 'Binance - CoinGecko'),
-            const _InfoRow(title: 'Price Refresh', value: 'Realtime'),
-            const _SettingsDivider(),
-            const _SettingsSectionHeader('About'),
-            const _InfoRow(title: 'Version', value: '1.0.0'),
-            const _InfoRow(title: 'Built with', value: 'Flutter - Dart'),
+            const SettingsDivider(),
+            const SettingsSectionHeader('Data'),
+            const InfoRow(title: 'Data Source', value: 'Binance - CoinGecko'),
+            const InfoRow(title: 'Price Refresh', value: 'Realtime'),
+            const SettingsDivider(),
+            const SettingsSectionHeader('About'),
+            const InfoRow(title: 'Version', value: '1.0.0'),
+            const InfoRow(title: 'Built with', value: 'Flutter - Dart'),
             const SizedBox(height: 80),
           ],
         ),
@@ -148,8 +153,8 @@ class _SettingsScreenState extends State<_SettingsScreen> {
   }
 }
 
-class _SettingsSectionHeader extends StatelessWidget {
-  const _SettingsSectionHeader(this.title);
+class SettingsSectionHeader extends StatelessWidget {
+  const SettingsSectionHeader(this.title, {super.key});
 
   final String title;
 
@@ -160,7 +165,7 @@ class _SettingsSectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-          color: _ProfileColors.textSecondary,
+          color: ProfileColors.textSecondary,
           fontWeight: FontWeight.w800,
         ),
       ),
@@ -168,12 +173,13 @@ class _SettingsSectionHeader extends StatelessWidget {
   }
 }
 
-class _SelectionRow extends StatelessWidget {
-  const _SelectionRow({
+class SelectionRow extends StatelessWidget {
+  const SelectionRow({
     required this.title,
     required this.value,
     required this.options,
     required this.onSelected,
+    super.key,
   });
 
   final String title;
@@ -184,7 +190,8 @@ class _SelectionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => _showSelection(context, title, value, options, onSelected),
+      onTap: () =>
+          showProfileSelection(context, title, value, options, onSelected),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         child: Row(
@@ -193,7 +200,7 @@ class _SelectionRow extends StatelessWidget {
               child: Text(
                 title,
                 style: const TextStyle(
-                  color: _ProfileColors.textPrimary,
+                  color: ProfileColors.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
@@ -202,14 +209,14 @@ class _SelectionRow extends StatelessWidget {
             Text(
               value,
               style: const TextStyle(
-                color: _ProfileColors.textSecondary,
+                color: ProfileColors.textSecondary,
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(width: 4),
             const Icon(
               Icons.chevron_right_rounded,
-              color: _ProfileColors.textTertiary,
+              color: ProfileColors.textTertiary,
               size: 18,
             ),
           ],
@@ -219,11 +226,12 @@ class _SelectionRow extends StatelessWidget {
   }
 }
 
-class _SwitchRow extends StatelessWidget {
-  const _SwitchRow({
+class SwitchRow extends StatelessWidget {
+  const SwitchRow({
     required this.title,
     required this.value,
     required this.onChanged,
+    super.key,
   });
 
   final String title;
@@ -242,7 +250,7 @@ class _SwitchRow extends StatelessWidget {
               child: Text(
                 title,
                 style: const TextStyle(
-                  color: _ProfileColors.textPrimary,
+                  color: ProfileColors.textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
@@ -251,9 +259,9 @@ class _SwitchRow extends StatelessWidget {
             Switch(
               value: value,
               activeThumbColor: Colors.white,
-              activeTrackColor: _ProfileColors.yellow,
-              inactiveThumbColor: _ProfileColors.textTertiary,
-              inactiveTrackColor: _ProfileColors.surfaceVariant,
+              activeTrackColor: ProfileColors.yellow,
+              inactiveThumbColor: ProfileColors.textTertiary,
+              inactiveTrackColor: ProfileColors.surfaceVariant,
               onChanged: onChanged,
             ),
           ],
@@ -263,8 +271,8 @@ class _SwitchRow extends StatelessWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.title, required this.value});
+class InfoRow extends StatelessWidget {
+  const InfoRow({required this.title, required this.value, super.key});
 
   final String title;
   final String value;
@@ -279,7 +287,7 @@ class _InfoRow extends StatelessWidget {
             child: Text(
               title,
               style: const TextStyle(
-                color: _ProfileColors.textPrimary,
+                color: ProfileColors.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -292,7 +300,7 @@ class _InfoRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.end,
               style: const TextStyle(
-                color: _ProfileColors.textSecondary,
+                color: ProfileColors.textSecondary,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -303,14 +311,14 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _SettingsDivider extends StatelessWidget {
-  const _SettingsDivider();
+class SettingsDivider extends StatelessWidget {
+  const SettingsDivider({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const Padding(
       padding: EdgeInsets.only(top: 14),
-      child: Divider(color: _ProfileColors.divider, height: 1),
+      child: Divider(color: ProfileColors.divider, height: 1),
     );
   }
 }

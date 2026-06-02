@@ -1,12 +1,17 @@
-part of '../screens/profile_screen.dart';
+import 'package:flutter/material.dart';
 
-void _showComingSoon(BuildContext context, String feature) {
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/auth/data/crypto_auth_service.dart';
+import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
+import 'package:cryptolens_flutter/features/profile/presentation/widgets/profile_colors.dart';
+
+void showComingSoon(BuildContext context, String feature) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(content: Text('$feature is being ported from Kotlin.')),
   );
 }
 
-void _showChangePassword(BuildContext context) {
+void showChangePassword(BuildContext context) {
   final newPassword = TextEditingController();
   final confirmPassword = TextEditingController();
   var visible = false;
@@ -16,10 +21,10 @@ void _showChangePassword(BuildContext context) {
     context: context,
     builder: (_) => StatefulBuilder(
       builder: (context, setDialogState) => AlertDialog(
-        backgroundColor: _ProfileColors.surface,
+        backgroundColor: ProfileColors.surface,
         title: const Text(
           'Change Password',
-          style: TextStyle(color: _ProfileColors.textPrimary),
+          style: TextStyle(color: ProfileColors.textPrimary),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -45,7 +50,7 @@ void _showChangePassword(BuildContext context) {
                   setDialogState(() => visible = value ?? false),
               title: const Text(
                 'Show password',
-                style: TextStyle(color: _ProfileColors.textSecondary),
+                style: TextStyle(color: ProfileColors.textSecondary),
               ),
             ),
             if (error != null)
@@ -63,7 +68,7 @@ void _showChangePassword(BuildContext context) {
             onPressed: saving ? null : () => Navigator.of(context).pop(),
             child: const Text(
               'Cancel',
-              style: TextStyle(color: _ProfileColors.textSecondary),
+              style: TextStyle(color: ProfileColors.textSecondary),
             ),
           ),
           FilledButton(
@@ -97,7 +102,7 @@ void _showChangePassword(BuildContext context) {
                     }
                   },
             style: FilledButton.styleFrom(
-              backgroundColor: _ProfileColors.yellow,
+              backgroundColor: ProfileColors.yellow,
             ),
             child: saving
                 ? const SizedBox.square(
@@ -118,26 +123,26 @@ void _showChangePassword(BuildContext context) {
   });
 }
 
-void _showClearPortfolio(BuildContext context) {
+void showClearPortfolio(BuildContext context) {
   showDialog<void>(
     context: context,
     builder: (_) => AlertDialog(
-      backgroundColor: _ProfileColors.surface,
+      backgroundColor: ProfileColors.surface,
       icon: const Icon(Icons.delete_forever_outlined, color: AppColors.red),
       title: const Text(
         'Clear Portfolio?',
-        style: TextStyle(color: _ProfileColors.textPrimary),
+        style: TextStyle(color: ProfileColors.textPrimary),
       ),
       content: const Text(
         'This removes all local portfolio transactions. Exchange connections stay linked and can be synced again.',
-        style: TextStyle(color: _ProfileColors.textSecondary),
+        style: TextStyle(color: ProfileColors.textSecondary),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text(
             'Cancel',
-            style: TextStyle(color: _ProfileColors.textSecondary),
+            style: TextStyle(color: ProfileColors.textSecondary),
           ),
         ),
         TextButton(
@@ -156,26 +161,26 @@ void _showClearPortfolio(BuildContext context) {
   );
 }
 
-void _showLogout(BuildContext context, VoidCallback onLogout) {
+void showLogout(BuildContext context, VoidCallback onLogout) {
   showDialog<void>(
     context: context,
     builder: (_) => AlertDialog(
-      backgroundColor: _ProfileColors.surface,
+      backgroundColor: ProfileColors.surface,
       icon: const Icon(Icons.logout_rounded, color: AppColors.red),
       title: const Text(
         'Log Out?',
-        style: TextStyle(color: _ProfileColors.textPrimary),
+        style: TextStyle(color: ProfileColors.textPrimary),
       ),
       content: const Text(
         'Your portfolio data will remain saved locally on this device.',
-        style: TextStyle(color: _ProfileColors.textSecondary),
+        style: TextStyle(color: ProfileColors.textSecondary),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text(
             'Cancel',
-            style: TextStyle(color: _ProfileColors.textSecondary),
+            style: TextStyle(color: ProfileColors.textSecondary),
           ),
         ),
         FilledButton(
@@ -191,7 +196,7 @@ void _showLogout(BuildContext context, VoidCallback onLogout) {
   );
 }
 
-String _profileUid(String email) {
+String profileUid(String email) {
   final hash = email.codeUnits.fold<int>(
     0,
     (value, unit) => (value * 31 + unit) & 0x7fffffff,
@@ -199,7 +204,7 @@ String _profileUid(String email) {
   return hash.toString().padLeft(9, '0').substring(0, 9);
 }
 
-void _showSelection(
+void showProfileSelection(
   BuildContext context,
   String title,
   String selected,
@@ -209,7 +214,7 @@ void _showSelection(
   showDialog<void>(
     context: context,
     builder: (_) => Dialog(
-      backgroundColor: _ProfileColors.surface,
+      backgroundColor: ProfileColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -221,14 +226,14 @@ void _showSelection(
               child: Text(
                 title,
                 style: const TextStyle(
-                  color: _ProfileColors.textPrimary,
+                  color: ProfileColors.textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                 ),
               ),
             ),
           ),
-          const Divider(color: _ProfileColors.divider, height: 1),
+          const Divider(color: ProfileColors.divider, height: 1),
           for (final option in options)
             InkWell(
               onTap: () {
@@ -247,8 +252,8 @@ void _showSelection(
                         option,
                         style: TextStyle(
                           color: option == selected
-                              ? _ProfileColors.yellow
-                              : _ProfileColors.textPrimary,
+                              ? ProfileColors.yellow
+                              : ProfileColors.textPrimary,
                           fontWeight: option == selected
                               ? FontWeight.w900
                               : FontWeight.w700,
@@ -258,7 +263,7 @@ void _showSelection(
                     if (option == selected)
                       const Icon(
                         Icons.check_rounded,
-                        color: _ProfileColors.yellow,
+                        color: ProfileColors.yellow,
                         size: 18,
                       ),
                   ],
@@ -271,7 +276,7 @@ void _showSelection(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text(
                 'Cancel',
-                style: TextStyle(color: _ProfileColors.textSecondary),
+                style: TextStyle(color: ProfileColors.textSecondary),
               ),
             ),
           ),

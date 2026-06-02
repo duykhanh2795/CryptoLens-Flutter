@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/core/widgets/coin_row.dart';
 import 'package:cryptolens_flutter/core/widgets/empty_state.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/markets_widgets.dart';
 import 'coin_detail_screen.dart';
 import '../market_controller.dart';
-
-part '../widgets/markets_widgets.dart';
 
 class MarketsScreen extends StatelessWidget {
   const MarketsScreen({required this.controller, super.key});
@@ -21,13 +19,13 @@ class MarketsScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
         children: [
-          _MarketsHeader(controller: controller),
+          MarketsHeader(controller: controller),
           const SizedBox(height: 12),
-          _MarketSearchField(controller: controller),
+          MarketSearchField(controller: controller),
           const SizedBox(height: 14),
-          _MarketTabs(controller: controller),
+          MarketTabs(controller: controller),
           const SizedBox(height: 10),
-          const _MarketTableHeader(),
+          const MarketTableHeader(),
           if (controller.isLoading)
             const Padding(
               padding: EdgeInsets.only(top: 170),

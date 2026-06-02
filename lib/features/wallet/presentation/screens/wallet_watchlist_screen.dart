@@ -4,12 +4,9 @@ import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/features/wallet/data/wallet_store.dart';
 import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
-import 'package:cryptolens_flutter/core/theme/app_theme.dart';
-import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_watchlist_widgets.dart';
 import 'trending_wallets_screen.dart';
-
-part '../widgets/wallet_watchlist_widgets.dart';
 
 class WalletWatchlistScreen extends StatefulWidget {
   const WalletWatchlistScreen({required this.controller, super.key});
@@ -33,11 +30,11 @@ class _WalletWatchlistScreenState extends State<WalletWatchlistScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _Dark.background,
+      backgroundColor: WalletWatchlistColors.background,
       appBar: AppBar(
         title: const Text('Wallet Watchlist'),
-        backgroundColor: _Dark.background,
-        foregroundColor: _Dark.textPrimary,
+        backgroundColor: WalletWatchlistColors.background,
+        foregroundColor: WalletWatchlistColors.textPrimary,
         actions: [
           IconButton(
             onPressed: _loadWallets,
@@ -45,7 +42,10 @@ class _WalletWatchlistScreenState extends State<WalletWatchlistScreen> {
           ),
           IconButton(
             onPressed: _showAddDialog,
-            icon: const Icon(Icons.add_rounded, color: _Dark.yellow),
+            icon: const Icon(
+              Icons.add_rounded,
+              color: WalletWatchlistColors.yellow,
+            ),
           ),
         ],
       ),
@@ -70,7 +70,7 @@ class _WalletWatchlistScreenState extends State<WalletWatchlistScreen> {
                   ),
                   widget.controller.coins,
                 );
-                return _WatchedWalletCard(
+                return WatchedWalletCard(
                   wallet: wallet,
                   estimatedValue: detail.assets.fold<double>(
                     0,
@@ -115,19 +115,19 @@ class _WalletWatchlistScreenState extends State<WalletWatchlistScreen> {
           children: [
             const Icon(
               Icons.account_balance_wallet_outlined,
-              color: _Dark.textTertiary,
+              color: WalletWatchlistColors.textTertiary,
               size: 64,
             ),
             const SizedBox(height: 16),
             const Text(
               'No watched wallets',
-              style: _Dark.hero,
+              style: WalletWatchlistColors.hero,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             const Text(
               'Add an address manually or save one from Trending Wallets.',
-              style: TextStyle(color: _Dark.textSecondary),
+              style: TextStyle(color: WalletWatchlistColors.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 18),

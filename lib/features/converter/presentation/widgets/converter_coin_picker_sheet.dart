@@ -1,11 +1,15 @@
-part of '../screens/converter_screen.dart';
+import 'package:flutter/material.dart';
 
-class _CoinPickerSheet extends StatefulWidget {
-  const _CoinPickerSheet({
+import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_theme_helpers.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+
+class ConverterCoinPickerSheet extends StatefulWidget {
+  const ConverterCoinPickerSheet({
     required this.title,
     required this.coins,
     required this.selected,
     required this.onSelected,
+    super.key,
   });
 
   final String title;
@@ -14,10 +18,11 @@ class _CoinPickerSheet extends StatefulWidget {
   final ValueChanged<Coin> onSelected;
 
   @override
-  State<_CoinPickerSheet> createState() => _CoinPickerSheetState();
+  State<ConverterCoinPickerSheet> createState() =>
+      _ConverterCoinPickerSheetState();
 }
 
-class _CoinPickerSheetState extends State<_CoinPickerSheet> {
+class _ConverterCoinPickerSheetState extends State<ConverterCoinPickerSheet> {
   final _search = TextEditingController();
 
   @override
@@ -42,7 +47,9 @@ class _CoinPickerSheetState extends State<_CoinPickerSheet> {
           children: [
             Row(
               children: [
-                Expanded(child: Text(widget.title, style: _Dark.title)),
+                Expanded(
+                  child: Text(widget.title, style: ConverterColors.title),
+                ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.close_rounded),
@@ -62,24 +69,28 @@ class _CoinPickerSheetState extends State<_CoinPickerSheet> {
               height: 420,
               child: ListView.separated(
                 itemCount: coins.length,
-                separatorBuilder: (_, _) =>
-                    const Divider(color: _Dark.surfaceVariant, height: 1),
+                separatorBuilder: (_, _) => const Divider(
+                  color: ConverterColors.surfaceVariant,
+                  height: 1,
+                ),
                 itemBuilder: (context, index) {
                   final coin = coins[index];
                   final selected = coin.id == widget.selected?.id;
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: _CoinIcon(coin: coin, size: 36),
+                    leading: ConverterCoinIcon(coin: coin, size: 36),
                     title: Text(coin.symbol),
                     subtitle: Text(coin.name),
                     trailing: selected
                         ? const Text(
                             'Selected',
-                            style: TextStyle(color: _Dark.yellow),
+                            style: TextStyle(color: ConverterColors.yellow),
                           )
                         : Text(
                             '#${coin.rank}',
-                            style: const TextStyle(color: _Dark.textTertiary),
+                            style: const TextStyle(
+                              color: ConverterColors.textTertiary,
+                            ),
                           ),
                     onTap: () => widget.onSelected(coin),
                   );
@@ -93,8 +104,8 @@ class _CoinPickerSheetState extends State<_CoinPickerSheet> {
   }
 }
 
-class _CoinIcon extends StatelessWidget {
-  const _CoinIcon({required this.coin, required this.size});
+class ConverterCoinIcon extends StatelessWidget {
+  const ConverterCoinIcon({required this.coin, required this.size, super.key});
 
   final Coin? coin;
   final double size;
@@ -104,7 +115,7 @@ class _CoinIcon extends StatelessWidget {
     if (coin == null) {
       return CircleAvatar(
         radius: size / 2,
-        backgroundColor: _Dark.yellow,
+        backgroundColor: ConverterColors.yellow,
         child: const Text(r'$', style: TextStyle(color: Colors.black)),
       );
     }
@@ -115,7 +126,7 @@ class _CoinIcon extends StatelessWidget {
         height: size,
         errorBuilder: (_, _, _) => CircleAvatar(
           radius: size / 2,
-          backgroundColor: _Dark.surfaceVariant,
+          backgroundColor: ConverterColors.surfaceVariant,
           child: Text(coin!.symbol.isEmpty ? '?' : coin!.symbol[0]),
         ),
       ),

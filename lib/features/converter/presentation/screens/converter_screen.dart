@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_asset_picker.dart';
+import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_coin_picker_sheet.dart';
+import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_rate_widgets.dart';
+import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_theme_helpers.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
-
-part '../widgets/converter_asset_picker.dart';
-part '../widgets/converter_rate_widgets.dart';
-part '../widgets/converter_coin_picker_sheet.dart';
-part '../widgets/converter_theme_helpers.dart';
 
 class ConverterScreen extends StatefulWidget {
   const ConverterScreen({required this.controller, super.key});
@@ -53,16 +52,16 @@ class _ConverterScreenState extends State<ConverterScreen> {
               : fromUsdValue / _to!.currentPrice);
 
     return Scaffold(
-      backgroundColor: _Dark.background,
+      backgroundColor: ConverterColors.background,
       appBar: AppBar(
         title: const Text('Converter'),
-        backgroundColor: _Dark.background,
-        foregroundColor: _Dark.textPrimary,
+        backgroundColor: ConverterColors.background,
+        foregroundColor: ConverterColors.textPrimary,
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),
         children: [
-          const Text('Convert', style: _Dark.hero),
+          const Text('Convert', style: ConverterColors.hero),
           const SizedBox(height: 16),
           TextField(
             controller: _amount,
@@ -71,7 +70,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 12),
-          _AssetPicker(
+          ConverterAssetPicker(
             title: 'From',
             isUsd: _fromUsd,
             coin: _from,
@@ -95,13 +94,13 @@ class _ConverterScreenState extends State<ConverterScreen> {
               }),
               icon: const Icon(
                 Icons.swap_vert_rounded,
-                color: _Dark.yellow,
+                color: ConverterColors.yellow,
                 size: 34,
               ),
             ),
           ),
           const SizedBox(height: 12),
-          _AssetPicker(
+          ConverterAssetPicker(
             title: 'To',
             isUsd: _toUsd,
             coin: _to,
@@ -113,12 +112,12 @@ class _ConverterScreenState extends State<ConverterScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          _QuickPairs(coins: coins, onSelected: _selectPair),
+          ConverterQuickPairs(coins: coins, onSelected: _selectPair),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: _Dark.surface,
+              color: ConverterColors.surface,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -127,7 +126,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
                 const Text(
                   'Result',
                   style: TextStyle(
-                    color: _Dark.textSecondary,
+                    color: ConverterColors.textSecondary,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -135,9 +134,9 @@ class _ConverterScreenState extends State<ConverterScreen> {
                 Text(
                   _toUsd
                       ? formatPrice(result)
-                      : '${_trim(result)} ${_to?.symbol ?? ''}',
+                      : '${trimConverterValue(result)} ${_to?.symbol ?? ''}',
                   style: const TextStyle(
-                    color: _Dark.textPrimary,
+                    color: ConverterColors.textPrimary,
                     fontSize: 32,
                     fontWeight: FontWeight.w900,
                   ),
@@ -146,7 +145,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
                 Text(
                   'Source: live market prices',
                   style: const TextStyle(
-                    color: _Dark.textTertiary,
+                    color: ConverterColors.textTertiary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -154,14 +153,14 @@ class _ConverterScreenState extends State<ConverterScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          _RateCard(
+          ConverterRateCard(
             fromLabel: _fromUsd ? 'USD' : (_from?.symbol ?? '--'),
             toLabel: _toUsd ? 'USD' : (_to?.symbol ?? '--'),
             directRate: _directRate(),
             inverseRate: _inverseRate(),
           ),
           const SizedBox(height: 14),
-          _MarketContext(
+          ConverterMarketContext(
             coins: [
               if (!_fromUsd && _from != null) _from!,
               if (!_toUsd && _to != null && _to!.id != _from?.id) _to!,
@@ -209,11 +208,11 @@ class _ConverterScreenState extends State<ConverterScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: _Dark.surface,
+      backgroundColor: ConverterColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
-      builder: (_) => _CoinPickerSheet(
+      builder: (_) => ConverterCoinPickerSheet(
         title: title,
         coins: widget.controller.coins.take(160).toList(),
         selected: selected,
