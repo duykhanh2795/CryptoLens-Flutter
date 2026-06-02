@@ -4,13 +4,13 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/models/coin.dart';
-import '../../core/services/portfolio_store.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/utils/formatters.dart';
-import '../exchange/manage_exchange_screen.dart';
-import '../market/coin_detail_screen.dart';
-import '../market/market_controller.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/exchange/presentation/manage_exchange_screen.dart';
+import 'package:cryptolens_flutter/features/market/presentation/coin_detail_screen.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 
 enum _PortfolioTab { assets, transactions }
 

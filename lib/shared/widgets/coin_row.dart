@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../core/models/coin.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'percent_chip.dart';
 
 class CoinRow extends StatelessWidget {

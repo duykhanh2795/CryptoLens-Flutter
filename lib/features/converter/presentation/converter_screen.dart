@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../core/models/coin.dart';
-import '../../core/utils/formatters.dart';
-import '../market/market_controller.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 
 class ConverterScreen extends StatefulWidget {
   const ConverterScreen({required this.controller, super.key});

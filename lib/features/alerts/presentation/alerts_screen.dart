@@ -4,11 +4,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../core/models/coin.dart';
-import '../../core/services/alert_realtime_service.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/utils/formatters.dart';
-import '../market/market_controller.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/core/services/alert_realtime_service.dart';
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 
 enum AlertMetric { price, volume, marketCap }
 

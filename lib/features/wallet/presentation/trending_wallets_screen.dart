@@ -6,11 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/services/wallet_indexer_service.dart';
-import '../../core/services/wallet_store.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/utils/formatters.dart';
-import '../market/market_controller.dart';
+import 'package:cryptolens_flutter/features/wallet/data/wallet_indexer_service.dart';
+import 'package:cryptolens_flutter/features/wallet/data/wallet_store.dart';
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 
 class TrendingWalletsScreen extends StatefulWidget {
   const TrendingWalletsScreen({required this.controller, super.key});

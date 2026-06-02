@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
-import '../../core/utils/formatters.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'firebase_messaging_service.dart';
 
 @pragma('vm:entry-point')

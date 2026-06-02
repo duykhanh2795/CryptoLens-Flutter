@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../core/services/wallet_store.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/utils/formatters.dart';
-import '../market/market_controller.dart';
+import 'package:cryptolens_flutter/features/wallet/data/wallet_store.dart';
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 import 'trending_wallets_screen.dart';
 
 class WalletWatchlistScreen extends StatefulWidget {

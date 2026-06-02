@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
-import '../../shared/widgets/coin_row.dart';
-import '../../shared/widgets/empty_state.dart';
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/shared/widgets/coin_row.dart';
+import 'package:cryptolens_flutter/shared/widgets/empty_state.dart';
 import 'coin_detail_screen.dart';
 import 'market_controller.dart';
 

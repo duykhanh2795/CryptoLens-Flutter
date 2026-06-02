@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../core/services/crypto_auth_service.dart';
-import '../../core/services/portfolio_store.dart';
-import '../../core/services/settings_store.dart';
-import '../../core/theme/app_theme.dart';
-import '../alerts/alerts_screen.dart';
-import '../converter/converter_screen.dart';
-import '../exchange/manage_exchange_screen.dart';
-import '../market/market_controller.dart';
-import '../wallet/wallet_watchlist_screen.dart';
+import 'package:cryptolens_flutter/features/auth/data/crypto_auth_service.dart';
+import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
+import 'package:cryptolens_flutter/features/profile/data/settings_store.dart';
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/alerts/presentation/alerts_screen.dart';
+import 'package:cryptolens_flutter/features/converter/presentation/converter_screen.dart';
+import 'package:cryptolens_flutter/features/exchange/presentation/manage_exchange_screen.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
+import 'package:cryptolens_flutter/features/wallet/presentation/wallet_watchlist_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({

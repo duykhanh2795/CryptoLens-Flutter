@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:http/http.dart' as http;
 
-import '../models/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'wallet_store.dart';
 
 class WalletIndexerService {

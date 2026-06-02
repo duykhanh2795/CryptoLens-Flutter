@@ -5,8 +5,8 @@ import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/coin.dart';
-import 'portfolio_store.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 
 enum ExchangeType {
   binance('Binance'),

@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../core/services/crypto_auth_service.dart';
-import '../core/services/market_api.dart';
-import '../core/services/watchlist_store.dart';
-import '../core/theme/app_theme.dart';
-import '../features/auth/login_screen.dart';
-import '../features/auth/register_screen.dart';
-import '../features/auth/splash_screen.dart';
-import '../features/market/market_controller.dart';
-import '../features/shell/app_shell.dart';
+import 'package:cryptolens_flutter/features/auth/data/crypto_auth_service.dart';
+import 'package:cryptolens_flutter/features/market/data/market_api.dart';
+import 'package:cryptolens_flutter/features/watchlist/data/watchlist_store.dart';
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/auth/presentation/login_screen.dart';
+import 'package:cryptolens_flutter/features/auth/presentation/register_screen.dart';
+import 'package:cryptolens_flutter/features/auth/presentation/splash_screen.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
+import 'package:cryptolens_flutter/app/app_shell.dart';
 
 class CryptoLensApp extends StatefulWidget {
   const CryptoLensApp({super.key});

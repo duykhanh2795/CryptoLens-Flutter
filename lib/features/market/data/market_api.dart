@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../models/coin.dart';
-import '../models/kline.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/kline.dart';
 
 class MarketApi {
   MarketApi({http.Client? client}) : _client = client ?? http.Client();

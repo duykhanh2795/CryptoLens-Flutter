@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/models/news_item.dart';
-import '../../core/services/news_api.dart';
-import '../../core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
+import 'package:cryptolens_flutter/features/news/data/news_api.dart';
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 
 class NewsScreen extends StatefulWidget {
   const NewsScreen({this.coinId, this.symbol, super.key});

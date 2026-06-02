@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../../core/models/coin.dart';
-import '../../core/models/kline.dart';
-import '../../core/services/market_api.dart';
-import '../../core/services/watchlist_store.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/kline.dart';
+import 'package:cryptolens_flutter/features/market/data/market_api.dart';
+import 'package:cryptolens_flutter/features/watchlist/data/watchlist_store.dart';
 
 enum MarketTab { all, gainers, losers, newListings }
 

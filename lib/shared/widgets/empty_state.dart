@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 
 class EmptyState extends StatelessWidget {
   const EmptyState({

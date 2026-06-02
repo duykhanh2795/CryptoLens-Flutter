@@ -2,16 +2,16 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../core/models/coin.dart';
-import '../../core/models/kline.dart';
-import '../../core/models/news_item.dart';
-import '../../core/services/news_api.dart';
-import '../../core/services/market_api.dart';
-import '../../core/services/portfolio_store.dart';
-import '../../core/utils/formatters.dart';
-import '../alerts/alerts_screen.dart';
-import '../news/news_screen.dart';
-import '../portfolio/portfolio_screen.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/kline.dart';
+import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
+import 'package:cryptolens_flutter/features/news/data/news_api.dart';
+import 'package:cryptolens_flutter/features/market/data/market_api.dart';
+import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/alerts/presentation/alerts_screen.dart';
+import 'package:cryptolens_flutter/features/news/presentation/news_screen.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/portfolio_screen.dart';
 import 'market_controller.dart';
 
 class _DetailColors {

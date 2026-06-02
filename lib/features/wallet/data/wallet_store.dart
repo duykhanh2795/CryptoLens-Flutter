@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 
 enum WalletChain {
   bitcoin('Bitcoin', 'BTC', [

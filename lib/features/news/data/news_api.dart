@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
-import '../models/news_item.dart';
+import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
 
 class NewsApi {
   NewsApi({http.Client? client}) : _client = client ?? http.Client();

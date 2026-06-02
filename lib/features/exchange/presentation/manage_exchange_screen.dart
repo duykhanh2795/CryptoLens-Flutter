@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/services/exchange_store.dart';
-import '../../core/services/portfolio_store.dart';
-import '../../core/theme/app_theme.dart';
-import '../market/market_controller.dart';
+import 'package:cryptolens_flutter/features/exchange/data/exchange_store.dart';
+import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 
 class ManageExchangeScreen extends StatefulWidget {
   const ManageExchangeScreen({
