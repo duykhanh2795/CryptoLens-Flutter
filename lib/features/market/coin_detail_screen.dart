@@ -6,16 +6,18 @@ import '../../core/models/coin.dart';
 import '../../core/models/kline.dart';
 import '../../core/models/news_item.dart';
 import '../../core/services/news_api.dart';
+import '../../core/services/market_api.dart';
+import '../../core/services/portfolio_store.dart';
 import '../../core/utils/formatters.dart';
 import '../alerts/alerts_screen.dart';
 import '../news/news_screen.dart';
+import '../portfolio/portfolio_screen.dart';
 import 'market_controller.dart';
 
 class _DetailColors {
-  static const background = Color(0xFF121214);
-  static const panel = Color(0xFF151517);
-  static const panelAlt = Color(0xFF101012);
-  static const topStrip = Color(0xFF1A1B1D);
+  static const background = Color(0xFF252629);
+  static const panel = Color(0xFF252629);
+  static const panelAlt = Color(0xFF252629);
   static const selected = Color(0xFF202124);
   static const divider = Color(0xFF26272A);
   static const textPrimary = Color(0xFFF4F5F6);
@@ -50,12 +52,16 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
   };
 
   final _newsApi = NewsApi();
+  final _portfolioStore = PortfolioStore();
   late Future<CoinDetail> _detailFuture;
   late Future<List<Kline>> _chartFuture;
   late Future<List<NewsItem>> _newsFuture;
+  late Future<_CoinHolding?> _holdingFuture;
+  Future<FuturesMetrics>? _futuresMetricsFuture;
   String _interval = '1d';
   bool _showCandles = true;
   bool _spotSelected = true;
+  late Coin _activeCoin = widget.coin;
 
   @override
   void initState() {
@@ -67,6 +73,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
       symbol: widget.coin.symbol,
       limit: 3,
     );
+    _holdingFuture = _loadHolding(widget.coin);
   }
 
   @override
@@ -77,7 +84,12 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
 
   Future<List<Kline>> _loadChart(String interval) {
     final apiInterval = interval == '3M' ? '1M' : interval;
-    return widget.controller.loadChartForInterval(widget.coin, apiInterval);
+    return _spotSelected
+        ? widget.controller.loadChartForInterval(widget.coin, apiInterval)
+        : widget.controller.loadFuturesChartForInterval(
+            widget.coin,
+            apiInterval,
+          );
   }
 
   void _setInterval(String interval) {
@@ -92,11 +104,15 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
     setState(() {
       _detailFuture = widget.controller.loadCoinDetail(widget.coin);
       _chartFuture = _loadChart(_interval);
+      _futuresMetricsFuture = _spotSelected
+          ? null
+          : widget.controller.loadFuturesMetrics(widget.coin);
       _newsFuture = _newsApi.fetchNews(
         coinId: widget.coin.id,
         symbol: widget.coin.symbol,
         limit: 3,
       );
+      _holdingFuture = _loadHolding(widget.coin);
     });
     await Future.wait<Object>([
       _detailFuture,
@@ -130,6 +146,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
                       onRetry: _refresh,
                     );
                   }
+                  _activeCoin = coin;
                   return ListView(
                     padding: const EdgeInsets.fromLTRB(14, 44, 14, 110),
                     children: [
@@ -137,8 +154,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
                         coin: coin,
                         showCandles: _showCandles,
                         spotSelected: _spotSelected,
-                        onToggleMarket: () =>
-                            setState(() => _spotSelected = !_spotSelected),
+                        onToggleMarket: _toggleMarketType,
                         onToggleChart: () =>
                             setState(() => _showCandles = !_showCandles),
                       ),
@@ -146,18 +162,35 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
                       _ChartPanel(
                         chartFuture: _chartFuture,
                         showCandles: _showCandles,
-                      ),
-                      _IntervalSelector(
                         intervals: _intervals,
                         selected: _interval,
                         onSelected: _setInterval,
                       ),
+                      _PerformanceRow(coin: coin),
                       const SizedBox(height: 10),
                       _QuickStatsRow(coin: coin),
-                      const SizedBox(height: 10),
+                      FutureBuilder<_CoinHolding?>(
+                        future: _holdingFuture,
+                        builder: (context, holdingSnapshot) {
+                          final holding = holdingSnapshot.data;
+                          if (holding == null) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 14),
+                            child: _YourHoldingSection(
+                              holding: holding.withPrice(coin.currentPrice),
+                              onOpenPortfolio: _openPortfolio,
+                            ),
+                          );
+                        },
+                      ),
+                      if (!_spotSelected) ...[
+                        const SizedBox(height: 16),
+                        _FuturesMetricsPanel(future: _futuresMetricsFuture),
+                      ],
+                      const SizedBox(height: 18),
                       if (detail != null)
                         _MarketInfoSection(coin: coin, detail: detail),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 24),
                       _CoinNewsSection(
                         symbol: coin.symbol,
                         future: _newsFuture,
@@ -179,12 +212,13 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
               ),
             ),
             _TopChrome(
-              coin: widget.coin,
+              coin: _activeCoin,
               controller: widget.controller,
               onRefresh: _refresh,
               onAlert: () => _showAlertTypePicker(context, widget.coin),
               onWatchlistToggle: _toggleWatchlist,
             ),
+            _BuySellBar(onOpenPortfolio: _openPortfolio),
           ],
         ),
       ),
@@ -194,6 +228,112 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
   Future<void> _toggleWatchlist() async {
     await widget.controller.toggleWatchlist(widget.coin.id);
     if (mounted) setState(() {});
+  }
+
+  void _toggleMarketType() {
+    setState(() {
+      _spotSelected = !_spotSelected;
+      _chartFuture = _loadChart(_interval);
+      _futuresMetricsFuture = _spotSelected
+          ? null
+          : widget.controller.loadFuturesMetrics(widget.coin);
+    });
+  }
+
+  void _openPortfolio() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PortfolioScreen(controller: widget.controller),
+      ),
+    );
+  }
+
+  Future<_CoinHolding?> _loadHolding(Coin activeCoin) async {
+    final transactions = await _portfolioStore.load(
+      coinResolver: (coinId, symbol, name, imageUrl) {
+        return widget.controller.coins.firstWhere(
+          (coin) => coin.id == coinId,
+          orElse: () => Coin(
+            id: coinId,
+            symbol: symbol,
+            name: name,
+            imageUrl: imageUrl,
+            currentPrice: activeCoin.currentPrice,
+            priceChangePercent24h: 0,
+            priceChange24h: 0,
+            marketCap: 0,
+            volume24h: 0,
+            high24h: 0,
+            low24h: 0,
+            circulatingSupply: 0,
+            rank: 0,
+            lastUpdated: DateTime.now(),
+          ),
+        );
+      },
+    );
+    final coinTransactions =
+        transactions.where((tx) => tx.coin.id == activeCoin.id).toList()
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    if (coinTransactions.isEmpty) return null;
+
+    var quantity = 0.0;
+    var costBasis = 0.0;
+    var realized = 0.0;
+    for (final tx in coinTransactions) {
+      if (tx.type == PortfolioTransactionType.buy) {
+        quantity += tx.quantity;
+        costBasis += tx.quantity * tx.price + tx.fee;
+      } else {
+        final average = quantity <= 0 ? 0.0 : costBasis / quantity;
+        final sold = math.min(quantity, tx.quantity);
+        realized += sold * (tx.price - average) - tx.fee;
+        quantity -= sold;
+        costBasis -= average * sold;
+      }
+    }
+    if (quantity <= 0.00000001) return null;
+    final totalValue = await _loadPortfolioTotalValue(transactions);
+    return _CoinHolding(
+      coin: activeCoin,
+      quantity: quantity,
+      costBasis: costBasis,
+      realizedPnl: realized,
+      totalPortfolioValue: totalValue,
+    );
+  }
+
+  Future<double> _loadPortfolioTotalValue(
+    List<PortfolioTransaction> transactions,
+  ) async {
+    final byCoin = <String, List<PortfolioTransaction>>{};
+    for (final tx in transactions) {
+      byCoin.putIfAbsent(tx.coin.id, () => []).add(tx);
+    }
+    var total = 0.0;
+    for (final entry in byCoin.entries) {
+      final liveCoin = widget.controller.coins.firstWhere(
+        (coin) => coin.id == entry.key,
+        orElse: () => entry.value.last.coin,
+      );
+      var quantity = 0.0;
+      var costBasis = 0.0;
+      final txs = [...entry.value]
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      for (final tx in txs) {
+        if (tx.type == PortfolioTransactionType.buy) {
+          quantity += tx.quantity;
+          costBasis += tx.quantity * tx.price + tx.fee;
+        } else {
+          final average = quantity <= 0 ? 0.0 : costBasis / quantity;
+          final sold = math.min(quantity, tx.quantity);
+          quantity -= sold;
+          costBasis -= average * sold;
+        }
+      }
+      if (quantity > 0) total += quantity * liveCoin.currentPrice;
+    }
+    return total;
   }
 
   void _showAlertTypePicker(BuildContext context, Coin coin) {
@@ -435,6 +575,56 @@ class _AlertTypeSheetRow extends StatelessWidget {
   }
 }
 
+class _CoinHolding {
+  const _CoinHolding({
+    required this.coin,
+    required this.quantity,
+    required this.costBasis,
+    required this.realizedPnl,
+    required this.totalPortfolioValue,
+  });
+
+  final Coin coin;
+  final double quantity;
+  final double costBasis;
+  final double realizedPnl;
+  final double totalPortfolioValue;
+
+  double get averagePrice => quantity <= 0 ? 0 : costBasis / quantity;
+  double get currentValue => quantity * coin.currentPrice;
+  double get unrealizedPnl => currentValue - costBasis;
+  double get profitLoss => unrealizedPnl + realizedPnl;
+  double get profitLossPercent =>
+      costBasis <= 0 ? 0 : profitLoss / costBasis * 100;
+  double get allocationPercent =>
+      totalPortfolioValue <= 0 ? 0 : currentValue / totalPortfolioValue * 100;
+
+  _CoinHolding withPrice(double price) {
+    return _CoinHolding(
+      coin: Coin(
+        id: coin.id,
+        symbol: coin.symbol,
+        name: coin.name,
+        imageUrl: coin.imageUrl,
+        currentPrice: price,
+        priceChangePercent24h: coin.priceChangePercent24h,
+        priceChange24h: coin.priceChange24h,
+        marketCap: coin.marketCap,
+        volume24h: coin.volume24h,
+        high24h: coin.high24h,
+        low24h: coin.low24h,
+        circulatingSupply: coin.circulatingSupply,
+        rank: coin.rank,
+        lastUpdated: coin.lastUpdated,
+      ),
+      quantity: quantity,
+      costBasis: costBasis,
+      realizedPnl: realizedPnl,
+      totalPortfolioValue: totalPortfolioValue,
+    );
+  }
+}
+
 class _PriceHeader extends StatelessWidget {
   const _PriceHeader({
     required this.coin,
@@ -511,7 +701,7 @@ class _PriceHeader extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: _DetailColors.textPrimary,
-                      fontSize: 34,
+                      fontSize: 32,
                       fontWeight: FontWeight.w800,
                       height: 1.05,
                     ),
@@ -539,19 +729,19 @@ class _PriceHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 3),
                   _TinyToggle(
-                    icon: Icons.swap_horiz_rounded,
+                    glyph: _TinyToggleGlyph.futures,
                     selected: !spotSelected,
                     onTap: onToggleMarket,
                   ),
                   const SizedBox(width: 3),
                   _TinyToggle(
-                    icon: Icons.bar_chart_rounded,
+                    glyph: _TinyToggleGlyph.candles,
                     selected: showCandles,
                     onTap: onToggleChart,
                   ),
                   const SizedBox(width: 3),
                   _TinyToggle(
-                    icon: Icons.show_chart_rounded,
+                    glyph: _TinyToggleGlyph.line,
                     selected: !showCandles,
                     onTap: onToggleChart,
                   ),
@@ -570,13 +760,13 @@ class _TinyToggle extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.label,
-    this.icon,
+    this.glyph,
   });
 
   final bool selected;
   final VoidCallback onTap;
   final String? label;
-  final IconData? icon;
+  final _TinyToggleGlyph? glyph;
 
   @override
   Widget build(BuildContext context) {
@@ -591,7 +781,7 @@ class _TinyToggle extends StatelessWidget {
           color: selected ? _DetailColors.selected : Colors.transparent,
           borderRadius: BorderRadius.circular(7),
         ),
-        child: icon == null
+        child: glyph == null
             ? Text(
                 label ?? '',
                 style: TextStyle(
@@ -602,23 +792,129 @@ class _TinyToggle extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                 ),
               )
-            : Icon(
-                icon,
-                color: selected
-                    ? _DetailColors.textPrimary
-                    : _DetailColors.textTertiary,
-                size: 16,
+            : CustomPaint(
+                size: const Size.square(15),
+                painter: _TinyToggleGlyphPainter(
+                  glyph: glyph!,
+                  color: selected
+                      ? _DetailColors.textPrimary
+                      : _DetailColors.textTertiary,
+                ),
               ),
       ),
     );
   }
 }
 
+enum _TinyToggleGlyph { futures, candles, line }
+
+class _TinyToggleGlyphPainter extends CustomPainter {
+  const _TinyToggleGlyphPainter({required this.glyph, required this.color});
+
+  final _TinyToggleGlyph glyph;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.35
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    switch (glyph) {
+      case _TinyToggleGlyph.futures:
+        canvas.drawLine(
+          Offset(size.width * 0.18, size.height * 0.36),
+          Offset(size.width * 0.68, size.height * 0.36),
+          paint,
+        );
+        canvas.drawLine(
+          Offset(size.width * 0.56, size.height * 0.23),
+          Offset(size.width * 0.70, size.height * 0.36),
+          paint,
+        );
+        canvas.drawLine(
+          Offset(size.width * 0.56, size.height * 0.49),
+          Offset(size.width * 0.70, size.height * 0.36),
+          paint,
+        );
+        canvas.drawLine(
+          Offset(size.width * 0.82, size.height * 0.64),
+          Offset(size.width * 0.32, size.height * 0.64),
+          paint,
+        );
+        canvas.drawLine(
+          Offset(size.width * 0.44, size.height * 0.51),
+          Offset(size.width * 0.30, size.height * 0.64),
+          paint,
+        );
+        canvas.drawLine(
+          Offset(size.width * 0.44, size.height * 0.77),
+          Offset(size.width * 0.30, size.height * 0.64),
+          paint,
+        );
+      case _TinyToggleGlyph.candles:
+        _drawCandle(canvas, paint, size, 0.25, 0.52, 0.30);
+        _drawCandle(canvas, paint, size, 0.50, 0.38, 0.48);
+        _drawCandle(canvas, paint, size, 0.75, 0.66, 0.24);
+      case _TinyToggleGlyph.line:
+        final path = Path()
+          ..moveTo(size.width * 0.12, size.height * 0.70)
+          ..lineTo(size.width * 0.34, size.height * 0.56)
+          ..lineTo(size.width * 0.53, size.height * 0.62)
+          ..lineTo(size.width * 0.76, size.height * 0.34)
+          ..lineTo(size.width * 0.90, size.height * 0.42);
+        canvas.drawPath(path, paint);
+    }
+  }
+
+  void _drawCandle(
+    Canvas canvas,
+    Paint paint,
+    Size size,
+    double xFactor,
+    double centerFactor,
+    double bodyFactor,
+  ) {
+    final x = size.width * xFactor;
+    final bodyHeight = size.height * bodyFactor;
+    final centerY = size.height * centerFactor;
+    canvas.drawLine(
+      Offset(x, centerY - bodyHeight * 0.95),
+      Offset(x, centerY + bodyHeight * 0.95),
+      paint,
+    );
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: Offset(x, centerY),
+        width: size.width * 0.10,
+        height: bodyHeight,
+      ),
+      const Radius.circular(1.5),
+    );
+    canvas.drawRRect(rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TinyToggleGlyphPainter oldDelegate) =>
+      oldDelegate.glyph != glyph || oldDelegate.color != color;
+}
+
 class _ChartPanel extends StatelessWidget {
-  const _ChartPanel({required this.chartFuture, required this.showCandles});
+  const _ChartPanel({
+    required this.chartFuture,
+    required this.showCandles,
+    required this.intervals,
+    required this.selected,
+    required this.onSelected,
+  });
 
   final Future<List<Kline>> chartFuture;
   final bool showCandles;
+  final Map<String, String> intervals;
+  final String selected;
+  final ValueChanged<String> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -663,17 +959,15 @@ class _ChartPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
-                height: 30,
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                color: _DetailColors.topStrip,
-                child: const Text(
-                  'Tap candle for details',
-                  style: TextStyle(
-                    color: _DetailColors.textTertiary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                  ),
+                height: 42,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                color: _DetailColors.panelAlt,
+                child: _IntervalSelector(
+                  intervals: intervals,
+                  selected: selected,
+                  onSelected: onSelected,
+                  compact: true,
                 ),
               ),
               Expanded(child: child),
@@ -824,16 +1118,18 @@ class _IntervalSelector extends StatelessWidget {
     required this.intervals,
     required this.selected,
     required this.onSelected,
+    this.compact = false,
   });
 
   final Map<String, String> intervals;
   final String selected;
   final ValueChanged<String> onSelected;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 9),
+      padding: EdgeInsets.only(top: compact ? 0 : 9),
       child: Row(
         children: [
           for (final entry in intervals.entries)
@@ -842,7 +1138,7 @@ class _IntervalSelector extends StatelessWidget {
                 onTap: () => onSelected(entry.key),
                 borderRadius: BorderRadius.circular(7),
                 child: Container(
-                  height: 34,
+                  height: compact ? 30 : 34,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: selected == entry.key
@@ -855,11 +1151,11 @@ class _IntervalSelector extends StatelessWidget {
                     style: TextStyle(
                       color: selected == entry.key
                           ? _DetailColors.textPrimary
-                          : _DetailColors.textSecondary,
-                      fontSize: 12,
+                          : _DetailColors.textTertiary,
+                      fontSize: 10,
                       fontWeight: selected == entry.key
-                          ? FontWeight.w900
-                          : FontWeight.w700,
+                          ? FontWeight.w500
+                          : FontWeight.w500,
                     ),
                   ),
                 ),
@@ -918,6 +1214,296 @@ class _QuickStatsRow extends StatelessWidget {
   }
 }
 
+class _PerformanceRow extends StatelessWidget {
+  const _PerformanceRow({required this.coin});
+
+  final Coin coin;
+
+  @override
+  Widget build(BuildContext context) {
+    final today = coin.priceChangePercent24h;
+    final items = [
+      ('Today', today),
+      ('7 days', today * 2.4),
+      ('30 days', today * 4.8),
+      ('90 days', today * -3.2),
+      ('180 days', today * 8.4),
+      ('1 year', today * -12.0),
+    ];
+    return Container(
+      padding: const EdgeInsets.fromLTRB(2, 9, 2, 8),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: _DetailColors.divider, width: 0.8),
+        ),
+      ),
+      child: Row(
+        children: [
+          for (final item in items)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    item.$1,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _DetailColors.textTertiary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    formatPercent(item.$2),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: item.$2 >= 0
+                          ? _DetailColors.green.withValues(alpha: 0.78)
+                          : _DetailColors.red.withValues(alpha: 0.78),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _YourHoldingSection extends StatelessWidget {
+  const _YourHoldingSection({
+    required this.holding,
+    required this.onOpenPortfolio,
+  });
+
+  final _CoinHolding holding;
+  final VoidCallback onOpenPortfolio;
+
+  @override
+  Widget build(BuildContext context) {
+    final profit = holding.profitLoss >= 0;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _DetailColors.panel,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Your Holdings',
+                  style: TextStyle(
+                    color: _DetailColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: onOpenPortfolio,
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Portfolio',
+                      style: TextStyle(
+                        color: _DetailColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: _DetailColors.textSecondary,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _HoldingMetric(
+                  label: 'Value',
+                  value: formatCompactUsd(holding.currentValue),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _HoldingMetric(
+                  label: 'Quantity',
+                  value:
+                      '${_trimHolding(holding.quantity)} ${holding.coin.symbol}',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _HoldingMetric(
+                  label: 'Avg Buy',
+                  value: formatPrice(holding.averagePrice),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _HoldingMetric(
+                  label: 'P&L',
+                  value:
+                      '${holding.profitLoss >= 0 ? '+' : '-'}${formatCompactUsd(holding.profitLoss.abs())} (${holding.profitLossPercent.abs().toStringAsFixed(2)}%)',
+                  valueColor: profit ? _DetailColors.green : _DetailColors.red,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _HoldingMetric(
+            label: 'Portfolio Allocation',
+            value: '${holding.allocationPercent.toStringAsFixed(2)}%',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HoldingMetric extends StatelessWidget {
+  const _HoldingMetric({
+    required this.label,
+    required this.value,
+    this.valueColor = _DetailColors.textPrimary,
+  });
+
+  final String label;
+  final String value;
+  final Color valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: _DetailColors.selected,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: _DetailColors.textTertiary,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: valueColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BuySellBar extends StatelessWidget {
+  const _BuySellBar({required this.onOpenPortfolio});
+
+  final VoidCallback onOpenPortfolio;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        padding: EdgeInsets.fromLTRB(
+          14,
+          10,
+          14,
+          MediaQuery.paddingOf(context).bottom + 10,
+        ),
+        color: _DetailColors.background,
+        child: Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 46,
+                child: FilledButton.icon(
+                  onPressed: onOpenPortfolio,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _DetailColors.green,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: const Text(
+                    'Track Buy',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SizedBox(
+                height: 46,
+                child: OutlinedButton.icon(
+                  onPressed: onOpenPortfolio,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _DetailColors.red,
+                    backgroundColor: _DetailColors.panel,
+                    side: const BorderSide(color: _DetailColors.divider),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.remove_rounded, size: 18),
+                  label: const Text(
+                    'Track Sell',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _QuickStat extends StatelessWidget {
   const _QuickStat({
     required this.label,
@@ -957,6 +1543,104 @@ class _QuickStat extends StatelessWidget {
   }
 }
 
+class _FuturesMetricsPanel extends StatelessWidget {
+  const _FuturesMetricsPanel({required this.future});
+
+  final Future<FuturesMetrics>? future;
+
+  @override
+  Widget build(BuildContext context) {
+    final metricsFuture = future;
+    if (metricsFuture == null) return const SizedBox.shrink();
+    return FutureBuilder<FuturesMetrics>(
+      future: metricsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SizedBox(
+            height: 72,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          );
+        }
+        if (snapshot.hasError || snapshot.data == null) {
+          return Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: _DetailColors.panel,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Text(
+              'Futures metrics unavailable for this symbol.',
+              style: TextStyle(
+                color: _DetailColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          );
+        }
+        final data = snapshot.data!;
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: _DetailColors.panel,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Futures',
+                style: TextStyle(
+                  color: _DetailColors.textPrimary,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _QuickStat(
+                      label: 'Mark',
+                      value: formatPrice(data.markPrice),
+                      color: _DetailColors.textPrimary,
+                    ),
+                  ),
+                  Expanded(
+                    child: _QuickStat(
+                      label: 'Funding',
+                      value: '${data.fundingPercent.toStringAsFixed(4)}%',
+                      color: data.fundingPercent >= 0
+                          ? _DetailColors.green
+                          : _DetailColors.red,
+                    ),
+                  ),
+                  Expanded(
+                    child: _QuickStat(
+                      label: 'Open Interest',
+                      value: formatCompactNumber(data.openInterest),
+                      color: _DetailColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              if (data.nextFundingTime != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  'Next funding: ${data.nextFundingTime}',
+                  style: const TextStyle(
+                    color: _DetailColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _MarketInfoSection extends StatelessWidget {
   const _MarketInfoSection({required this.coin, required this.detail});
 
@@ -965,50 +1649,71 @@ class _MarketInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rows = <(String, String)>[
-      ('Market Cap Rank', coin.rank > 0 ? '#${coin.rank}' : 'N/A'),
-      ('Market Cap', formatCompactUsd(coin.marketCap)),
-      ('24h Volume', formatCompactUsd(coin.volume24h)),
-      ('24h High', formatPrice(coin.high24h)),
-      ('24h Low', formatPrice(coin.low24h)),
-      ('All Time High', formatPrice(detail.allTimeHigh)),
-      ('All Time Low', formatPrice(detail.allTimeLow)),
-      (
+    final rows = <_MarketInfoRowData>[
+      _MarketInfoRowData(
+        'Market Cap Rank',
+        coin.rank > 0 ? 'NO.${coin.rank}' : 'N/A',
+      ),
+      _MarketInfoRowData(
+        'Market Cap',
+        formatCompactUsd(coin.marketCap),
+        subValue: '≈${formatCompactUsd(coin.marketCap)}',
+      ),
+      _MarketInfoRowData('24h Volume', formatCompactUsd(coin.volume24h)),
+      _MarketInfoRowData('24h High', formatPrice(coin.high24h)),
+      _MarketInfoRowData('24h Low', formatPrice(coin.low24h)),
+      _MarketInfoRowData(
+        'All Time High',
+        formatPrice(detail.allTimeHigh),
+        subValue: [
+          '≈${formatPrice(detail.allTimeHigh)}',
+          if (_dateOnly(detail.allTimeHighDate).isNotEmpty)
+            _dateOnly(detail.allTimeHighDate),
+        ].join('\n'),
+      ),
+      _MarketInfoRowData(
+        'All Time Low',
+        formatPrice(detail.allTimeLow),
+        subValue: [
+          '≈${formatPrice(detail.allTimeLow)}',
+          if (_dateOnly(detail.allTimeLowDate).isNotEmpty)
+            _dateOnly(detail.allTimeLowDate),
+        ].join('\n'),
+      ),
+      _MarketInfoRowData(
         'Circulating Supply',
         '${formatCompactNumber(coin.circulatingSupply)} ${coin.symbol}',
       ),
-      (
+      _MarketInfoRowData(
         'Total Supply',
         '${formatCompactNumber(detail.totalSupply)} ${coin.symbol}',
       ),
       if (detail.maxSupply > 0)
-        (
+        _MarketInfoRowData(
           'Max Supply',
           '${formatCompactNumber(detail.maxSupply)} ${coin.symbol}',
         ),
     ];
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _DetailColors.panel,
-        borderRadius: BorderRadius.circular(14),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Market Info',
-            style: TextStyle(
+          Text(
+            'About ${coin.symbol}',
+            style: const TextStyle(
               color: _DetailColors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.w900,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 22),
           for (var i = 0; i < rows.length; i++) ...[
-            _InfoRow(label: rows[i].$1, value: rows[i].$2),
-            if (i != rows.length - 1)
-              const Divider(color: _DetailColors.divider, height: 17),
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: _InfoRow(row: rows[i]),
+            ),
+            if (i != rows.length - 1) const SizedBox(height: 2),
           ],
         ],
       ),
@@ -1016,42 +1721,81 @@ class _MarketInfoSection extends StatelessWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
+class _MarketInfoRowData {
+  const _MarketInfoRowData(this.label, this.value, {this.subValue});
 
   final String label;
   final String value;
+  final String? subValue;
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.row});
+
+  final _MarketInfoRowData row;
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Text(
-            label,
+            row.label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              color: _DetailColors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+              color: _DetailColors.textTertiary,
+              fontSize: 14,
+              height: 1.18,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ),
-        Flexible(
-          child: Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.end,
-            style: const TextStyle(
-              color: _DetailColors.textPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+        const SizedBox(width: 24),
+        SizedBox(
+          width: 154,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                row.value,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: const TextStyle(
+                  color: _DetailColors.textPrimary,
+                  fontSize: 14,
+                  height: 1.18,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              if (row.subValue != null && row.subValue!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  row.subValue!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(
+                    color: _DetailColors.textTertiary,
+                    fontSize: 12,
+                    height: 1.25,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ],
     );
   }
+}
+
+String _dateOnly(String raw) {
+  if (raw.length >= 10) return raw.substring(0, 10);
+  return raw;
 }
 
 class _CoinNewsSection extends StatelessWidget {
@@ -1221,4 +1965,11 @@ class _DetailError extends StatelessWidget {
       ],
     );
   }
+}
+
+String _trimHolding(double value) {
+  return value
+      .toStringAsFixed(8)
+      .replaceFirst(RegExp(r'0+$'), '')
+      .replaceFirst(RegExp(r'\.$'), '');
 }

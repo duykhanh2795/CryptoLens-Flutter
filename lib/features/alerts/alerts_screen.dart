@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/models/coin.dart';
+import '../../core/services/alert_realtime_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
 import '../market/market_controller.dart';
@@ -12,6 +13,12 @@ import '../market/market_controller.dart';
 enum AlertMetric { price, volume, marketCap }
 
 enum AlertDirection { above, below }
+
+enum AlertValueType { number, percent }
+
+enum AlertFrequency { oneTime, persistent }
+
+enum AlertStatus { active, triggered, paused }
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({required this.controller, this.prefill, super.key});
@@ -34,11 +41,18 @@ class _AlertsScreenState extends State<AlertsScreen> {
   static const _storageKey = 'cryptolens.alerts.rules';
 
   final List<_AlertRule> _rules = [];
+  final Set<String> _notifiedRuleIds = {};
+  Timer? _refreshTimer;
   bool _shownPrefill = false;
 
   @override
   void initState() {
     super.initState();
+    widget.controller.addListener(_handleMarketUpdate);
+    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (!mounted || widget.controller.isRefreshing) return;
+      unawaited(widget.controller.refresh());
+    });
     unawaited(_loadRules());
     if (widget.prefill != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -47,6 +61,19 @@ class _AlertsScreenState extends State<AlertsScreen> {
         _showCreateDialog(prefill: widget.prefill);
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    widget.controller.removeListener(_handleMarketUpdate);
+    super.dispose();
+  }
+
+  void _handleMarketUpdate() {
+    if (!mounted) return;
+    setState(() {});
+    _checkTriggeredRules();
   }
 
   @override
@@ -70,11 +97,23 @@ class _AlertsScreenState extends State<AlertsScreen> {
               separatorBuilder: (_, _) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final rule = _rules[index];
+                final liveCoin = widget.controller.coins.firstWhere(
+                  (coin) => coin.id == rule.coin.id,
+                  orElse: () => rule.coin,
+                );
                 return _AlertTile(
                   rule: rule,
+                  liveCoin: liveCoin,
                   onToggle: (enabled) {
-                    setState(() => rule.enabled = enabled);
+                    setState(() {
+                      rule.enabled = enabled;
+                      rule.status = enabled
+                          ? AlertStatus.active
+                          : AlertStatus.paused;
+                      if (enabled) _notifiedRuleIds.remove(rule.id);
+                    });
                     unawaited(_saveRules());
+                    unawaited(AlertRealtimeService.runImmediateCheck());
                   },
                   onDelete: () {
                     setState(() => _rules.removeAt(index));
@@ -111,6 +150,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
         onCreate: (rule) {
           setState(() => _rules.insert(0, rule));
           unawaited(_saveRules());
+          unawaited(AlertRealtimeService.runImmediateCheck());
           _message('Alert created for ${rule.coin.symbol}.');
         },
       ),
@@ -145,10 +185,33 @@ class _AlertsScreenState extends State<AlertsScreen> {
         jsonEncode(_rules.map((rule) => rule.toJson()).toList()),
       );
     }
+    unawaited(AlertRealtimeService.schedulePeriodicCheck());
   }
 
   void _message(String value) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(value)));
+  }
+
+  void _checkTriggeredRules() {
+    for (final rule in _rules) {
+      if (!rule.enabled || _notifiedRuleIds.contains(rule.id)) continue;
+      if (rule.status != AlertStatus.active) continue;
+      final liveCoin = widget.controller.coins.firstWhere(
+        (coin) => coin.id == rule.coin.id,
+        orElse: () => rule.coin,
+      );
+      final current = rule.metric.valueOf(liveCoin);
+      final triggered = rule.isTriggered(current);
+      if (!triggered) continue;
+      _notifiedRuleIds.add(rule.id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${liveCoin.symbol} ${rule.metric.label} triggered at ${rule.metric.format(current)}',
+          ),
+        ),
+      );
+    }
   }
 }
 
@@ -173,17 +236,21 @@ class _CreateAlertSheetState extends State<_CreateAlertSheet> {
   late Coin _coin = widget.initialCoin ?? widget.coins.first;
   late AlertMetric _metric = widget.initialMetric ?? AlertMetric.price;
   AlertDirection _direction = AlertDirection.above;
+  AlertValueType _valueType = AlertValueType.number;
+  AlertFrequency _frequency = AlertFrequency.oneTime;
   final _target = TextEditingController();
+  final _note = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _target.text = _currentMetricValue().toStringAsFixed(2);
+    _setDefaultTarget();
   }
 
   @override
   void dispose() {
     _target.dispose();
+    _note.dispose();
     super.dispose();
   }
 
@@ -224,7 +291,7 @@ class _CreateAlertSheetState extends State<_CreateAlertSheet> {
                 if (coin == null) return;
                 setState(() {
                   _coin = coin;
-                  _target.text = _currentMetricValue().toStringAsFixed(2);
+                  _setDefaultTarget();
                 });
               },
             ),
@@ -250,9 +317,27 @@ class _CreateAlertSheetState extends State<_CreateAlertSheet> {
                 if (metric == null) return;
                 setState(() {
                   _metric = metric;
-                  _target.text = _currentMetricValue().toStringAsFixed(2);
+                  _setDefaultTarget();
                 });
               },
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<AlertValueType>(
+              segments: const [
+                ButtonSegment(
+                  value: AlertValueType.number,
+                  label: Text('Number'),
+                ),
+                ButtonSegment(
+                  value: AlertValueType.percent,
+                  label: Text('Percent'),
+                ),
+              ],
+              selected: {_valueType},
+              onSelectionChanged: (value) => setState(() {
+                _valueType = value.first;
+                _setDefaultTarget();
+              }),
             ),
             const SizedBox(height: 12),
             SegmentedButton<AlertDirection>(
@@ -271,15 +356,51 @@ class _CreateAlertSheetState extends State<_CreateAlertSheet> {
                   setState(() => _direction = value.first),
             ),
             const SizedBox(height: 12),
+            SegmentedButton<AlertFrequency>(
+              segments: const [
+                ButtonSegment(
+                  value: AlertFrequency.oneTime,
+                  label: Text('One Time'),
+                ),
+                ButtonSegment(
+                  value: AlertFrequency.persistent,
+                  label: Text('Persistent'),
+                ),
+              ],
+              selected: {_frequency},
+              onSelectionChanged: (value) =>
+                  setState(() => _frequency = value.first),
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: _target,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
               decoration: InputDecoration(
-                labelText: 'Target ${_metric.unitLabel}',
+                labelText: _valueType == AlertValueType.percent
+                    ? 'Target move (%)'
+                    : 'Target ${_metric.unitLabel}',
               ),
               onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _note,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: 'Note (optional)',
+                hintText: 'e.g. Breakout alert',
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _previewText(target),
+              style: const TextStyle(
+                color: _Dark.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 18),
             SizedBox(
@@ -297,6 +418,11 @@ class _CreateAlertSheetState extends State<_CreateAlertSheet> {
                             metric: _metric,
                             direction: _direction,
                             target: target,
+                            baselineValue: _currentMetricValue(),
+                            valueType: _valueType,
+                            frequency: _frequency,
+                            status: AlertStatus.active,
+                            note: _note.text.trim(),
                             enabled: true,
                           ),
                         );
@@ -316,25 +442,45 @@ class _CreateAlertSheetState extends State<_CreateAlertSheet> {
     AlertMetric.volume => _coin.volume24h,
     AlertMetric.marketCap => _coin.marketCap,
   };
+
+  void _setDefaultTarget() {
+    if (_valueType == AlertValueType.percent) {
+      _target.text = '1';
+      return;
+    }
+    final value = _currentMetricValue();
+    _target.text = value > 0 ? value.toStringAsFixed(2) : '';
+  }
+
+  String _previewText(double target) {
+    final baseline = _currentMetricValue();
+    if (_valueType == AlertValueType.percent) {
+      final threshold = _direction == AlertDirection.above
+          ? baseline * (1 + target / 100)
+          : baseline * (1 - target / 100);
+      return 'Baseline ${_metric.format(baseline)} -> trigger at ${_metric.format(threshold)}';
+    }
+    return 'Current ${_metric.format(baseline)}';
+  }
 }
 
 class _AlertTile extends StatelessWidget {
   const _AlertTile({
     required this.rule,
+    required this.liveCoin,
     required this.onToggle,
     required this.onDelete,
   });
 
   final _AlertRule rule;
+  final Coin liveCoin;
   final ValueChanged<bool> onToggle;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final current = rule.currentValue;
-    final triggered = rule.direction == AlertDirection.above
-        ? current >= rule.target
-        : current <= rule.target;
+    final current = rule.metric.valueOf(liveCoin);
+    final triggered = rule.isTriggered(current);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -345,7 +491,7 @@ class _AlertTile extends StatelessWidget {
         children: [
           ClipOval(
             child: Image.network(
-              rule.coin.imageUrl,
+              liveCoin.imageUrl,
               width: 38,
               height: 38,
               errorBuilder: (_, _, _) => const CircleAvatar(
@@ -365,12 +511,13 @@ class _AlertTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${rule.direction.label} ${rule.metric.format(rule.target)}',
+                  rule.targetLabel,
                   style: const TextStyle(
                     color: _Dark.textSecondary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   'Current ${rule.metric.format(current)}',
                   style: TextStyle(
@@ -379,6 +526,25 @@ class _AlertTile extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+                if (rule.status != AlertStatus.active || rule.note.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Text(
+                      [
+                        if (rule.status != AlertStatus.active)
+                          rule.status.label,
+                        rule.frequency.label,
+                        if (rule.note.isNotEmpty) rule.note,
+                      ].join(' • '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _Dark.textTertiary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -408,6 +574,11 @@ class _AlertRule {
     required this.metric,
     required this.direction,
     required this.target,
+    required this.baselineValue,
+    required this.valueType,
+    required this.frequency,
+    required this.status,
+    required this.note,
     required this.enabled,
   });
 
@@ -416,13 +587,12 @@ class _AlertRule {
   final AlertMetric metric;
   final AlertDirection direction;
   final double target;
+  final double baselineValue;
+  final AlertValueType valueType;
+  final AlertFrequency frequency;
+  AlertStatus status;
+  final String note;
   bool enabled;
-
-  double get currentValue => switch (metric) {
-    AlertMetric.price => coin.currentPrice,
-    AlertMetric.volume => coin.volume24h,
-    AlertMetric.marketCap => coin.marketCap,
-  };
 
   Map<String, Object?> toJson() => {
     'id': id,
@@ -430,8 +600,42 @@ class _AlertRule {
     'metric': metric.name,
     'direction': direction.name,
     'target': target,
+    'baselineValue': baselineValue,
+    'valueType': valueType.name,
+    'frequency': frequency.name,
+    'status': status.storageName,
+    'note': note,
     'enabled': enabled,
   };
+
+  double thresholdValue() {
+    if (valueType != AlertValueType.percent || baselineValue <= 0) {
+      return target;
+    }
+    return switch (direction) {
+      AlertDirection.above => baselineValue * (1 + target / 100),
+      AlertDirection.below => baselineValue * (1 - target / 100),
+    };
+  }
+
+  bool isTriggered(double current) {
+    if (current <= 0) return false;
+    if (valueType == AlertValueType.percent && baselineValue <= 0) {
+      return false;
+    }
+    final threshold = thresholdValue();
+    return switch (direction) {
+      AlertDirection.above => current >= threshold,
+      AlertDirection.below => current <= threshold,
+    };
+  }
+
+  String get targetLabel {
+    if (valueType == AlertValueType.percent) {
+      return '${direction.label} ${target.toStringAsFixed(2)}% from ${metric.format(baselineValue)}';
+    }
+    return '${direction.label} ${metric.format(target)}';
+  }
 
   static _AlertRule? fromJson(Map<String, Object?> json) {
     final coinJson = json['coin'];
@@ -441,6 +645,8 @@ class _AlertRule {
     final metric = _enumByName(AlertMetric.values, json['metric']);
     final direction = _enumByName(AlertDirection.values, json['direction']);
     if (metric == null || direction == null) return null;
+    final enabled = json['enabled'] == true;
+    final status = _statusFromJson(json['status'], enabled: enabled);
     return _AlertRule(
       id:
           json['id']?.toString() ??
@@ -449,7 +655,16 @@ class _AlertRule {
       metric: metric,
       direction: direction,
       target: (json['target'] as num?)?.toDouble() ?? 0,
-      enabled: json['enabled'] == true,
+      baselineValue: (json['baselineValue'] as num?)?.toDouble() ?? 0,
+      valueType:
+          _enumByName(AlertValueType.values, json['valueType']) ??
+          AlertValueType.number,
+      frequency:
+          _enumByName(AlertFrequency.values, json['frequency']) ??
+          AlertFrequency.oneTime,
+      status: status,
+      note: json['note']?.toString() ?? '',
+      enabled: enabled && status == AlertStatus.active,
     );
   }
 }
@@ -463,6 +678,12 @@ extension on AlertMetric {
 
   String get unitLabel => this == AlertMetric.price ? '(USD)' : '(USD)';
 
+  double valueOf(Coin coin) => switch (this) {
+    AlertMetric.price => coin.currentPrice,
+    AlertMetric.volume => coin.volume24h,
+    AlertMetric.marketCap => coin.marketCap,
+  };
+
   String format(double value) =>
       this == AlertMetric.price ? formatPrice(value) : formatCompactUsd(value);
 }
@@ -471,6 +692,36 @@ extension on AlertDirection {
   String get label => switch (this) {
     AlertDirection.above => 'Above',
     AlertDirection.below => 'Below',
+  };
+}
+
+extension on AlertFrequency {
+  String get label => switch (this) {
+    AlertFrequency.oneTime => 'One Time',
+    AlertFrequency.persistent => 'Persistent',
+  };
+}
+
+extension on AlertStatus {
+  String get label => switch (this) {
+    AlertStatus.active => 'Active',
+    AlertStatus.triggered => 'Triggered',
+    AlertStatus.paused => 'Paused',
+  };
+
+  String get storageName => switch (this) {
+    AlertStatus.active => 'ACTIVE',
+    AlertStatus.triggered => 'TRIGGERED',
+    AlertStatus.paused => 'PAUSED',
+  };
+}
+
+AlertStatus _statusFromJson(Object? value, {required bool enabled}) {
+  return switch (value?.toString().toUpperCase()) {
+    'ACTIVE' => AlertStatus.active,
+    'TRIGGERED' => AlertStatus.triggered,
+    'PAUSED' => AlertStatus.paused,
+    _ => enabled ? AlertStatus.active : AlertStatus.paused,
   };
 }
 
@@ -517,8 +768,9 @@ Coin? _coinFromJson(Map<String, Object?> json) {
 }
 
 T? _enumByName<T extends Enum>(Iterable<T> values, Object? name) {
+  final normalized = name?.toString().replaceAll('_', '').toLowerCase();
   for (final value in values) {
-    if (value.name == name) return value;
+    if (value.name.toLowerCase() == normalized) return value;
   }
   return null;
 }

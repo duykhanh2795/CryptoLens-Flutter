@@ -7,6 +7,7 @@ import '../market/markets_screen.dart';
 import '../news/news_screen.dart';
 import '../portfolio/portfolio_screen.dart';
 import '../profile/profile_screen.dart';
+import '../wallet/trending_wallets_screen.dart';
 import '../watchlist/watchlist_screen.dart';
 
 class AppShell extends StatefulWidget {
@@ -48,9 +49,16 @@ class _AppShellState extends State<AppShell> {
       HomeScreen(
         controller: widget.controller,
         onOpenMarkets: () => setState(() => _index = 1),
+        onOpenPortfolio: () => setState(() => _index = 3),
         onOpenNews: () => Navigator.of(
           context,
         ).push(MaterialPageRoute(builder: (_) => const NewsScreen())),
+        onOpenWallets: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                TrendingWalletsScreen(controller: widget.controller),
+          ),
+        ),
       ),
       MarketsScreen(controller: widget.controller),
       WatchlistScreen(controller: widget.controller),
@@ -68,7 +76,7 @@ class _AppShellState extends State<AppShell> {
         child: Stack(
           children: [
             Positioned.fill(child: screens[_index]),
-            const _AiAssistantOverlay(),
+            // const _AiAssistantOverlay(),
           ],
         ),
       ),
@@ -81,6 +89,7 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
+// ignore: unused_element
 class _AiAssistantOverlay extends StatelessWidget {
   const _AiAssistantOverlay();
 

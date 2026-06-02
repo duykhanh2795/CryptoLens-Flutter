@@ -12,6 +12,9 @@ class MarketApi {
     'https://api.coingecko.com/api/v3/',
   );
   static final Uri _binanceBase = Uri.parse('https://api.binance.com/api/v3/');
+  static final Uri _binanceFuturesBase = Uri.parse(
+    'https://fapi.binance.com/fapi/v1/',
+  );
 
   final http.Client _client;
 
@@ -105,6 +108,54 @@ class MarketApi {
     return body.cast<List<dynamic>>().map(Kline.fromBinance).toList();
   }
 
+  Future<List<Kline>> fetchFuturesKlines({
+    required String symbol,
+    String interval = '1d',
+    int limit = 60,
+  }) async {
+    final uri = _binanceFuturesBase.replace(
+      path: '${_binanceFuturesBase.path}klines',
+      queryParameters: {
+        'symbol': symbol,
+        'interval': interval,
+        'limit': '$limit',
+      },
+    );
+    final response = await _client
+        .get(uri)
+        .timeout(const Duration(seconds: 20));
+    _throwIfFailed(response, 'Binance futures klines');
+    final body = jsonDecode(response.body);
+    if (body is! List) throw const FormatException('Unexpected kline payload');
+    return body.cast<List<dynamic>>().map(Kline.fromBinance).toList();
+  }
+
+  Future<FuturesMetrics> fetchFuturesMetrics({required String symbol}) async {
+    final premiumUri = _binanceFuturesBase.replace(
+      path: '${_binanceFuturesBase.path}premiumIndex',
+      queryParameters: {'symbol': symbol},
+    );
+    final openInterestUri = _binanceFuturesBase.replace(
+      path: '${_binanceFuturesBase.path}openInterest',
+      queryParameters: {'symbol': symbol},
+    );
+    final premium = await _client
+        .get(premiumUri)
+        .timeout(const Duration(seconds: 20));
+    _throwIfFailed(premium, 'Binance futures premium');
+    final openInterest = await _client
+        .get(openInterestUri)
+        .timeout(const Duration(seconds: 20));
+    _throwIfFailed(openInterest, 'Binance futures open interest');
+    final premiumBody = jsonDecode(premium.body);
+    final openInterestBody = jsonDecode(openInterest.body);
+    if (premiumBody is! Map<String, dynamic> ||
+        openInterestBody is! Map<String, dynamic>) {
+      throw const FormatException('Unexpected futures metrics payload');
+    }
+    return FuturesMetrics.fromBinance(premiumBody, openInterestBody);
+  }
+
   void dispose() => _client.close();
 
   static void _throwIfFailed(http.Response response, String label) {
@@ -119,4 +170,46 @@ class HttpException implements Exception {
 
   @override
   String toString() => message;
+}
+
+class FuturesMetrics {
+  const FuturesMetrics({
+    required this.markPrice,
+    required this.indexPrice,
+    required this.lastFundingRate,
+    required this.nextFundingTime,
+    required this.openInterest,
+  });
+
+  final double markPrice;
+  final double indexPrice;
+  final double lastFundingRate;
+  final DateTime? nextFundingTime;
+  final double openInterest;
+
+  double get fundingPercent => lastFundingRate * 100;
+  double get premiumPercent =>
+      indexPrice == 0 ? 0 : (markPrice - indexPrice) / indexPrice * 100;
+
+  factory FuturesMetrics.fromBinance(
+    Map<String, dynamic> premium,
+    Map<String, dynamic> openInterest,
+  ) {
+    final nextFundingMillis =
+        (premium['nextFundingTime'] as num?)?.toInt() ?? 0;
+    return FuturesMetrics(
+      markPrice: _number(premium['markPrice']),
+      indexPrice: _number(premium['indexPrice']),
+      lastFundingRate: _number(premium['lastFundingRate']),
+      nextFundingTime: nextFundingMillis <= 0
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(nextFundingMillis),
+      openInterest: _number(openInterest['openInterest']),
+    );
+  }
+}
+
+double _number(Object? value) {
+  if (value is num) return value.toDouble();
+  return double.tryParse(value?.toString() ?? '') ?? 0;
 }

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../core/models/coin.dart';
+import '../../core/services/portfolio_store.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
 import '../market/coin_detail_screen.dart';
@@ -14,70 +15,78 @@ class HomeScreen extends StatelessWidget {
     required this.controller,
     required this.onOpenMarkets,
     required this.onOpenNews,
+    required this.onOpenWallets,
+    required this.onOpenPortfolio,
     super.key,
   });
 
   final MarketController controller;
   final VoidCallback onOpenMarkets;
   final VoidCallback onOpenNews;
+  final VoidCallback onOpenWallets;
+  final VoidCallback onOpenPortfolio;
 
   @override
   Widget build(BuildContext context) {
     final trending = controller.coins.take(8).toList();
 
-    return RefreshIndicator(
-      onRefresh: controller.refresh,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-        children: [
-          _HomeTopBar(
-            isRefreshing: controller.isRefreshing,
-            onRefresh: controller.refresh,
-          ),
-          const SizedBox(height: 12),
-          if (controller.error != null)
-            _ErrorBanner(message: controller.error!),
-          _BankingDashboardGrid(
-            portfolioValue: 0,
-            watchlistCount: controller.watchlistedIds.length,
-            coverageCount: controller.coins.length,
-          ),
-          if (controller.isLoading)
-            const Padding(
-              padding: EdgeInsets.only(top: 40, bottom: 40),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else ...[
+    return ColoredBox(
+      color: const Color(0xFF050607),
+      child: RefreshIndicator(
+        onRefresh: controller.refresh,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+          children: [
+            _HomeTopBar(
+              isRefreshing: controller.isRefreshing,
+              onRefresh: controller.refresh,
+            ),
+            const SizedBox(height: 12),
+            if (controller.error != null)
+              _ErrorBanner(message: controller.error!),
+            _BankingDashboardGrid(
+              controller: controller,
+              watchlistCount: controller.watchlistedIds.length,
+              coverageCount: controller.coins.length,
+              onOpenPortfolio: onOpenPortfolio,
+            ),
+            if (controller.isLoading)
+              const Padding(
+                padding: EdgeInsets.only(top: 40, bottom: 40),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else ...[
+              const SizedBox(height: 14),
+              _TrendingSectionHeader(onTap: onOpenMarkets),
+              const SizedBox(height: 8),
+              _TrendingRow(
+                coins: trending,
+                onCoinTap: (coin) => _openCoinDetail(context, controller, coin),
+              ),
+              const SizedBox(height: 18),
+              _MarketMoveSection(
+                title: 'Top Gainers',
+                coins: controller.topGainers,
+                onSeeAll: onOpenMarkets,
+                onCoinTap: (coin) => _openCoinDetail(context, controller, coin),
+              ),
+              const SizedBox(height: 8),
+              _MarketMoveSection(
+                title: 'Top Losers',
+                coins: controller.topLosers,
+                onSeeAll: onOpenMarkets,
+                onCoinTap: (coin) => _openCoinDetail(context, controller, coin),
+              ),
+              const SizedBox(height: 8),
+              _TrendingWalletsHomeSection(onSeeAll: onOpenWallets),
+            ],
+            const SizedBox(height: 22),
+            NewsPreviewSection(onSeeAll: onOpenNews),
             const SizedBox(height: 14),
-            _TrendingSectionHeader(onTap: onOpenMarkets),
-            const SizedBox(height: 8),
-            _TrendingRow(
-              coins: trending,
-              onCoinTap: (coin) => _openCoinDetail(context, controller, coin),
-            ),
-            const SizedBox(height: 18),
-            _MarketMoveSection(
-              title: 'Top Gainers',
-              coins: controller.topGainers,
-              onSeeAll: onOpenMarkets,
-              onCoinTap: (coin) => _openCoinDetail(context, controller, coin),
-            ),
-            const SizedBox(height: 8),
-            _MarketMoveSection(
-              title: 'Top Losers',
-              coins: controller.topLosers,
-              onSeeAll: onOpenMarkets,
-              onCoinTap: (coin) => _openCoinDetail(context, controller, coin),
-            ),
-            const SizedBox(height: 8),
-            const _TrendingWalletsHomeSection(),
+            const _AiInsightBanner(),
+            const SizedBox(height: 80),
           ],
-          const SizedBox(height: 22),
-          NewsPreviewSection(onSeeAll: onOpenNews),
-          const SizedBox(height: 14),
-          const _AiInsightBanner(),
-          const SizedBox(height: 80),
-        ],
+        ),
       ),
     );
   }
@@ -194,20 +203,31 @@ class _HeaderIconButton extends StatelessWidget {
 
 class _BankingDashboardGrid extends StatelessWidget {
   const _BankingDashboardGrid({
-    required this.portfolioValue,
+    required this.controller,
     required this.watchlistCount,
     required this.coverageCount,
+    required this.onOpenPortfolio,
   });
 
-  final double portfolioValue;
+  final MarketController controller;
   final int watchlistCount;
   final int coverageCount;
+  final VoidCallback onOpenPortfolio;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _WalletHeroCard(value: portfolioValue),
+        FutureBuilder<_HomePortfolioSummary>(
+          future: _HomePortfolioSummary.load(controller),
+          builder: (context, snapshot) {
+            return _WalletHeroCard(
+              summary: snapshot.data ?? _HomePortfolioSummary.empty(),
+              isLoading: snapshot.connectionState != ConnectionState.done,
+              onTap: onOpenPortfolio,
+            );
+          },
+        ),
         const SizedBox(height: 10),
         Row(
           children: [
@@ -286,111 +306,290 @@ class _BankingDashboardGrid extends StatelessWidget {
 }
 
 class _WalletHeroCard extends StatelessWidget {
-  const _WalletHeroCard({required this.value});
+  const _WalletHeroCard({
+    required this.summary,
+    required this.isLoading,
+    required this.onTap,
+  });
 
-  final double value;
+  final _HomePortfolioSummary summary;
+  final bool isLoading;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 154,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF242426), Color(0xFF121214), Color(0xFF0A0A0B)],
+    final dayUp = summary.dayChange >= 0;
+    final pnlUp = summary.totalPnl >= 0;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: double.infinity,
+        height: 154,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF242426), Color(0xFF121214), Color(0xFF0A0A0B)],
+          ),
         ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -38,
-            top: -24,
-            child: Transform.rotate(
-              angle: 0.32,
-              child: Container(
-                width: 180,
-                height: 230,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.18),
-                      Colors.white.withValues(alpha: 0.055),
-                      Colors.transparent,
+        child: Stack(
+          children: [
+            Positioned(
+              right: -38,
+              top: -24,
+              child: Transform.rotate(
+                angle: 0.32,
+                child: Container(
+                  width: 180,
+                  height: 230,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.18),
+                        Colors.white.withValues(alpha: 0.055),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 14,
+              right: 14,
+              child: InkWell(
+                onTap: onTap,
+                customBorder: const CircleBorder(),
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.11),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.add_rounded, size: 17),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        'Portfolio',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      if (isLoading) ...[
+                        const SizedBox(width: 8),
+                        const SizedBox.square(
+                          dimension: 10,
+                          child: CircularProgressIndicator(strokeWidth: 1.6),
+                        ),
+                      ],
                     ],
                   ),
-                ),
+                  const Spacer(),
+                  Text(
+                    formatPrice(summary.totalValue),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w800,
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  if (summary.transactionCount == 0)
+                    const Text(
+                      '0 assets - Add your first transaction',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
+                  else ...[
+                    Row(
+                      children: [
+                        Text(
+                          '${_signedMoney(summary.dayChange)} (${formatPercent(summary.dayChangePercent)}) today',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: dayUp ? AppColors.green : AppColors.red,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${summary.assetCount} assets - Total P&L ${_signedMoney(summary.totalPnl)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: pnlUp ? AppColors.textSecondary : AppColors.red,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-          ),
-          Positioned(
-            top: 14,
-            right: 14,
-            child: Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.11),
-                shape: BoxShape.circle,
+            Positioned(
+              right: 14,
+              bottom: 14,
+              child: Row(
+                children: [
+                  _MiniAssetCoin('B', const Color(0xFF4A4A4D)),
+                  Transform.translate(
+                    offset: const Offset(-7, 0),
+                    child: _MiniAssetCoin('E', const Color(0xFF6D737C)),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.add_rounded, size: 17),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Wallet',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  formatPrice(value),
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 36,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Portfolio value',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            right: 14,
-            bottom: 14,
-            child: Row(
-              children: [
-                _MiniAssetCoin('B', const Color(0xFF4A4A4D)),
-                Transform.translate(
-                  offset: const Offset(-7, 0),
-                  child: _MiniAssetCoin('E', const Color(0xFF6D737C)),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
+
+class _HomePortfolioSummary {
+  const _HomePortfolioSummary({
+    required this.totalValue,
+    required this.dayChange,
+    required this.dayChangePercent,
+    required this.totalPnl,
+    required this.assetCount,
+    required this.transactionCount,
+  });
+
+  final double totalValue;
+  final double dayChange;
+  final double dayChangePercent;
+  final double totalPnl;
+  final int assetCount;
+  final int transactionCount;
+
+  static _HomePortfolioSummary empty() => const _HomePortfolioSummary(
+    totalValue: 0,
+    dayChange: 0,
+    dayChangePercent: 0,
+    totalPnl: 0,
+    assetCount: 0,
+    transactionCount: 0,
+  );
+
+  static Future<_HomePortfolioSummary> load(MarketController controller) async {
+    final store = PortfolioStore();
+    final transactions = await store.load(
+      coinResolver: (coinId, symbol, name, imageUrl) {
+        for (final coin in controller.coins) {
+          if (coin.id == coinId) return coin;
+        }
+        return Coin(
+          id: coinId,
+          symbol: symbol,
+          name: name,
+          imageUrl: imageUrl,
+          currentPrice: 0,
+          priceChangePercent24h: 0,
+          priceChange24h: 0,
+          marketCap: 0,
+          volume24h: 0,
+          high24h: 0,
+          low24h: 0,
+          circulatingSupply: 0,
+          rank: 0,
+          lastUpdated: DateTime.now(),
+        );
+      },
+    );
+    if (transactions.isEmpty) return empty();
+
+    final byCoin = <String, List<PortfolioTransaction>>{};
+    for (final tx in transactions) {
+      byCoin.putIfAbsent(tx.coin.id, () => []).add(tx);
+    }
+
+    var totalValue = 0.0;
+    var invested = 0.0;
+    var realized = 0.0;
+    var dayChange = 0.0;
+    var assetCount = 0;
+
+    for (final entry in byCoin.entries) {
+      final txs = [...entry.value]
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      var quantity = 0.0;
+      var costBasis = 0.0;
+      var coinRealized = 0.0;
+      for (final tx in txs) {
+        if (tx.type == PortfolioTransactionType.buy) {
+          quantity += tx.quantity;
+          costBasis += tx.quantity * tx.price + tx.fee;
+        } else {
+          final average = quantity <= 0 ? 0.0 : costBasis / quantity;
+          final sold = math.min(quantity, tx.quantity);
+          coinRealized += sold * (tx.price - average) - tx.fee;
+          quantity -= sold;
+          costBasis -= average * sold;
+        }
+      }
+      if (quantity <= 0.00000001) {
+        realized += coinRealized;
+        continue;
+      }
+      final coin = _liveCoin(controller, entry.key) ?? txs.last.coin;
+      final value = quantity * coin.currentPrice;
+      totalValue += value;
+      invested += costBasis;
+      realized += coinRealized;
+      dayChange += quantity * coin.priceChange24h;
+      assetCount++;
+    }
+
+    final previousValue = math.max(totalValue - dayChange, 0.01);
+    return _HomePortfolioSummary(
+      totalValue: totalValue,
+      dayChange: dayChange,
+      dayChangePercent: dayChange / previousValue * 100,
+      totalPnl: totalValue - invested + realized,
+      assetCount: assetCount,
+      transactionCount: transactions.length,
+    );
+  }
+
+  static Coin? _liveCoin(MarketController controller, String coinId) {
+    for (final coin in controller.coins) {
+      if (coin.id == coinId) return coin;
+    }
+    return null;
+  }
+}
+
+String _signedMoney(double value) {
+  final sign = value >= 0 ? '+' : '-';
+  return '$sign${formatPrice(value.abs())}';
 }
 
 class _BankingInfoCard extends StatelessWidget {
@@ -857,7 +1056,7 @@ class _MarketMoveSection extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 16,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
@@ -919,7 +1118,7 @@ class _MarketMoveRow extends StatelessWidget {
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -969,7 +1168,9 @@ class _MarketMoveRow extends StatelessWidget {
 }
 
 class _TrendingWalletsHomeSection extends StatelessWidget {
-  const _TrendingWalletsHomeSection();
+  const _TrendingWalletsHomeSection({required this.onSeeAll});
+
+  final VoidCallback onSeeAll;
 
   static const _wallets = [
     ('Ethereum', '0x742d...44e', '+18.4%', '3.8M'),
@@ -994,7 +1195,7 @@ class _TrendingWalletsHomeSection extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: onSeeAll,
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

@@ -4,21 +4,29 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({
     required this.onLogin,
     required this.onRegister,
+    required this.onForgotPassword,
+    this.initialEmail = '',
+    this.initialRemember = false,
     super.key,
   });
 
-  final void Function(String email, bool remember) onLogin;
+  final Future<String?> Function(String email, String password, bool remember)
+  onLogin;
   final VoidCallback onRegister;
+  final Future<String?> Function(String email) onForgotPassword;
+  final String initialEmail;
+  final bool initialRemember;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _email = TextEditingController(text: 'demo@cryptolens.local');
-  final _password = TextEditingController(text: 'password');
-  bool _remember = true;
+  late final _email = TextEditingController(text: widget.initialEmail);
+  final _password = TextEditingController();
+  late bool _remember = widget.initialRemember;
   bool _visible = false;
+  bool _submitting = false;
   String? _error;
 
   @override
@@ -111,9 +119,14 @@ class _LoginScreenState extends State<LoginScreen> {
               width: double.infinity,
               height: 52,
               child: FilledButton(
-                onPressed: _submit,
+                onPressed: _submitting ? null : _submit,
                 style: _yellowButton(),
-                child: const Text('Log In'),
+                child: _submitting
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Log In'),
               ),
             ),
             const SizedBox(height: 24),
@@ -153,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final email = _email.text.trim();
     final password = _password.text;
     if (!email.contains('@')) {
@@ -164,7 +177,16 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _error = 'Password must be at least 6 characters.');
       return;
     }
-    widget.onLogin(email, _remember);
+    setState(() {
+      _error = null;
+      _submitting = true;
+    });
+    final error = await widget.onLogin(email, password, _remember);
+    if (!mounted) return;
+    setState(() {
+      _error = error;
+      _submitting = false;
+    });
   }
 
   void _showForgotPassword() {
@@ -184,11 +206,14 @@ class _LoginScreenState extends State<LoginScreen> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
+              final email = input.text.trim();
+              final error = await widget.onForgotPassword(email);
+              if (!mounted) return;
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Reset link queued for ${input.text.trim()}'),
+                  content: Text(error ?? 'Reset email sent! Check your inbox.'),
                 ),
               );
             },

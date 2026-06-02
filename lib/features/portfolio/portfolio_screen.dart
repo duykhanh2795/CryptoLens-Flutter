@@ -3,17 +3,16 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/models/coin.dart';
+import '../../core/services/portfolio_store.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/formatters.dart';
+import '../exchange/manage_exchange_screen.dart';
 import '../market/coin_detail_screen.dart';
 import '../market/market_controller.dart';
 
 enum _PortfolioTab { assets, transactions }
-
-enum _TransactionType { buy, sell }
 
 class PortfolioScreen extends StatefulWidget {
   const PortfolioScreen({required this.controller, super.key});
@@ -25,9 +24,9 @@ class PortfolioScreen extends StatefulWidget {
 }
 
 class _PortfolioScreenState extends State<PortfolioScreen> {
-  static const _storageKey = 'cryptolens.portfolio.transactions_csv';
-
-  final List<_PortfolioTransaction> _transactions = [];
+  final _store = PortfolioStore();
+  final List<PortfolioTransaction> _transactions = [];
+  final List<PortfolioSnapshot> _snapshots = [];
   _PortfolioTab _selectedTab = _PortfolioTab.assets;
 
   @override
@@ -39,7 +38,11 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   @override
   Widget build(BuildContext context) {
     final assets = _buildAssets();
-    final summary = _PortfolioSummary.fromAssets(assets, _transactions);
+    final summary = _PortfolioSummary.fromAssets(
+      assets,
+      _transactions,
+      snapshots: _snapshots,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -50,8 +53,14 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
             isBusy: widget.controller.isRefreshing,
             onImport: _showImportDialog,
             onExport: _showExportDialog,
-            onConnect: () =>
-                _showMessage('Exchange sync is still Kotlin-only.'),
+            onConnect: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => ManageExchangeScreen(
+                  controller: widget.controller,
+                  portfolioStore: _store,
+                ),
+              ),
+            ),
             onAdd: _showAddTransactionSheet,
           ),
           const SizedBox(height: 10),
@@ -86,7 +95,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   }
 
   List<_PortfolioAsset> _buildAssets() {
-    final byCoin = <String, List<_PortfolioTransaction>>{};
+    final byCoin = <String, List<PortfolioTransaction>>{};
     for (final tx in _transactions) {
       byCoin.putIfAbsent(tx.coin.id, () => []).add(tx);
     }
@@ -102,7 +111,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 
       for (final tx in txs) {
         fees += tx.fee;
-        if (tx.type == _TransactionType.buy) {
+        if (tx.type == PortfolioTransactionType.buy) {
           quantity += tx.quantity;
           costBasis += tx.quantity * tx.price + tx.fee;
         } else {
@@ -139,7 +148,13 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     return null;
   }
 
-  void _addTransaction(_PortfolioTransaction transaction) {
+  void _addTransaction(PortfolioTransaction transaction) {
+    try {
+      PortfolioStore.validateHoldings([..._transactions, transaction]);
+    } on PortfolioValidationException catch (error) {
+      _showMessage(error.message);
+      return;
+    }
     setState(() {
       _transactions.insert(0, transaction);
       _selectedTab = _PortfolioTab.assets;
@@ -148,7 +163,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     _showMessage('${transaction.type.label} ${transaction.coin.symbol} added.');
   }
 
-  void _deleteTransaction(_PortfolioTransaction transaction) {
+  void _deleteTransaction(PortfolioTransaction transaction) {
     setState(
       () => _transactions.removeWhere((item) => item.id == transaction.id),
     );
@@ -213,105 +228,170 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 
   void _showImportDialog() {
     final input = TextEditingController();
+    PortfolioImportPreview? preview;
+    PortfolioImportMode mode = PortfolioImportMode.append;
+    String? error;
     showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Import Portfolio CSV'),
-        content: SizedBox(
-          width: 520,
-          child: TextField(
-            controller: input,
-            minLines: 8,
-            maxLines: 12,
-            decoration: const InputDecoration(
-              hintText: 'Paste CSV exported from CryptoLens Flutter here.',
+      builder: (_) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Import Portfolio CSV'),
+          content: SizedBox(
+            width: 540,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: input,
+                    minLines: 7,
+                    maxLines: 10,
+                    decoration: const InputDecoration(
+                      hintText: 'Paste CSV exported from CryptoLens here.',
+                    ),
+                    onChanged: (_) => setDialogState(() {
+                      preview = null;
+                      error = null;
+                    }),
+                  ),
+                  const SizedBox(height: 12),
+                  SegmentedButton<PortfolioImportMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: PortfolioImportMode.append,
+                        label: Text('Append'),
+                      ),
+                      ButtonSegment(
+                        value: PortfolioImportMode.replace,
+                        label: Text('Replace'),
+                      ),
+                    ],
+                    selected: {mode},
+                    onSelectionChanged: (value) =>
+                        setDialogState(() => mode = value.first),
+                  ),
+                  const SizedBox(height: 12),
+                  if (error != null)
+                    Text(
+                      error!,
+                      style: const TextStyle(
+                        color: AppColors.red,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
+                  else if (preview != null)
+                    _ImportPreviewPanel(preview: preview!, mode: mode)
+                  else
+                    const Text(
+                      'Preview the CSV before importing. Append keeps existing transactions and skips duplicate IDs. Replace clears portfolio history first.',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                try {
+                  final parsed = _parseCsv(input.text);
+                  final nextPreview = PortfolioImportPreview(
+                    transactions: parsed,
+                  );
+                  if (nextPreview.transactions.isEmpty) {
+                    throw const PortfolioCsvException(
+                      'No valid transactions found.',
+                    );
+                  }
+                  final history = mode == PortfolioImportMode.append
+                      ? [
+                          ..._transactions.where(
+                            (tx) => !parsed.any((item) => item.id == tx.id),
+                          ),
+                          ...parsed,
+                        ]
+                      : parsed;
+                  PortfolioStore.validateHoldings(history);
+                  setDialogState(() {
+                    preview = nextPreview;
+                    error = null;
+                  });
+                } catch (exception) {
+                  setDialogState(() => error = exception.toString());
+                }
+              },
+              child: const Text('Preview'),
+            ),
+            FilledButton(
+              onPressed: preview == null
+                  ? null
+                  : () async {
+                      try {
+                        final count = await _store.importTransactions(
+                          preview!.transactions,
+                          mode: mode,
+                          coinResolver: (coinId, symbol, name, imageUrl) =>
+                              _coinFromImport(
+                                coinId: coinId,
+                                symbol: symbol,
+                                name: name,
+                                imageUrl: imageUrl,
+                              ),
+                        );
+                        final imported = await _store.load(
+                          coinResolver: (coinId, symbol, name, imageUrl) =>
+                              _coinFromImport(
+                                coinId: coinId,
+                                symbol: symbol,
+                                name: name,
+                                imageUrl: imageUrl,
+                              ),
+                        );
+                        if (!mounted || !context.mounted) return;
+                        setState(() {
+                          _transactions
+                            ..clear()
+                            ..addAll(imported..sortByNewest());
+                        });
+                        await _recordSnapshot();
+                        if (!mounted || !context.mounted) return;
+                        Navigator.of(context).pop();
+                        _showMessage('$count transactions imported.');
+                      } catch (exception) {
+                        setDialogState(() => error = exception.toString());
+                      }
+                    },
+              child: const Text('Import'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final imported = _parseCsv(input.text);
-              if (imported.isEmpty) {
-                _showMessage('No valid transactions found.');
-                return;
-              }
-              setState(
-                () => _transactions
-                  ..clear()
-                  ..addAll(imported),
-              );
-              unawaited(_saveTransactions());
-              Navigator.of(context).pop();
-              _showMessage('Imported ${imported.length} transactions.');
-            },
-            child: const Text('Import'),
-          ),
-        ],
       ),
     );
   }
 
   String _exportCsv() {
-    if (_transactions.isEmpty) return '';
-    final rows = [
-      'id,coinId,symbol,name,imageUrl,type,quantity,price,fee,timestamp,note',
-      for (final tx in _transactions)
-        [
-          tx.id,
-          tx.coin.id,
-          tx.coin.symbol,
-          tx.coin.name,
-          tx.coin.imageUrl,
-          tx.type.name,
-          tx.quantity.toStringAsFixed(12),
-          tx.price.toStringAsFixed(8),
-          tx.fee.toStringAsFixed(8),
-          tx.timestamp.millisecondsSinceEpoch.toString(),
-          tx.note,
-        ].map(_escapeCsv).join(','),
-    ];
-    return rows.join('\n');
+    return PortfolioStore.exportCsv(_transactions);
   }
 
-  List<_PortfolioTransaction> _parseCsv(String input) {
-    final lines = input
-        .split(RegExp(r'\r?\n'))
-        .where((line) => line.trim().isNotEmpty)
-        .toList();
-    if (lines.length < 2) return const [];
-    final imported = <_PortfolioTransaction>[];
-    for (final line in lines.skip(1)) {
-      final columns = _splitCsv(line);
-      if (columns.length < 11) continue;
-      final coin = _coinFromImport(
-        coinId: columns[1],
-        symbol: columns[2],
-        name: columns[3],
-        imageUrl: columns[4],
-      );
-      imported.add(
-        _PortfolioTransaction(
-          id: columns[0].isEmpty ? _newId() : columns[0],
-          coin: coin,
-          type: columns[5] == 'sell'
-              ? _TransactionType.sell
-              : _TransactionType.buy,
-          quantity: double.tryParse(columns[6]) ?? 0,
-          price: double.tryParse(columns[7]) ?? coin.currentPrice,
-          fee: double.tryParse(columns[8]) ?? 0,
-          timestamp: DateTime.fromMillisecondsSinceEpoch(
-            int.tryParse(columns[9]) ?? DateTime.now().millisecondsSinceEpoch,
-          ),
-          note: columns[10],
-        ),
-      );
-    }
-    return imported.where((tx) => tx.quantity > 0 && tx.price >= 0).toList();
+  List<PortfolioTransaction> _parseCsv(String input) {
+    return PortfolioStore.parseCsv(
+      input,
+      coinResolver: (coinId, symbol, name, imageUrl) => _coinFromImport(
+        coinId: coinId,
+        symbol: symbol,
+        name: name,
+        imageUrl: imageUrl,
+      ),
+    );
   }
 
   Coin _coinFromImport({
@@ -348,22 +428,61 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   }
 
   Future<void> _loadTransactions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final csv = prefs.getString(_storageKey);
-    if (!mounted || csv == null || csv.trim().isEmpty) return;
-    final imported = _parseCsv(csv);
-    if (imported.isEmpty) return;
-    setState(() => _transactions.addAll(imported));
+    final results = await Future.wait<Object>([
+      _store.load(
+        coinResolver: (coinId, symbol, name, imageUrl) => _coinFromImport(
+          coinId: coinId,
+          symbol: symbol,
+          name: name,
+          imageUrl: imageUrl,
+        ),
+      ),
+      _store.loadSnapshots(),
+    ]);
+    final imported = results[0] as List<PortfolioTransaction>;
+    final snapshots = results[1] as List<PortfolioSnapshot>;
+    if (!mounted) return;
+    setState(() {
+      _transactions
+        ..clear()
+        ..addAll(imported..sortByNewest());
+      _snapshots
+        ..clear()
+        ..addAll(snapshots);
+    });
+    if (imported.isNotEmpty) {
+      unawaited(_recordSnapshot());
+    }
   }
 
   Future<void> _saveTransactions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final csv = _exportCsv();
-    if (csv.isEmpty) {
-      await prefs.remove(_storageKey);
-    } else {
-      await prefs.setString(_storageKey, csv);
-    }
+    _transactions.sortByNewest();
+    await _store.save(_transactions);
+    await _recordSnapshot();
+  }
+
+  Future<void> _recordSnapshot() async {
+    final assets = _buildAssets();
+    final summary = _PortfolioSummary.fromAssets(assets, _transactions);
+    final now = DateTime.now();
+    await _store.saveSnapshot(
+      PortfolioSnapshot(
+        dayStart: DateTime(now.year, now.month, now.day),
+        totalValue: summary.totalValue,
+        totalInvested: summary.invested,
+        totalProfitLoss: summary.pnl,
+        totalProfitLossPercent: summary.pnlPercent,
+        assetCount: summary.assetCount,
+        createdAt: now,
+      ),
+    );
+    final snapshots = await _store.loadSnapshots();
+    if (!mounted) return;
+    setState(() {
+      _snapshots
+        ..clear()
+        ..addAll(snapshots);
+    });
   }
 }
 
@@ -420,6 +539,102 @@ class _PortfolioTopBar extends StatelessWidget {
         ),
         _HeaderIcon(icon: Icons.add_rounded, tooltip: 'Add', onTap: onAdd),
       ],
+    );
+  }
+}
+
+class _ImportPreviewPanel extends StatelessWidget {
+  const _ImportPreviewPanel({required this.preview, required this.mode});
+
+  final PortfolioImportPreview preview;
+  final PortfolioImportMode mode;
+
+  @override
+  Widget build(BuildContext context) {
+    final first = preview.firstTimestamp;
+    final last = preview.lastTimestamp;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceVariant,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            mode == PortfolioImportMode.append
+                ? 'Append import preview'
+                : 'Replace import preview',
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 10),
+          _PreviewRow('Transactions', '${preview.transactionCount}'),
+          _PreviewRow(
+            'Buys / Sells',
+            '${preview.buyCount} / ${preview.sellCount}',
+          ),
+          _PreviewRow('Coins', '${preview.coinCount}'),
+          if (first != null && last != null)
+            _PreviewRow(
+              'Range',
+              '${DateFormat('dd MMM yyyy').format(first)} - ${DateFormat('dd MMM yyyy').format(last)}',
+            ),
+          const SizedBox(height: 8),
+          Text(
+            mode == PortfolioImportMode.replace
+                ? 'Existing portfolio transactions and snapshots will be replaced.'
+                : 'Existing transactions are kept; duplicate IDs are skipped.',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PreviewRow extends StatelessWidget {
+  const _PreviewRow(this.label, this.value);
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const Spacer(),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -716,10 +931,11 @@ class _PortfolioTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 48,
+      height: 50,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        color: const Color(0xFF111112),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
@@ -755,23 +971,25 @@ class _PortfolioTabButton extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: selected
-                    ? AppColors.textPrimary
-                    : AppColors.textSecondary,
-                fontSize: 14,
-                fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+            Expanded(
+              child: Center(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: selected
+                        ? AppColors.textPrimary
+                        : AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.w900 : FontWeight.w500,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 8),
             Container(
-              width: 42,
+              width: double.infinity,
               height: 2,
               color: selected ? AppColors.textPrimary : Colors.transparent,
             ),
@@ -939,8 +1157,8 @@ class _AssetRow extends StatelessWidget {
 class _TransactionsTab extends StatelessWidget {
   const _TransactionsTab({required this.transactions, required this.onDelete});
 
-  final List<_PortfolioTransaction> transactions;
-  final ValueChanged<_PortfolioTransaction> onDelete;
+  final List<PortfolioTransaction> transactions;
+  final ValueChanged<PortfolioTransaction> onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -963,12 +1181,12 @@ class _TransactionsTab extends StatelessWidget {
 class _TransactionRow extends StatelessWidget {
   const _TransactionRow({required this.transaction, required this.onDelete});
 
-  final _PortfolioTransaction transaction;
+  final PortfolioTransaction transaction;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final isBuy = transaction.type == _TransactionType.buy;
+    final isBuy = transaction.type == PortfolioTransactionType.buy;
     return InkWell(
       onLongPress: onDelete,
       borderRadius: BorderRadius.circular(14),
@@ -1070,7 +1288,7 @@ class _AddTransactionSheet extends StatefulWidget {
 
   final List<Coin> coins;
   final Map<String, double> availableQuantityByCoin;
-  final ValueChanged<_PortfolioTransaction> onConfirm;
+  final ValueChanged<PortfolioTransaction> onConfirm;
 
   @override
   State<_AddTransactionSheet> createState() => _AddTransactionSheetState();
@@ -1078,7 +1296,7 @@ class _AddTransactionSheet extends StatefulWidget {
 
 class _AddTransactionSheetState extends State<_AddTransactionSheet> {
   late Coin _coin = widget.coins.first;
-  _TransactionType _type = _TransactionType.buy;
+  PortfolioTransactionType _type = PortfolioTransactionType.buy;
   final _quantity = TextEditingController();
   final _price = TextEditingController();
   final _fee = TextEditingController();
@@ -1107,11 +1325,11 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
     final total = quantity * price + fee;
     final availableQuantity = widget.availableQuantityByCoin[_coin.id] ?? 0;
     final sellTooMuch =
-        _type == _TransactionType.sell && quantity > availableQuantity;
+        _type == PortfolioTransactionType.sell && quantity > availableQuantity;
     final canSubmit =
         quantity > 0 &&
         price >= 0 &&
-        (_type == _TransactionType.buy || !sellTooMuch);
+        (_type == PortfolioTransactionType.buy || !sellTooMuch);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -1145,16 +1363,18 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
               children: [
                 _TypeButton(
                   label: 'BUY',
-                  selected: _type == _TransactionType.buy,
+                  selected: _type == PortfolioTransactionType.buy,
                   color: AppColors.green,
-                  onTap: () => setState(() => _type = _TransactionType.buy),
+                  onTap: () =>
+                      setState(() => _type = PortfolioTransactionType.buy),
                 ),
                 const SizedBox(width: 8),
                 _TypeButton(
                   label: 'SELL',
-                  selected: _type == _TransactionType.sell,
+                  selected: _type == PortfolioTransactionType.sell,
                   color: AppColors.red,
-                  onTap: () => setState(() => _type = _TransactionType.sell),
+                  onTap: () =>
+                      setState(() => _type = PortfolioTransactionType.sell),
                 ),
               ],
             ),
@@ -1184,7 +1404,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
               hint: 'e.g. 0.5',
               onChanged: (_) => setState(() {}),
             ),
-            if (_type == _TransactionType.sell) ...[
+            if (_type == PortfolioTransactionType.sell) ...[
               const SizedBox(height: 6),
               Text(
                 'Available: ${_trim(availableQuantity)} ${_coin.symbol}',
@@ -1254,7 +1474,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
               height: 52,
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: _type == _TransactionType.buy
+                  backgroundColor: _type == PortfolioTransactionType.buy
                       ? AppColors.green
                       : AppColors.red,
                   foregroundColor: Colors.white,
@@ -1266,8 +1486,8 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                     ? null
                     : () {
                         widget.onConfirm(
-                          _PortfolioTransaction(
-                            id: _newId(),
+                          PortfolioTransaction(
+                            id: newPortfolioId(),
                             coin: _coin,
                             type: _type,
                             quantity: quantity,
@@ -1423,17 +1643,7 @@ class _PortfolioChartPainter extends CustomPainter {
 
     final path = Path()..moveTo(points.first.dx, points.first.dy);
     for (var i = 1; i < points.length; i++) {
-      final previous = points[i - 1];
-      final current = points[i];
-      final controlX = (previous.dx + current.dx) / 2;
-      path.cubicTo(
-        controlX,
-        previous.dy,
-        controlX,
-        current.dy,
-        current.dx,
-        current.dy,
-      );
+      path.lineTo(points[i].dx, points[i].dy);
     }
 
     final fillPath = Path.from(path)
@@ -1450,9 +1660,9 @@ class _PortfolioChartPainter extends CustomPainter {
 
     final linePaint = Paint()
       ..color = color
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.square
+      ..strokeJoin = StrokeJoin.miter
+      ..strokeWidth = 2.8
       ..style = PaintingStyle.stroke;
     canvas.drawPath(path, linePaint);
 
@@ -1495,8 +1705,9 @@ class _PortfolioSummary {
 
   factory _PortfolioSummary.fromAssets(
     List<_PortfolioAsset> assets,
-    List<_PortfolioTransaction> transactions,
-  ) {
+    List<PortfolioTransaction> transactions, {
+    List<PortfolioSnapshot> snapshots = const [],
+  }) {
     final totalValue = assets.fold<double>(
       0,
       (sum, asset) => sum + asset.currentValue,
@@ -1521,12 +1732,11 @@ class _PortfolioSummary {
     final previousValue = math.max(totalValue - dayChange, 0.01);
     final pnl = unrealized + realized;
     final pnlPercent = invested == 0 ? 0.0 : pnl / invested * 100;
-    final seed = totalValue == 0 ? 1000.0 : previousValue;
-    final chartValues = List<double>.generate(32, (index) {
-      final t = index / 31;
-      final wave = math.sin(t * math.pi * 3) * seed * 0.018;
-      return seed + (totalValue - seed) * t + wave;
-    });
+    final chartValues = _chartValuesFromSnapshots(
+      snapshots,
+      fallbackCurrent: totalValue,
+      fallbackPrevious: previousValue,
+    );
     return _PortfolioSummary(
       totalValue: totalValue,
       invested: invested,
@@ -1540,6 +1750,25 @@ class _PortfolioSummary {
       assetCount: assets.length,
       chartValues: chartValues,
     );
+  }
+
+  static List<double> _chartValuesFromSnapshots(
+    List<PortfolioSnapshot> snapshots, {
+    required double fallbackCurrent,
+    required double fallbackPrevious,
+  }) {
+    final ordered = [...snapshots]
+      ..sort((a, b) => a.dayStart.compareTo(b.dayStart));
+    final values = ordered
+        .map((snapshot) => snapshot.totalValue)
+        .where((value) => value >= 0)
+        .toList();
+    if (values.length >= 2) return values;
+
+    if (fallbackCurrent <= 0 && fallbackPrevious <= 0) {
+      return const [0, 0];
+    }
+    return [fallbackPrevious, fallbackCurrent];
   }
 }
 
@@ -1565,37 +1794,6 @@ class _PortfolioAsset {
       costBasis == 0 ? 0 : unrealizedPnl / costBasis * 100;
 }
 
-class _PortfolioTransaction {
-  const _PortfolioTransaction({
-    required this.id,
-    required this.coin,
-    required this.type,
-    required this.quantity,
-    required this.price,
-    required this.fee,
-    required this.timestamp,
-    required this.note,
-  });
-
-  final String id;
-  final Coin coin;
-  final _TransactionType type;
-  final double quantity;
-  final double price;
-  final double fee;
-  final DateTime timestamp;
-  final String note;
-
-  double get total => quantity * price + fee;
-}
-
-extension on _TransactionType {
-  String get label => switch (this) {
-    _TransactionType.buy => 'Buy',
-    _TransactionType.sell => 'Sell',
-  };
-}
-
 TextStyle _assetMetaStyle(Color color) {
   return TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700);
 }
@@ -1610,35 +1808,4 @@ String _trim(double value) {
       .toStringAsFixed(8)
       .replaceFirst(RegExp(r'0+$'), '')
       .replaceFirst(RegExp(r'\.$'), '');
-}
-
-String _newId() => DateTime.now().microsecondsSinceEpoch.toString();
-
-String _escapeCsv(String value) {
-  if (!value.contains(RegExp('[,"\n]'))) return value;
-  return '"${value.replaceAll('"', '""')}"';
-}
-
-List<String> _splitCsv(String row) {
-  final values = <String>[];
-  final buffer = StringBuffer();
-  var quoted = false;
-  for (var i = 0; i < row.length; i++) {
-    final char = row[i];
-    if (char == '"') {
-      if (quoted && i + 1 < row.length && row[i + 1] == '"') {
-        buffer.write('"');
-        i++;
-      } else {
-        quoted = !quoted;
-      }
-    } else if (char == ',' && !quoted) {
-      values.add(buffer.toString());
-      buffer.clear();
-    } else {
-      buffer.write(char);
-    }
-  }
-  values.add(buffer.toString());
-  return values;
 }

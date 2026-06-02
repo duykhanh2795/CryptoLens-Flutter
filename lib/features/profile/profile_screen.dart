@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../core/services/crypto_auth_service.dart';
+import '../../core/services/portfolio_store.dart';
+import '../../core/services/settings_store.dart';
 import '../../core/theme/app_theme.dart';
 import '../alerts/alerts_screen.dart';
 import '../converter/converter_screen.dart';
@@ -47,7 +50,9 @@ class ProfileScreen extends StatelessWidget {
             title: 'Connected Exchanges',
             trailingText: 'Binance',
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ManageExchangeScreen()),
+              MaterialPageRoute(
+                builder: (_) => ManageExchangeScreen(controller: controller),
+              ),
             ),
           ),
           _ProfileRow(
@@ -115,7 +120,6 @@ class ProfileScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 220),
           SizedBox(
             height: 58,
             child: FilledButton(
@@ -144,7 +148,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 88),
+          // const SizedBox(height: 88),
         ],
       ),
     );
@@ -443,12 +447,16 @@ class _ProfileRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 18),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 76),
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 18),
         child: Row(
           children: [
-            Icon(icon, color: _ProfileColors.textPrimary, size: 25),
-            const SizedBox(width: 20),
+            SizedBox(
+              width: 34,
+              child: Icon(icon, color: _ProfileColors.textPrimary, size: 25),
+            ),
+            const SizedBox(width: 18),
             Expanded(
               child: Text(
                 title,
@@ -456,17 +464,21 @@ class _ProfileRow extends StatelessWidget {
                   color: _ProfileColors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             if (trailingText != null) ...[
-              Flexible(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 126),
+              const SizedBox(width: 24),
+              SizedBox(
+                width: 116,
+                child: Align(
+                  alignment: Alignment.centerRight,
                   child: Text(
                     trailingText!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
+                    textAlign: TextAlign.right,
                     style: const TextStyle(
                       color: _ProfileColors.textSecondary,
                       fontWeight: FontWeight.w700,
@@ -474,12 +486,16 @@ class _ProfileRow extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-            ],
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: _ProfileColors.textTertiary,
-              size: 22,
+              const SizedBox(width: 18),
+            ] else
+              const SizedBox(width: 158),
+            const SizedBox(
+              width: 24,
+              child: Icon(
+                Icons.chevron_right_rounded,
+                color: _ProfileColors.textTertiary,
+                size: 22,
+              ),
             ),
           ],
         ),
@@ -541,13 +557,25 @@ class _SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<_SettingsScreen> {
-  String _currency = r'$ USD';
-  String _theme = 'System';
-  String _language = 'English';
-  String _priceFormat = 'Compact';
-  bool _showPortfolio = true;
-  bool _biometric = false;
-  bool _notifications = true;
+  final _store = SettingsStore();
+  AppSettings _settings = const AppSettings();
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final settings = await _store.load();
+    if (!mounted) return;
+    setState(() => _settings = settings);
+  }
+
+  Future<void> _save(AppSettings settings) async {
+    setState(() => _settings = settings);
+    await _store.save(settings);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -579,46 +607,79 @@ class _SettingsScreenState extends State<_SettingsScreen> {
             const _SettingsSectionHeader('General'),
             _SelectionRow(
               title: 'Currency',
-              value: _currency,
-              options: const [r'$ USD', 'EUR', 'JPY', 'VND'],
-              onSelected: (value) => setState(() => _currency = value),
+              value: _settings.currency.label,
+              options: AppCurrency.values.map((value) => value.label).toList(),
+              onSelected: (value) => _save(
+                _settings.copyWith(
+                  currency: AppCurrency.values.firstWhere(
+                    (item) => item.label == value,
+                    orElse: () => AppCurrency.usd,
+                  ),
+                ),
+              ),
             ),
             _SelectionRow(
               title: 'Theme',
-              value: _theme,
-              options: const ['System', 'Dark', 'Light'],
-              onSelected: (value) => setState(() => _theme = value),
+              value: _settings.theme.label,
+              options: AppThemeMode.values.map((value) => value.label).toList(),
+              onSelected: (value) => _save(
+                _settings.copyWith(
+                  theme: AppThemeMode.values.firstWhere(
+                    (item) => item.label == value,
+                    orElse: () => AppThemeMode.system,
+                  ),
+                ),
+              ),
             ),
             _SelectionRow(
               title: 'Language',
-              value: _language,
-              options: const ['English', 'Vietnamese'],
-              onSelected: (value) => setState(() => _language = value),
+              value: _settings.language.label,
+              options: AppLanguage.values.map((value) => value.label).toList(),
+              onSelected: (value) => _save(
+                _settings.copyWith(
+                  language: AppLanguage.values.firstWhere(
+                    (item) => item.label == value,
+                    orElse: () => AppLanguage.english,
+                  ),
+                ),
+              ),
             ),
             _SelectionRow(
               title: 'Price Format',
-              value: _priceFormat,
-              options: const ['Compact', 'Full precision', 'Rounded'],
-              onSelected: (value) => setState(() => _priceFormat = value),
+              value: _settings.priceFormat.label,
+              options: PriceDisplayFormat.values
+                  .map((value) => value.label)
+                  .toList(),
+              onSelected: (value) => _save(
+                _settings.copyWith(
+                  priceFormat: PriceDisplayFormat.values.firstWhere(
+                    (item) => item.label == value,
+                    orElse: () => PriceDisplayFormat.compact,
+                  ),
+                ),
+              ),
             ),
             const _SettingsDivider(),
             const _SettingsSectionHeader('Privacy'),
             _SwitchRow(
               title: 'Show Portfolio Value',
-              value: _showPortfolio,
-              onChanged: (value) => setState(() => _showPortfolio = value),
+              value: _settings.showPortfolioValue,
+              onChanged: (value) =>
+                  _save(_settings.copyWith(showPortfolioValue: value)),
             ),
             _SwitchRow(
               title: 'Biometric Lock',
-              value: _biometric,
-              onChanged: (value) => setState(() => _biometric = value),
+              value: _settings.biometricLock,
+              onChanged: (value) =>
+                  _save(_settings.copyWith(biometricLock: value)),
             ),
             const _SettingsDivider(),
             const _SettingsSectionHeader('Notifications'),
             _SwitchRow(
               title: 'Push Notifications',
-              value: _notifications,
-              onChanged: (value) => setState(() => _notifications = value),
+              value: _settings.enableNotifications,
+              onChanged: (value) =>
+                  _save(_settings.copyWith(enableNotifications: value)),
             ),
             const _SettingsDivider(),
             const _SettingsSectionHeader('Data'),
@@ -821,34 +882,115 @@ void _showComingSoon(BuildContext context, String feature) {
 }
 
 void _showChangePassword(BuildContext context) {
+  final newPassword = TextEditingController();
+  final confirmPassword = TextEditingController();
+  var visible = false;
+  var saving = false;
+  String? error;
   showDialog<void>(
     context: context,
-    builder: (_) => AlertDialog(
-      backgroundColor: _ProfileColors.surface,
-      title: const Text(
-        'Change Password',
-        style: TextStyle(color: _ProfileColors.textPrimary),
-      ),
-      content: const Text(
-        'Supabase auth parity will be connected after the market MVP.',
-        style: TextStyle(color: _ProfileColors.textSecondary),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: _ProfileColors.textSecondary),
+    builder: (_) => StatefulBuilder(
+      builder: (context, setDialogState) => AlertDialog(
+        backgroundColor: _ProfileColors.surface,
+        title: const Text(
+          'Change Password',
+          style: TextStyle(color: _ProfileColors.textPrimary),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: newPassword,
+              obscureText: !visible,
+              decoration: const InputDecoration(labelText: 'New password'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: confirmPassword,
+              obscureText: !visible,
+              decoration: const InputDecoration(
+                labelText: 'Confirm new password',
+              ),
+            ),
+            const SizedBox(height: 8),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              value: visible,
+              onChanged: (value) =>
+                  setDialogState(() => visible = value ?? false),
+              title: const Text(
+                'Show password',
+                style: TextStyle(color: _ProfileColors.textSecondary),
+              ),
+            ),
+            if (error != null)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  error!,
+                  style: const TextStyle(color: AppColors.red),
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: saving ? null : () => Navigator.of(context).pop(),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: _ProfileColors.textSecondary),
+            ),
           ),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: FilledButton.styleFrom(backgroundColor: _ProfileColors.yellow),
-          child: const Text('Save', style: TextStyle(color: Color(0xFF1A1400))),
-        ),
-      ],
+          FilledButton(
+            onPressed: saving
+                ? null
+                : () async {
+                    setDialogState(() {
+                      saving = true;
+                      error = null;
+                    });
+                    try {
+                      await CryptoAuthService().updatePassword(
+                        newPassword: newPassword.text,
+                        confirmPassword: confirmPassword.text,
+                      );
+                      if (!context.mounted) return;
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Password updated')),
+                      );
+                    } on CryptoAuthException catch (authError) {
+                      setDialogState(() {
+                        error = authError.message;
+                        saving = false;
+                      });
+                    } catch (exception) {
+                      setDialogState(() {
+                        error = exception.toString();
+                        saving = false;
+                      });
+                    }
+                  },
+            style: FilledButton.styleFrom(
+              backgroundColor: _ProfileColors.yellow,
+            ),
+            child: saving
+                ? const SizedBox.square(
+                    dimension: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text(
+                    'Save',
+                    style: TextStyle(color: Color(0xFF1A1400)),
+                  ),
+          ),
+        ],
+      ),
     ),
-  );
+  ).whenComplete(() {
+    newPassword.dispose();
+    confirmPassword.dispose();
+  });
 }
 
 void _showClearPortfolio(BuildContext context) {
@@ -862,7 +1004,7 @@ void _showClearPortfolio(BuildContext context) {
         style: TextStyle(color: _ProfileColors.textPrimary),
       ),
       content: const Text(
-        'This action will be wired when Flutter local portfolio storage is added.',
+        'This removes all local portfolio transactions. Exchange connections stay linked and can be synced again.',
         style: TextStyle(color: _ProfileColors.textSecondary),
       ),
       actions: [
@@ -874,7 +1016,14 @@ void _showClearPortfolio(BuildContext context) {
           ),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () async {
+            await PortfolioStore().clear();
+            if (!context.mounted) return;
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Portfolio cleared')));
+          },
           child: const Text('Clear', style: TextStyle(color: AppColors.red)),
         ),
       ],
@@ -893,7 +1042,7 @@ void _showLogout(BuildContext context, VoidCallback onLogout) {
         style: TextStyle(color: _ProfileColors.textPrimary),
       ),
       content: const Text(
-        'Your portfolio data will remain saved locally after auth is ported.',
+        'Your portfolio data will remain saved locally on this device.',
         style: TextStyle(color: _ProfileColors.textSecondary),
       ),
       actions: [

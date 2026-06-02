@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../core/services/auth_session_store.dart';
+import '../core/services/crypto_auth_service.dart';
 import '../core/services/market_api.dart';
 import '../core/services/watchlist_store.dart';
 import '../core/theme/app_theme.dart';
@@ -20,10 +20,15 @@ class CryptoLensApp extends StatefulWidget {
 }
 
 class _CryptoLensAppState extends State<CryptoLensApp> {
-  final _authSessionStore = AuthSessionStore();
+  final _authService = CryptoAuthService();
   late final MarketController marketController;
   _AuthStage _stage = _AuthStage.splash;
-  _LocalUser? _user;
+  CryptoAuthUser? _user;
+  LoginPreferences _loginPreferences = const LoginPreferences(
+    rememberLogin: false,
+    rememberedEmail: '',
+  );
+  StreamSubscription<CryptoAuthUser?>? _authSubscription;
 
   @override
   void initState() {
@@ -33,11 +38,19 @@ class _CryptoLensAppState extends State<CryptoLensApp> {
       watchlistStore: WatchlistStore(),
     )..initialize();
     _restoreSession();
+    _authSubscription = _authService.authStateChanges.listen((user) {
+      if (!mounted || user == null) return;
+      setState(() {
+        _user = user;
+        _stage = _AuthStage.home;
+      });
+    });
   }
 
   @override
   void dispose() {
     marketController.dispose();
+    unawaited(_authSubscription?.cancel());
     super.dispose();
   }
 
@@ -54,7 +67,8 @@ class _CryptoLensAppState extends State<CryptoLensApp> {
             _AuthStage.splash => SplashScreen(
               onContinue: () => setState(() => _stage = _AuthStage.login),
               onDemo: () => setState(() {
-                _user = const _LocalUser(
+                _user = const CryptoAuthUser(
+                  id: 'demo',
                   displayName: 'CryptoLens User',
                   email: 'demo@cryptolens.local',
                 );
@@ -62,48 +76,22 @@ class _CryptoLensAppState extends State<CryptoLensApp> {
               }),
             ),
             _AuthStage.login => LoginScreen(
-              onLogin: (email, remember) {
-                final user = _LocalUser(
-                  displayName: email.split('@').first,
-                  email: email,
-                );
-                if (remember) {
-                  unawaited(
-                    _authSessionStore.save(
-                      StoredUser(
-                        displayName: user.displayName,
-                        email: user.email,
-                      ),
-                    ),
-                  );
-                }
-                setState(() {
-                  _user = user;
-                  _stage = _AuthStage.home;
-                });
-              },
+              initialEmail: _loginPreferences.rememberedEmail,
+              initialRemember: _loginPreferences.rememberLogin,
+              onLogin: _login,
+              onForgotPassword: _resetPassword,
               onRegister: () => setState(() => _stage = _AuthStage.register),
             ),
             _AuthStage.register => RegisterScreen(
               onBack: () => setState(() => _stage = _AuthStage.login),
-              onRegister: (name, email) {
-                unawaited(
-                  _authSessionStore.save(
-                    StoredUser(displayName: name, email: email),
-                  ),
-                );
-                setState(() {
-                  _user = _LocalUser(displayName: name, email: email);
-                  _stage = _AuthStage.home;
-                });
-              },
+              onRegister: _register,
             ),
             _AuthStage.home => AppShell(
               controller: marketController,
               displayName: _user?.displayName ?? 'CryptoLens User',
               email: _user?.email ?? '',
-              onLogout: () {
-                unawaited(_authSessionStore.clear());
+              onLogout: () async {
+                await _authService.logout();
                 setState(() {
                   _user = null;
                   _stage = _AuthStage.login;
@@ -117,20 +105,80 @@ class _CryptoLensAppState extends State<CryptoLensApp> {
   }
 
   Future<void> _restoreSession() async {
-    final stored = await _authSessionStore.load();
-    if (!mounted || stored == null) return;
+    final preferences = await _authService.loadLoginPreferences();
+    final user = _authService.currentUser;
+    if (!mounted) return;
     setState(() {
-      _user = _LocalUser(displayName: stored.displayName, email: stored.email);
-      _stage = _AuthStage.home;
+      _loginPreferences = preferences;
+      if (user != null) {
+        _user = user;
+        _stage = _AuthStage.home;
+      }
     });
+  }
+
+  Future<String?> _login(String email, String password, bool remember) async {
+    try {
+      final user = await _authService.login(
+        email: email,
+        password: password,
+        remember: remember,
+      );
+      if (mounted) {
+        setState(() {
+          _user = user;
+          _loginPreferences = LoginPreferences(
+            rememberLogin: remember,
+            rememberedEmail: remember ? email.trim() : '',
+          );
+          _stage = _AuthStage.home;
+        });
+      }
+      return null;
+    } on CryptoAuthException catch (error) {
+      return error.message;
+    } catch (error) {
+      return error.toString();
+    }
+  }
+
+  Future<String?> _register(
+    String name,
+    String email,
+    String password,
+    String confirmPassword,
+  ) async {
+    try {
+      final user = await _authService.register(
+        displayName: name,
+        email: email,
+        password: password,
+        confirmPassword: confirmPassword,
+      );
+      if (mounted) {
+        setState(() {
+          _user = user;
+          _stage = _AuthStage.home;
+        });
+      }
+      return null;
+    } on CryptoAuthException catch (error) {
+      return error.message;
+    } catch (error) {
+      return error.toString();
+    }
+  }
+
+  Future<String?> _resetPassword(String email) async {
+    try {
+      await _authService.resetPassword(email);
+      return null;
+    } on CryptoAuthException catch (error) {
+      return error.message;
+    } catch (error) {
+      return error.toString();
+    }
   }
 }
 
 enum _AuthStage { splash, login, register, home }
-
-class _LocalUser {
-  const _LocalUser({required this.displayName, required this.email});
-
-  final String displayName;
-  final String email;
-}

@@ -7,6 +7,17 @@ import '../../shared/widgets/empty_state.dart';
 import '../market/coin_detail_screen.dart';
 import '../market/market_controller.dart';
 
+enum _WatchlistFilter { all, gainers, losers }
+
+enum _WatchlistSortOrder {
+  defaultOrder,
+  nameAsc,
+  changeDesc,
+  changeAsc,
+  priceDesc,
+  priceAsc,
+}
+
 class WatchlistScreen extends StatefulWidget {
   const WatchlistScreen({required this.controller, super.key});
 
@@ -18,18 +29,15 @@ class WatchlistScreen extends StatefulWidget {
 
 class _WatchlistScreenState extends State<WatchlistScreen> {
   bool _showSearch = false;
+  _WatchlistFilter _filter = _WatchlistFilter.all;
+  _WatchlistSortOrder _sortOrder = _WatchlistSortOrder.defaultOrder;
 
   @override
   Widget build(BuildContext context) {
     final query = widget.controller.searchQuery.trim().toLowerCase();
-    final coins = widget.controller.watchlistCoins
-        .where(
-          (coin) =>
-              query.isEmpty ||
-              coin.name.toLowerCase().contains(query) ||
-              coin.symbol.toLowerCase().contains(query),
-        )
-        .toList();
+    final coins = _applySort(
+      _applyFilter(widget.controller.watchlistCoins, query),
+    );
     return RefreshIndicator(
       onRefresh: widget.controller.refresh,
       child: ListView(
@@ -42,10 +50,16 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
               setState(() => _showSearch = !_showSearch);
               if (!_showSearch) widget.controller.setSearchQuery('');
             },
+            onSort: _showSortSheet,
           ),
           _WatchlistTabsAndFilters(
             controller: widget.controller,
             showSearch: _showSearch || query.isNotEmpty,
+            filter: _filter,
+            sortOrder: _sortOrder,
+            onFilterChanged: (filter) => setState(() => _filter = filter),
+            onSortChanged: (sortOrder) =>
+                setState(() => _sortOrder = sortOrder),
           ),
           if (coins.isEmpty)
             const SizedBox(
@@ -82,6 +96,89 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  List<Coin> _applyFilter(List<Coin> source, String query) {
+    final searched = source
+        .where(
+          (coin) =>
+              query.isEmpty ||
+              coin.name.toLowerCase().contains(query) ||
+              coin.symbol.toLowerCase().contains(query),
+        )
+        .where((coin) {
+          return switch (_filter) {
+            _WatchlistFilter.all => true,
+            _WatchlistFilter.gainers => coin.priceChangePercent24h >= 0,
+            _WatchlistFilter.losers => coin.priceChangePercent24h < 0,
+          };
+        })
+        .toList();
+    return searched;
+  }
+
+  List<Coin> _applySort(List<Coin> source) {
+    final coins = [...source];
+    switch (_sortOrder) {
+      case _WatchlistSortOrder.defaultOrder:
+        return coins;
+      case _WatchlistSortOrder.nameAsc:
+        coins.sort((a, b) => a.name.compareTo(b.name));
+      case _WatchlistSortOrder.changeDesc:
+        coins.sort(
+          (a, b) => b.priceChangePercent24h.compareTo(a.priceChangePercent24h),
+        );
+      case _WatchlistSortOrder.changeAsc:
+        coins.sort(
+          (a, b) => a.priceChangePercent24h.compareTo(b.priceChangePercent24h),
+        );
+      case _WatchlistSortOrder.priceDesc:
+        coins.sort((a, b) => b.currentPrice.compareTo(a.currentPrice));
+      case _WatchlistSortOrder.priceAsc:
+        coins.sort((a, b) => a.currentPrice.compareTo(b.currentPrice));
+    }
+    return coins;
+  }
+
+  void _showSortSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 38,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+              const SizedBox(height: 14),
+              for (final order in _WatchlistSortOrder.values)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(order.label),
+                  trailing: _sortOrder == order
+                      ? const Icon(Icons.check_rounded, color: AppColors.accent)
+                      : null,
+                  onTap: () {
+                    setState(() => _sortOrder = order);
+                    Navigator.of(context).pop();
+                  },
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -218,11 +315,13 @@ class _WatchlistTopBar extends StatelessWidget {
     required this.controller,
     required this.isSearchVisible,
     required this.onSearchToggle,
+    required this.onSort,
   });
 
   final MarketController controller;
   final bool isSearchVisible;
   final VoidCallback onSearchToggle;
+  final VoidCallback onSort;
 
   @override
   Widget build(BuildContext context) {
@@ -275,10 +374,10 @@ class _WatchlistTopBar extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Scan',
-                onPressed: () {},
+                tooltip: 'Sort',
+                onPressed: onSort,
                 icon: const Icon(
-                  Icons.crop_free_rounded,
+                  Icons.sort_rounded,
                   size: 27,
                   color: AppColors.textSecondary,
                 ),
@@ -287,7 +386,7 @@ class _WatchlistTopBar extends StatelessWidget {
                 tooltip: 'Refresh',
                 onPressed: controller.refresh,
                 icon: const Icon(
-                  Icons.sort_rounded,
+                  Icons.refresh_rounded,
                   size: 27,
                   color: AppColors.textSecondary,
                 ),
@@ -304,14 +403,67 @@ class _WatchlistTabsAndFilters extends StatelessWidget {
   const _WatchlistTabsAndFilters({
     required this.controller,
     required this.showSearch,
+    required this.filter,
+    required this.sortOrder,
+    required this.onFilterChanged,
+    required this.onSortChanged,
   });
 
   final MarketController controller;
   final bool showSearch;
+  final _WatchlistFilter filter;
+  final _WatchlistSortOrder sortOrder;
+  final ValueChanged<_WatchlistFilter> onFilterChanged;
+  final ValueChanged<_WatchlistSortOrder> onSortChanged;
 
   @override
   Widget build(BuildContext context) {
-    const labels = ['Popular', 'Gainers', 'Losers', 'Price', '24h Change'];
+    final chips = [
+      _WatchlistChipData(
+        label: 'Popular',
+        selected:
+            filter == _WatchlistFilter.all &&
+            sortOrder == _WatchlistSortOrder.defaultOrder,
+        onTap: () {
+          onFilterChanged(_WatchlistFilter.all);
+          onSortChanged(_WatchlistSortOrder.defaultOrder);
+        },
+      ),
+      _WatchlistChipData(
+        label: 'Gainers',
+        selected: filter == _WatchlistFilter.gainers,
+        onTap: () => onFilterChanged(_WatchlistFilter.gainers),
+      ),
+      _WatchlistChipData(
+        label: 'Losers',
+        selected: filter == _WatchlistFilter.losers,
+        onTap: () => onFilterChanged(_WatchlistFilter.losers),
+      ),
+      _WatchlistChipData(
+        label: 'Price',
+        selected:
+            sortOrder == _WatchlistSortOrder.priceDesc ||
+            sortOrder == _WatchlistSortOrder.priceAsc,
+        sortIcon: true,
+        onTap: () => onSortChanged(
+          sortOrder == _WatchlistSortOrder.priceDesc
+              ? _WatchlistSortOrder.priceAsc
+              : _WatchlistSortOrder.priceDesc,
+        ),
+      ),
+      _WatchlistChipData(
+        label: '24h Change',
+        selected:
+            sortOrder == _WatchlistSortOrder.changeDesc ||
+            sortOrder == _WatchlistSortOrder.changeAsc,
+        sortIcon: true,
+        onTap: () => onSortChanged(
+          sortOrder == _WatchlistSortOrder.changeDesc
+              ? _WatchlistSortOrder.changeAsc
+              : _WatchlistSortOrder.changeDesc,
+        ),
+      ),
+    ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 20, 18, 8),
       child: Column(
@@ -391,44 +543,50 @@ class _WatchlistTabsAndFilters extends StatelessWidget {
             height: 40,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: labels.length,
+              itemCount: chips.length,
               separatorBuilder: (_, _) => const SizedBox(width: 20),
               itemBuilder: (context, index) {
-                final selected = index == 0;
-                return DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? AppColors.surfaceVariant
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: selected ? 10 : 0,
-                      vertical: 6,
+                final chip = chips[index];
+                return InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: chip.onTap,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: chip.selected
+                          ? AppColors.surfaceVariant
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Row(
-                      children: [
-                        Text(
-                          labels[index],
-                          style: TextStyle(
-                            color: selected
-                                ? AppColors.textPrimary
-                                : AppColors.textSecondary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: chip.selected ? 10 : 0,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            chip.label,
+                            style: TextStyle(
+                              color: chip.selected
+                                  ? AppColors.textPrimary
+                                  : AppColors.textSecondary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
-                        ),
-                        if (labels[index] == 'Price' ||
-                            labels[index] == '24h Change') ...[
-                          const SizedBox(width: 2),
-                          const Icon(
-                            Icons.unfold_more_rounded,
-                            size: 14,
-                            color: AppColors.textTertiary,
-                          ),
+                          if (chip.sortIcon) ...[
+                            const SizedBox(width: 2),
+                            Icon(
+                              sortOrder == _WatchlistSortOrder.priceAsc ||
+                                      sortOrder == _WatchlistSortOrder.changeAsc
+                                  ? Icons.keyboard_arrow_up_rounded
+                                  : Icons.keyboard_arrow_down_rounded,
+                              size: 14,
+                              color: AppColors.textTertiary,
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 );
@@ -439,4 +597,29 @@ class _WatchlistTabsAndFilters extends StatelessWidget {
       ),
     );
   }
+}
+
+class _WatchlistChipData {
+  const _WatchlistChipData({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.sortIcon = false,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final bool sortIcon;
+}
+
+extension on _WatchlistSortOrder {
+  String get label => switch (this) {
+    _WatchlistSortOrder.defaultOrder => 'Popular',
+    _WatchlistSortOrder.nameAsc => 'Name A-Z',
+    _WatchlistSortOrder.changeDesc => '24h Change high to low',
+    _WatchlistSortOrder.changeAsc => '24h Change low to high',
+    _WatchlistSortOrder.priceDesc => 'Price high to low',
+    _WatchlistSortOrder.priceAsc => 'Price low to high',
+  };
 }

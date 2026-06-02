@@ -8,7 +8,13 @@ class RegisterScreen extends StatefulWidget {
   });
 
   final VoidCallback onBack;
-  final void Function(String name, String email) onRegister;
+  final Future<String?> Function(
+    String name,
+    String email,
+    String password,
+    String confirmPassword,
+  )
+  onRegister;
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -22,6 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _terms = false;
   bool _passwordVisible = false;
   bool _confirmVisible = false;
+  bool _submitting = false;
   String? _error;
 
   @override
@@ -154,9 +161,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           SizedBox(
             height: 52,
             child: FilledButton(
-              onPressed: _submit,
+              onPressed: _submitting ? null : _submit,
               style: _yellowButton(),
-              child: const Text('Create Account'),
+              child: _submitting
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Create Account'),
             ),
           ),
           const SizedBox(height: 20),
@@ -181,7 +193,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final name = _name.text.trim();
     final email = _email.text.trim();
     final password = _password.text;
@@ -205,7 +217,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() => _error = 'Accept the terms to continue.');
       return;
     }
-    widget.onRegister(name, email);
+    setState(() {
+      _error = null;
+      _submitting = true;
+    });
+    final error = await widget.onRegister(name, email, password, _confirm.text);
+    if (!mounted) return;
+    setState(() {
+      _error = error;
+      _submitting = false;
+    });
   }
 }
 

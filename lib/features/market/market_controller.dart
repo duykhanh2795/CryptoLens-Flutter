@@ -153,7 +153,19 @@ class MarketController extends ChangeNotifier {
     );
   }
 
+  Future<List<Kline>> loadFuturesChartForInterval(Coin coin, String interval) {
+    return api.fetchFuturesKlines(
+      symbol: coin.spotSymbol,
+      interval: interval,
+      limit: 80,
+    );
+  }
+
   Future<CoinDetail> loadCoinDetail(Coin coin) => api.fetchCoinDetail(coin.id);
+
+  Future<FuturesMetrics> loadFuturesMetrics(Coin coin) {
+    return api.fetchFuturesMetrics(symbol: coin.spotSymbol);
+  }
 
   @override
   void dispose() {
