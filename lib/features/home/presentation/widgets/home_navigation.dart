@@ -1,19 +1,13 @@
-part of '../screens/home_screen.dart';
+import 'package:flutter/material.dart';
 
-void _openCoinDetail(
-  BuildContext context,
-  MarketController controller,
-  Coin coin,
-) {
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (_) => CoinDetailScreen(controller: controller, coin: coin),
-    ),
-  );
-}
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 
-class _HomeTopBar extends StatelessWidget {
-  const _HomeTopBar({required this.isRefreshing, required this.onRefresh});
+class HomeTopBar extends StatelessWidget {
+  const HomeTopBar({
+    required this.isRefreshing,
+    required this.onRefresh,
+    super.key,
+  });
 
   final bool isRefreshing;
   final VoidCallback onRefresh;
@@ -74,19 +68,19 @@ class _HomeTopBar extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        _HeaderIconButton(
+        HeaderIconButton(
           icon: isRefreshing ? Icons.sync_rounded : Icons.refresh_rounded,
           onTap: onRefresh,
         ),
         const SizedBox(width: 8),
-        _HeaderIconButton(icon: Icons.notifications_none_rounded, onTap: () {}),
+        HeaderIconButton(icon: Icons.notifications_none_rounded, onTap: () {}),
       ],
     );
   }
 }
 
-class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({required this.icon, required this.onTap});
+class HeaderIconButton extends StatelessWidget {
+  const HeaderIconButton({required this.icon, required this.onTap, super.key});
 
   final IconData icon;
   final VoidCallback onTap;

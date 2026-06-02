@@ -1,7 +1,12 @@
-part of '../screens/home_screen.dart';
+import 'dart:math' as math;
 
-class _AiInsightBanner extends StatelessWidget {
-  const _AiInsightBanner();
+import 'package:flutter/material.dart';
+
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+
+class AiInsightBanner extends StatelessWidget {
+  const AiInsightBanner({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -58,8 +63,8 @@ class _AiInsightBanner extends StatelessWidget {
   }
 }
 
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message});
+class ErrorBanner extends StatelessWidget {
+  const ErrorBanner({required this.message, super.key});
 
   final String message;
 
@@ -77,8 +82,8 @@ class _ErrorBanner extends StatelessWidget {
   }
 }
 
-class _SparklinePainter extends CustomPainter {
-  const _SparklinePainter({required this.values, required this.color});
+class SparklinePainter extends CustomPainter {
+  const SparklinePainter({required this.values, required this.color});
 
   final List<double> values;
   final Color color;
@@ -111,12 +116,12 @@ class _SparklinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _SparklinePainter oldDelegate) {
+  bool shouldRepaint(covariant SparklinePainter oldDelegate) {
     return oldDelegate.values != values || oldDelegate.color != color;
   }
 }
 
-List<double> _sparklineValues(Coin coin) {
+List<double> sparklineValues(Coin coin) {
   final base = coin.currentPrice <= 0 ? 1.0 : coin.currentPrice;
   final direction = coin.isPositive ? 1.0 : -1.0;
   final amplitude = (coin.priceChangePercent24h.abs() / 100).clamp(
@@ -132,12 +137,4 @@ List<double> _sparklineValues(Coin coin) {
     final trend = (progress - 0.5) * direction * 0.95;
     return base * (1.0 + (wave + counter + jitter + trend) * amplitude);
   });
-}
-
-String _formatSignedPriceDelta(double value) {
-  final absolute = value.abs();
-  final formatted = absolute >= 1
-      ? formatPrice(absolute)
-      : formatPrice(absolute);
-  return '${value >= 0 ? '+' : '-'}${formatted.replaceFirst(r'$', r'$')}';
 }

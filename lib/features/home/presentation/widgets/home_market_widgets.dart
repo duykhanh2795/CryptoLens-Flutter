@@ -1,7 +1,13 @@
-part of '../screens/home_screen.dart';
+import 'package:flutter/material.dart';
 
-class _TrendingSectionHeader extends StatelessWidget {
-  const _TrendingSectionHeader({required this.onTap});
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/home/presentation/widgets/home_format_helpers.dart';
+import 'package:cryptolens_flutter/features/home/presentation/widgets/home_misc_widgets.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+
+class TrendingSectionHeader extends StatelessWidget {
+  const TrendingSectionHeader({required this.onTap, super.key});
 
   final VoidCallback onTap;
 
@@ -48,8 +54,8 @@ class _TrendingSectionHeader extends StatelessWidget {
   }
 }
 
-class _TrendingRow extends StatelessWidget {
-  const _TrendingRow({required this.coins, required this.onCoinTap});
+class TrendingRow extends StatelessWidget {
+  const TrendingRow({required this.coins, required this.onCoinTap, super.key});
 
   final List<Coin> coins;
   final ValueChanged<Coin> onCoinTap;
@@ -64,15 +70,15 @@ class _TrendingRow extends StatelessWidget {
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final coin = coins[index];
-          return _TrendingCoinCard(coin: coin, onTap: () => onCoinTap(coin));
+          return TrendingCoinCard(coin: coin, onTap: () => onCoinTap(coin));
         },
       ),
     );
   }
 }
 
-class _TrendingCoinCard extends StatelessWidget {
-  const _TrendingCoinCard({required this.coin, required this.onTap});
+class TrendingCoinCard extends StatelessWidget {
+  const TrendingCoinCard({required this.coin, required this.onTap, super.key});
 
   final Coin coin;
   final VoidCallback onTap;
@@ -138,7 +144,7 @@ class _TrendingCoinCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    _formatSignedPriceDelta(coin.priceChange24h),
+                    formatSignedPriceDelta(coin.priceChange24h),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -155,8 +161,8 @@ class _TrendingCoinCard extends StatelessWidget {
               height: 42,
               width: double.infinity,
               child: CustomPaint(
-                painter: _SparklinePainter(
-                  values: _sparklineValues(coin),
+                painter: SparklinePainter(
+                  values: sparklineValues(coin),
                   color: changeColor,
                 ),
               ),
@@ -168,12 +174,13 @@ class _TrendingCoinCard extends StatelessWidget {
   }
 }
 
-class _MarketMoveSection extends StatelessWidget {
-  const _MarketMoveSection({
+class MarketMoveSection extends StatelessWidget {
+  const MarketMoveSection({
     required this.title,
     required this.coins,
     required this.onSeeAll,
     required this.onCoinTap,
+    super.key,
   });
 
   final String title;
@@ -211,14 +218,14 @@ class _MarketMoveSection extends StatelessWidget {
           ],
         ),
         for (final coin in coins)
-          _MarketMoveRow(coin: coin, onTap: () => onCoinTap(coin)),
+          MarketMoveRow(coin: coin, onTap: () => onCoinTap(coin)),
       ],
     );
   }
 }
 
-class _MarketMoveRow extends StatelessWidget {
-  const _MarketMoveRow({required this.coin, required this.onTap});
+class MarketMoveRow extends StatelessWidget {
+  const MarketMoveRow({required this.coin, required this.onTap, super.key});
 
   final Coin coin;
   final VoidCallback onTap;

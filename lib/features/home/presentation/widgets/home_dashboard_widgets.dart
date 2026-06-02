@@ -1,11 +1,18 @@
-part of '../screens/home_screen.dart';
+import 'package:flutter/material.dart';
 
-class _BankingDashboardGrid extends StatelessWidget {
-  const _BankingDashboardGrid({
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/home/presentation/state/home_portfolio_summary.dart';
+import 'package:cryptolens_flutter/features/home/presentation/widgets/home_format_helpers.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
+
+class BankingDashboardGrid extends StatelessWidget {
+  const BankingDashboardGrid({
     required this.controller,
     required this.watchlistCount,
     required this.coverageCount,
     required this.onOpenPortfolio,
+    super.key,
   });
 
   final MarketController controller;
@@ -17,11 +24,11 @@ class _BankingDashboardGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        FutureBuilder<_HomePortfolioSummary>(
-          future: _HomePortfolioSummary.load(controller),
+        FutureBuilder<HomePortfolioSummary>(
+          future: HomePortfolioSummary.load(controller),
           builder: (context, snapshot) {
-            return _WalletHeroCard(
-              summary: snapshot.data ?? _HomePortfolioSummary.empty(),
+            return WalletHeroCard(
+              summary: snapshot.data ?? HomePortfolioSummary.empty(),
               isLoading: snapshot.connectionState != ConnectionState.done,
               onTap: onOpenPortfolio,
             );
@@ -31,36 +38,36 @@ class _BankingDashboardGrid extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _BankingInfoCard(
+              child: BankingInfoCard(
                 title: 'Transactions',
                 subtitle: 'Spent in October',
                 icon: Icons.receipt_long_rounded,
                 footer: Row(
                   children: const [
-                    _MiniDot(Color(0xFF7C6FE8)),
-                    _MiniDot(AppColors.green),
-                    _MiniDot(AppColors.accent),
-                    _MiniDot(AppColors.red),
+                    MiniDot(Color(0xFF7C6FE8)),
+                    MiniDot(AppColors.green),
+                    MiniDot(AppColors.accent),
+                    MiniDot(AppColors.red),
                   ],
                 ),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: _BankingInfoCard(
+              child: BankingInfoCard(
                 title: 'Cashback',
                 subtitle: 'Portfolio rewards',
                 icon: Icons.account_balance_wallet_rounded,
                 footer: Row(
                   children: [
-                    _MiniAssetCoin('B', const Color(0xFF3A3A3D)),
+                    MiniAssetCoin('B', const Color(0xFF3A3A3D)),
                     Transform.translate(
                       offset: const Offset(-6, 0),
-                      child: _MiniAssetCoin('E', const Color(0xFF555A62)),
+                      child: MiniAssetCoin('E', const Color(0xFF555A62)),
                     ),
                     Transform.translate(
                       offset: const Offset(-12, 0),
-                      child: _MiniAssetCoin('U', const Color(0xFF757B84)),
+                      child: MiniAssetCoin('U', const Color(0xFF757B84)),
                     ),
                   ],
                 ),
@@ -73,21 +80,21 @@ class _BankingDashboardGrid extends StatelessWidget {
           children: [
             Column(
               children: const [
-                _MiniActionButton(Icons.qr_code_scanner_rounded),
+                MiniActionButton(Icons.qr_code_scanner_rounded),
                 SizedBox(height: 8),
-                _MiniActionButton(Icons.add_rounded),
+                MiniActionButton(Icons.add_rounded),
               ],
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: _SmallServiceCard(
+              child: SmallServiceCard(
                 label: 'Tips and training',
                 icon: Icons.school_rounded,
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: _SmallServiceCard(
+              child: SmallServiceCard(
                 label: 'All services',
                 icon: Icons.grid_view_rounded,
               ),
@@ -95,23 +102,21 @@ class _BankingDashboardGrid extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        _ReferCard(
-          watchlistCount: watchlistCount,
-          coverageCount: coverageCount,
-        ),
+        ReferCard(watchlistCount: watchlistCount, coverageCount: coverageCount),
       ],
     );
   }
 }
 
-class _WalletHeroCard extends StatelessWidget {
-  const _WalletHeroCard({
+class WalletHeroCard extends StatelessWidget {
+  const WalletHeroCard({
     required this.summary,
     required this.isLoading,
     required this.onTap,
+    super.key,
   });
 
-  final _HomePortfolioSummary summary;
+  final HomePortfolioSummary summary;
   final bool isLoading;
   final VoidCallback onTap;
 
@@ -226,7 +231,7 @@ class _WalletHeroCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '${_signedMoney(summary.dayChange)} (${formatPercent(summary.dayChangePercent)}) today',
+                          '${signedHomeMoney(summary.dayChange)} (${formatPercent(summary.dayChangePercent)}) today',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -239,7 +244,7 @@ class _WalletHeroCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${summary.assetCount} assets - Total P&L ${_signedMoney(summary.totalPnl)}',
+                      '${summary.assetCount} assets - Total P&L ${signedHomeMoney(summary.totalPnl)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -257,10 +262,10 @@ class _WalletHeroCard extends StatelessWidget {
               bottom: 14,
               child: Row(
                 children: [
-                  _MiniAssetCoin('B', const Color(0xFF4A4A4D)),
+                  MiniAssetCoin('B', const Color(0xFF4A4A4D)),
                   Transform.translate(
                     offset: const Offset(-7, 0),
-                    child: _MiniAssetCoin('E', const Color(0xFF6D737C)),
+                    child: MiniAssetCoin('E', const Color(0xFF6D737C)),
                   ),
                 ],
               ),
@@ -272,131 +277,13 @@ class _WalletHeroCard extends StatelessWidget {
   }
 }
 
-class _HomePortfolioSummary {
-  const _HomePortfolioSummary({
-    required this.totalValue,
-    required this.dayChange,
-    required this.dayChangePercent,
-    required this.totalPnl,
-    required this.assetCount,
-    required this.transactionCount,
-  });
-
-  final double totalValue;
-  final double dayChange;
-  final double dayChangePercent;
-  final double totalPnl;
-  final int assetCount;
-  final int transactionCount;
-
-  static _HomePortfolioSummary empty() => const _HomePortfolioSummary(
-    totalValue: 0,
-    dayChange: 0,
-    dayChangePercent: 0,
-    totalPnl: 0,
-    assetCount: 0,
-    transactionCount: 0,
-  );
-
-  static Future<_HomePortfolioSummary> load(MarketController controller) async {
-    final store = PortfolioStore();
-    final transactions = await store.load(
-      coinResolver: (coinId, symbol, name, imageUrl) {
-        for (final coin in controller.coins) {
-          if (coin.id == coinId) return coin;
-        }
-        return Coin(
-          id: coinId,
-          symbol: symbol,
-          name: name,
-          imageUrl: imageUrl,
-          currentPrice: 0,
-          priceChangePercent24h: 0,
-          priceChange24h: 0,
-          marketCap: 0,
-          volume24h: 0,
-          high24h: 0,
-          low24h: 0,
-          circulatingSupply: 0,
-          rank: 0,
-          lastUpdated: DateTime.now(),
-        );
-      },
-    );
-    if (transactions.isEmpty) return empty();
-
-    final byCoin = <String, List<PortfolioTransaction>>{};
-    for (final tx in transactions) {
-      byCoin.putIfAbsent(tx.coin.id, () => []).add(tx);
-    }
-
-    var totalValue = 0.0;
-    var invested = 0.0;
-    var realized = 0.0;
-    var dayChange = 0.0;
-    var assetCount = 0;
-
-    for (final entry in byCoin.entries) {
-      final txs = [...entry.value]
-        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      var quantity = 0.0;
-      var costBasis = 0.0;
-      var coinRealized = 0.0;
-      for (final tx in txs) {
-        if (tx.type == PortfolioTransactionType.buy) {
-          quantity += tx.quantity;
-          costBasis += tx.quantity * tx.price + tx.fee;
-        } else {
-          final average = quantity <= 0 ? 0.0 : costBasis / quantity;
-          final sold = math.min(quantity, tx.quantity);
-          coinRealized += sold * (tx.price - average) - tx.fee;
-          quantity -= sold;
-          costBasis -= average * sold;
-        }
-      }
-      if (quantity <= 0.00000001) {
-        realized += coinRealized;
-        continue;
-      }
-      final coin = _liveCoin(controller, entry.key) ?? txs.last.coin;
-      final value = quantity * coin.currentPrice;
-      totalValue += value;
-      invested += costBasis;
-      realized += coinRealized;
-      dayChange += quantity * coin.priceChange24h;
-      assetCount++;
-    }
-
-    final previousValue = math.max(totalValue - dayChange, 0.01);
-    return _HomePortfolioSummary(
-      totalValue: totalValue,
-      dayChange: dayChange,
-      dayChangePercent: dayChange / previousValue * 100,
-      totalPnl: totalValue - invested + realized,
-      assetCount: assetCount,
-      transactionCount: transactions.length,
-    );
-  }
-
-  static Coin? _liveCoin(MarketController controller, String coinId) {
-    for (final coin in controller.coins) {
-      if (coin.id == coinId) return coin;
-    }
-    return null;
-  }
-}
-
-String _signedMoney(double value) {
-  final sign = value >= 0 ? '+' : '-';
-  return '$sign${formatPrice(value.abs())}';
-}
-
-class _BankingInfoCard extends StatelessWidget {
-  const _BankingInfoCard({
+class BankingInfoCard extends StatelessWidget {
+  const BankingInfoCard({
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.footer,
+    super.key,
   });
 
   final String title;
@@ -419,7 +306,7 @@ class _BankingInfoCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              _InsetIcon(icon, size: 24, iconSize: 13),
+              InsetIcon(icon, size: 24, iconSize: 13),
               const Spacer(),
               const Icon(
                 Icons.more_horiz_rounded,
@@ -433,13 +320,13 @@ class _BankingInfoCard extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: _homeCardTitle,
+            style: homeCardTitle,
           ),
           Text(
             subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: _homeCardSub,
+            style: homeCardSub,
           ),
           const Spacer(),
           SizedBox(
@@ -452,8 +339,8 @@ class _BankingInfoCard extends StatelessWidget {
   }
 }
 
-class _SmallServiceCard extends StatelessWidget {
-  const _SmallServiceCard({required this.label, required this.icon});
+class SmallServiceCard extends StatelessWidget {
+  const SmallServiceCard({required this.label, required this.icon, super.key});
 
   final String label;
   final IconData icon;
@@ -472,12 +359,12 @@ class _SmallServiceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _InsetIcon(icon, primary: true),
+          InsetIcon(icon, primary: true),
           Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: _homeCardTitle,
+            style: homeCardTitle,
           ),
         ],
       ),
@@ -485,8 +372,12 @@ class _SmallServiceCard extends StatelessWidget {
   }
 }
 
-class _ReferCard extends StatelessWidget {
-  const _ReferCard({required this.watchlistCount, required this.coverageCount});
+class ReferCard extends StatelessWidget {
+  const ReferCard({
+    required this.watchlistCount,
+    required this.coverageCount,
+    super.key,
+  });
 
   final int watchlistCount;
   final int coverageCount;
@@ -510,7 +401,7 @@ class _ReferCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Refer and Earn', style: _homeCardTitle),
+                const Text('Refer and Earn', style: homeCardTitle),
                 const SizedBox(height: 4),
                 const Text(
                   'Share a referral link and get rewarded',
@@ -531,7 +422,7 @@ class _ReferCard extends StatelessWidget {
                     color: Colors.white.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text('Learn more', style: _homeCardTitle),
+                  child: const Text('Learn more', style: homeCardTitle),
                 ),
               ],
             ),
@@ -542,9 +433,9 @@ class _ReferCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('$watchlistCount watchlist', style: _homeCardTitle),
+                Text('$watchlistCount watchlist', style: homeCardTitle),
                 const SizedBox(height: 4),
-                Text('$coverageCount assets', style: _homeCardSub),
+                Text('$coverageCount assets', style: homeCardSub),
               ],
             ),
           ),
@@ -554,12 +445,13 @@ class _ReferCard extends StatelessWidget {
   }
 }
 
-class _InsetIcon extends StatelessWidget {
-  const _InsetIcon(
+class InsetIcon extends StatelessWidget {
+  const InsetIcon(
     this.icon, {
     this.primary = false,
     this.size = 28,
     this.iconSize = 15,
+    super.key,
   });
 
   final IconData icon;
@@ -585,8 +477,8 @@ class _InsetIcon extends StatelessWidget {
   }
 }
 
-class _MiniActionButton extends StatelessWidget {
-  const _MiniActionButton(this.icon);
+class MiniActionButton extends StatelessWidget {
+  const MiniActionButton(this.icon, {super.key});
 
   final IconData icon;
 
@@ -604,8 +496,8 @@ class _MiniActionButton extends StatelessWidget {
   }
 }
 
-class _MiniAssetCoin extends StatelessWidget {
-  const _MiniAssetCoin(this.label, this.color);
+class MiniAssetCoin extends StatelessWidget {
+  const MiniAssetCoin(this.label, this.color, {super.key});
 
   final String label;
   final Color color;
@@ -633,8 +525,8 @@ class _MiniAssetCoin extends StatelessWidget {
   }
 }
 
-class _MiniDot extends StatelessWidget {
-  const _MiniDot(this.color);
+class MiniDot extends StatelessWidget {
+  const MiniDot(this.color, {super.key});
 
   final Color color;
 
@@ -649,13 +541,13 @@ class _MiniDot extends StatelessWidget {
   }
 }
 
-const _homeCardTitle = TextStyle(
+const homeCardTitle = TextStyle(
   color: AppColors.textPrimary,
   fontSize: 13,
   fontWeight: FontWeight.w800,
 );
 
-const _homeCardSub = TextStyle(
+const homeCardSub = TextStyle(
   color: AppColors.textTertiary,
   fontSize: 11,
   fontWeight: FontWeight.w700,

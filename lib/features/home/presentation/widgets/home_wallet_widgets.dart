@@ -1,7 +1,9 @@
-part of '../screens/home_screen.dart';
+import 'package:flutter/material.dart';
 
-class _TrendingWalletsHomeSection extends StatelessWidget {
-  const _TrendingWalletsHomeSection({required this.onSeeAll});
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+
+class TrendingWalletsHomeSection extends StatelessWidget {
+  const TrendingWalletsHomeSection({required this.onSeeAll, super.key});
 
   final VoidCallback onSeeAll;
 
