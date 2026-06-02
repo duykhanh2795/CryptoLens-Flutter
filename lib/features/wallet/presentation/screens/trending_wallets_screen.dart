@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cryptolens_flutter/features/wallet/data/wallet_indexer_service.dart';
 import 'package:cryptolens_flutter/features/wallet/data/wallet_store.dart';
+import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';

@@ -1,7 +1,18 @@
-part of '../screens/alerts_screen.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 
-class _AlertRule {
-  _AlertRule({
+enum AlertMetric { price, volume, marketCap }
+
+enum AlertDirection { above, below }
+
+enum AlertValueType { number, percent }
+
+enum AlertFrequency { oneTime, persistent }
+
+enum AlertStatus { active, triggered, paused }
+
+class AlertRule {
+  AlertRule({
     required this.id,
     required this.coin,
     required this.metric,
@@ -70,7 +81,7 @@ class _AlertRule {
     return '${direction.label} ${metric.format(target)}';
   }
 
-  static _AlertRule? fromJson(Map<String, Object?> json) {
+  static AlertRule? fromJson(Map<String, Object?> json) {
     final coinJson = json['coin'];
     if (coinJson is! Map) return null;
     final coin = _coinFromJson(coinJson.cast<String, Object?>());
@@ -80,7 +91,7 @@ class _AlertRule {
     if (metric == null || direction == null) return null;
     final enabled = json['enabled'] == true;
     final status = _statusFromJson(json['status'], enabled: enabled);
-    return _AlertRule(
+    return AlertRule(
       id:
           json['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
@@ -102,7 +113,7 @@ class _AlertRule {
   }
 }
 
-extension on AlertMetric {
+extension AlertMetricX on AlertMetric {
   String get label => switch (this) {
     AlertMetric.price => 'Price Limit',
     AlertMetric.volume => 'Volume',
@@ -121,21 +132,21 @@ extension on AlertMetric {
       this == AlertMetric.price ? formatPrice(value) : formatCompactUsd(value);
 }
 
-extension on AlertDirection {
+extension AlertDirectionX on AlertDirection {
   String get label => switch (this) {
     AlertDirection.above => 'Above',
     AlertDirection.below => 'Below',
   };
 }
 
-extension on AlertFrequency {
+extension AlertFrequencyX on AlertFrequency {
   String get label => switch (this) {
     AlertFrequency.oneTime => 'One Time',
     AlertFrequency.persistent => 'Persistent',
   };
 }
 
-extension on AlertStatus {
+extension AlertStatusX on AlertStatus {
   String get label => switch (this) {
     AlertStatus.active => 'Active',
     AlertStatus.triggered => 'Triggered',

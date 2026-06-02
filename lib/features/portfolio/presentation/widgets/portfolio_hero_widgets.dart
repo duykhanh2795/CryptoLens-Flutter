@@ -3,7 +3,7 @@ part of '../screens/portfolio_screen.dart';
 class _PortfolioHero extends StatefulWidget {
   const _PortfolioHero({required this.summary});
 
-  final _PortfolioSummary summary;
+  final PortfolioSummary summary;
 
   @override
   State<_PortfolioHero> createState() => _PortfolioHeroState();

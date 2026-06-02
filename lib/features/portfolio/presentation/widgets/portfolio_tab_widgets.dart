@@ -85,9 +85,9 @@ class _AssetsTab extends StatelessWidget {
     required this.onDelete,
   });
 
-  final List<_PortfolioAsset> assets;
-  final ValueChanged<_PortfolioAsset> onCoinTap;
-  final ValueChanged<_PortfolioAsset> onDelete;
+  final List<PortfolioAsset> assets;
+  final ValueChanged<PortfolioAsset> onCoinTap;
+  final ValueChanged<PortfolioAsset> onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +125,7 @@ class _AssetRow extends StatelessWidget {
     required this.onDelete,
   });
 
-  final _PortfolioAsset asset;
+  final PortfolioAsset asset;
   final double allocation;
   final VoidCallback onTap;
   final VoidCallback onDelete;

@@ -5,25 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/alerts/domain/alert_rule.dart';
 import 'package:cryptolens_flutter/core/services/alert_realtime_service.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
-import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 
 part '../widgets/alert_create_sheet.dart';
 part '../widgets/alert_tile.dart';
-part '../widgets/alert_models.dart';
 part '../widgets/alert_common_widgets.dart';
-
-enum AlertMetric { price, volume, marketCap }
-
-enum AlertDirection { above, below }
-
-enum AlertValueType { number, percent }
-
-enum AlertFrequency { oneTime, persistent }
-
-enum AlertStatus { active, triggered, paused }
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({required this.controller, this.prefill, super.key});
@@ -45,7 +34,7 @@ class AlertCoinPrefill {
 class _AlertsScreenState extends State<AlertsScreen> {
   static const _storageKey = 'cryptolens.alerts.rules';
 
-  final List<_AlertRule> _rules = [];
+  final List<AlertRule> _rules = [];
   final Set<String> _notifiedRuleIds = {};
   Timer? _refreshTimer;
   bool _shownPrefill = false;
@@ -174,8 +163,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
         ..addAll(
           decoded
               .whereType<Map<String, Object?>>()
-              .map(_AlertRule.fromJson)
-              .whereType<_AlertRule>(),
+              .map(AlertRule.fromJson)
+              .whereType<AlertRule>(),
         );
     });
   }

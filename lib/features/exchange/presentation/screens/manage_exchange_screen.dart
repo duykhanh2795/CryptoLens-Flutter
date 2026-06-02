@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:cryptolens_flutter/features/exchange/data/exchange_store.dart';
+import 'package:cryptolens_flutter/features/exchange/domain/exchange.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';

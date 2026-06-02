@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:http/http.dart' as http;
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
-import 'wallet_store.dart';
+import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
 
 class WalletIndexerService {
   WalletIndexerService({http.Client? client})

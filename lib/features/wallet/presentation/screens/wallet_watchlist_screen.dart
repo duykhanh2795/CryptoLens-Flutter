@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/features/wallet/data/wallet_store.dart';
+import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';

@@ -8,7 +8,7 @@ class _AlertTile extends StatelessWidget {
     required this.onDelete,
   });
 
-  final _AlertRule rule;
+  final AlertRule rule;
   final Coin liveCoin;
   final ValueChanged<bool> onToggle;
   final VoidCallback onDelete;
@@ -71,7 +71,7 @@ class _AlertTile extends StatelessWidget {
                           rule.status.label,
                         rule.frequency.label,
                         if (rule.note.isNotEmpty) rule.note,
-                      ].join(' â€¢ '),
+                      ].join(' Ã¢â‚¬Â¢ '),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(

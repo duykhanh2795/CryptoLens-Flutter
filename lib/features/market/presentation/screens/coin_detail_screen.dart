@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/market/domain/kline.dart';
+import 'package:cryptolens_flutter/features/alerts/domain/alert_rule.dart';
 import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
 import 'package:cryptolens_flutter/features/news/data/news_api.dart';
 import 'package:cryptolens_flutter/features/market/data/market_api.dart';

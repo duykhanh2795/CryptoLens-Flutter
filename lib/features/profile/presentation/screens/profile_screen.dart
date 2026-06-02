@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cryptolens_flutter/features/auth/data/crypto_auth_service.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/features/profile/data/settings_store.dart';
+import 'package:cryptolens_flutter/features/profile/domain/settings.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/features/alerts/presentation/screens/alerts_screen.dart';
 import 'package:cryptolens_flutter/features/converter/presentation/screens/converter_screen.dart';

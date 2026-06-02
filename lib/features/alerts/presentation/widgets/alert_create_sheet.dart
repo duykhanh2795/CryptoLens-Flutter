@@ -9,7 +9,7 @@ class _CreateAlertSheet extends StatefulWidget {
   });
 
   final List<Coin> coins;
-  final ValueChanged<_AlertRule> onCreate;
+  final ValueChanged<AlertRule> onCreate;
   final Coin? initialCoin;
   final AlertMetric? initialMetric;
 
@@ -196,7 +196,7 @@ class _CreateAlertSheetState extends State<_CreateAlertSheet> {
                     ? null
                     : () {
                         widget.onCreate(
-                          _AlertRule(
+                          AlertRule(
                             id: DateTime.now().microsecondsSinceEpoch
                                 .toString(),
                             coin: _coin,
