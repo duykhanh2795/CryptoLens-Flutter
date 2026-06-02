@@ -1,7 +1,7 @@
-part of '../screens/coin_detail_screen.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 
-class _CoinHolding {
-  const _CoinHolding({
+class CoinHolding {
+  const CoinHolding({
     required this.coin,
     required this.quantity,
     required this.costBasis,
@@ -24,8 +24,8 @@ class _CoinHolding {
   double get allocationPercent =>
       totalPortfolioValue <= 0 ? 0 : currentValue / totalPortfolioValue * 100;
 
-  _CoinHolding withPrice(double price) {
-    return _CoinHolding(
+  CoinHolding withPrice(double price) {
+    return CoinHolding(
       coin: Coin(
         id: coin.id,
         symbol: coin.symbol,

@@ -20,7 +20,7 @@ part '../widgets/portfolio_hero_widgets.dart';
 part '../widgets/portfolio_tab_widgets.dart';
 part '../widgets/portfolio_transaction_sheet.dart';
 part '../widgets/portfolio_shared_widgets.dart';
-part '../widgets/portfolio_summary_models.dart';
+part '../widgets/portfolio_format_helpers.dart';
 
 enum _PortfolioTab { assets, transactions }
 

@@ -7,7 +7,7 @@ import 'package:cryptolens_flutter/features/market/presentation/screens/coin_det
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 import 'package:cryptolens_flutter/features/watchlist/presentation/widgets/watchlist_coin_row.dart';
 import 'package:cryptolens_flutter/features/watchlist/presentation/widgets/watchlist_filter_widgets.dart';
-import 'package:cryptolens_flutter/features/watchlist/presentation/widgets/watchlist_models.dart';
+import 'package:cryptolens_flutter/features/watchlist/presentation/state/watchlist_state.dart';
 import 'package:cryptolens_flutter/features/watchlist/presentation/widgets/watchlist_top_bar.dart';
 
 class WatchlistScreen extends StatefulWidget {

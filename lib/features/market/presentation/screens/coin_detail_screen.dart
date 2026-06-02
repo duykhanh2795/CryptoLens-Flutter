@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin_holding.dart';
 import 'package:cryptolens_flutter/features/market/domain/kline.dart';
 import 'package:cryptolens_flutter/features/alerts/domain/alert_rule.dart';
 import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
@@ -17,7 +18,6 @@ import '../market_controller.dart';
 
 part '../widgets/coin_detail_chrome_widgets.dart';
 part '../widgets/coin_detail_alert_widgets.dart';
-part '../widgets/coin_detail_models.dart';
 part '../widgets/coin_detail_header_widgets.dart';
 part '../widgets/coin_detail_chart_widgets.dart';
 part '../widgets/coin_detail_stats_widgets.dart';
@@ -69,7 +69,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
   late Future<CoinDetail> _detailFuture;
   late Future<List<Kline>> _chartFuture;
   late Future<List<NewsItem>> _newsFuture;
-  late Future<_CoinHolding?> _holdingFuture;
+  late Future<CoinHolding?> _holdingFuture;
   Future<FuturesMetrics>? _futuresMetricsFuture;
   String _interval = '1d';
   bool _showCandles = true;
@@ -182,7 +182,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
                       _PerformanceRow(coin: coin),
                       const SizedBox(height: 10),
                       _QuickStatsRow(coin: coin),
-                      FutureBuilder<_CoinHolding?>(
+                      FutureBuilder<CoinHolding?>(
                         future: _holdingFuture,
                         builder: (context, holdingSnapshot) {
                           final holding = holdingSnapshot.data;
@@ -261,7 +261,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
     );
   }
 
-  Future<_CoinHolding?> _loadHolding(Coin activeCoin) async {
+  Future<CoinHolding?> _loadHolding(Coin activeCoin) async {
     final transactions = await _portfolioStore.load(
       coinResolver: (coinId, symbol, name, imageUrl) {
         return widget.controller.coins.firstWhere(
@@ -307,7 +307,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
     }
     if (quantity <= 0.00000001) return null;
     final totalValue = await _loadPortfolioTotalValue(transactions);
-    return _CoinHolding(
+    return CoinHolding(
       coin: activeCoin,
       quantity: quantity,
       costBasis: costBasis,

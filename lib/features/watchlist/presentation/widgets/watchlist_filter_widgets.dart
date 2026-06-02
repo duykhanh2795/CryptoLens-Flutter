@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
-import 'package:cryptolens_flutter/features/watchlist/presentation/widgets/watchlist_models.dart';
+import 'package:cryptolens_flutter/features/watchlist/presentation/state/watchlist_state.dart';
 
 class WatchlistTabsAndFilters extends StatelessWidget {
   const WatchlistTabsAndFilters({

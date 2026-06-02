@@ -6,7 +6,7 @@ class _YourHoldingSection extends StatelessWidget {
     required this.onOpenPortfolio,
   });
 
-  final _CoinHolding holding;
+  final CoinHolding holding;
   final VoidCallback onOpenPortfolio;
 
   @override
