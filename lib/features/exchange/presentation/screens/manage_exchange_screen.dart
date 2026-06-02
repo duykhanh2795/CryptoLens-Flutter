@@ -1,18 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:cryptolens_flutter/features/exchange/data/exchange_store.dart';
 import 'package:cryptolens_flutter/features/exchange/domain/exchange.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
-import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 
-part '../widgets/connect_exchange_flow.dart';
-part '../widgets/exchange_step_widgets.dart';
-part '../widgets/exchange_connection_card.dart';
-part '../widgets/exchange_common_widgets.dart';
+import 'package:cryptolens_flutter/features/exchange/presentation/widgets/connect_exchange_flow.dart';
+import 'package:cryptolens_flutter/features/exchange/presentation/widgets/exchange_common_widgets.dart';
+import 'package:cryptolens_flutter/features/exchange/presentation/widgets/exchange_connection_card.dart';
 
 class ManageExchangeScreen extends StatefulWidget {
   const ManageExchangeScreen({
@@ -52,15 +49,15 @@ class _ManageExchangeScreenState extends State<ManageExchangeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _Dark.background,
+      backgroundColor: ExchangeColors.background,
       appBar: AppBar(
         title: const Text('Connected Exchanges'),
-        backgroundColor: _Dark.background,
-        foregroundColor: _Dark.textPrimary,
+        backgroundColor: ExchangeColors.background,
+        foregroundColor: ExchangeColors.textPrimary,
         actions: [
           IconButton(
             onPressed: _openConnectFlow,
-            icon: const Icon(Icons.add_rounded, color: _Dark.yellow),
+            icon: const Icon(Icons.add_rounded, color: ExchangeColors.yellow),
           ),
         ],
       ),
@@ -78,15 +75,15 @@ class _ManageExchangeScreenState extends State<ManageExchangeScreen> {
             const Icon(
               Icons.account_balance_rounded,
               size: 64,
-              color: _Dark.yellow,
+              color: ExchangeColors.yellow,
             ),
             const SizedBox(height: 14),
-            const Text('No connected exchanges', style: _Dark.hero),
+            const Text('No connected exchanges', style: ExchangeColors.hero),
             const SizedBox(height: 8),
             const Text(
               'Connect Binance with read-only keys to import trades into Portfolio.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: _Dark.textSecondary),
+              style: TextStyle(color: ExchangeColors.textSecondary),
             ),
             const SizedBox(height: 18),
             FilledButton.icon(
@@ -106,9 +103,9 @@ class _ManageExchangeScreenState extends State<ManageExchangeScreen> {
       itemCount: _connections.length + 1,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        if (index == 0) return _InfoBanner(result: _lastSyncResult);
+        if (index == 0) return InfoBanner(result: _lastSyncResult);
         final connection = _connections[index - 1];
-        return _ExchangeConnectionCard(
+        return ExchangeConnectionCard(
           connection: connection,
           syncing: _syncingId == connection.id,
           onToggle: (value) => _toggleActive(connection, value),
@@ -180,7 +177,7 @@ class _ManageExchangeScreenState extends State<ManageExchangeScreen> {
 
   Future<void> _openConnectFlow() async {
     final connection = await Navigator.of(context).push<ExchangeConnection>(
-      MaterialPageRoute(builder: (_) => const _ConnectExchangeScreen()),
+      MaterialPageRoute(builder: (_) => const ConnectExchangeScreen()),
     );
     if (connection == null) return;
     setState(() => _connections.insert(0, connection));

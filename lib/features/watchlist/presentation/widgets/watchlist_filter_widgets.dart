@@ -1,67 +1,72 @@
-part of '../screens/watchlist_screen.dart';
+import 'package:flutter/material.dart';
 
-class _WatchlistTabsAndFilters extends StatelessWidget {
-  const _WatchlistTabsAndFilters({
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
+import 'package:cryptolens_flutter/features/watchlist/presentation/widgets/watchlist_models.dart';
+
+class WatchlistTabsAndFilters extends StatelessWidget {
+  const WatchlistTabsAndFilters({
     required this.controller,
     required this.showSearch,
     required this.filter,
     required this.sortOrder,
     required this.onFilterChanged,
     required this.onSortChanged,
+    super.key,
   });
 
   final MarketController controller;
   final bool showSearch;
-  final _WatchlistFilter filter;
-  final _WatchlistSortOrder sortOrder;
-  final ValueChanged<_WatchlistFilter> onFilterChanged;
-  final ValueChanged<_WatchlistSortOrder> onSortChanged;
+  final WatchlistFilter filter;
+  final WatchlistSortOrder sortOrder;
+  final ValueChanged<WatchlistFilter> onFilterChanged;
+  final ValueChanged<WatchlistSortOrder> onSortChanged;
 
   @override
   Widget build(BuildContext context) {
     final chips = [
-      _WatchlistChipData(
+      WatchlistChipData(
         label: 'Popular',
         selected:
-            filter == _WatchlistFilter.all &&
-            sortOrder == _WatchlistSortOrder.defaultOrder,
+            filter == WatchlistFilter.all &&
+            sortOrder == WatchlistSortOrder.defaultOrder,
         onTap: () {
-          onFilterChanged(_WatchlistFilter.all);
-          onSortChanged(_WatchlistSortOrder.defaultOrder);
+          onFilterChanged(WatchlistFilter.all);
+          onSortChanged(WatchlistSortOrder.defaultOrder);
         },
       ),
-      _WatchlistChipData(
+      WatchlistChipData(
         label: 'Gainers',
-        selected: filter == _WatchlistFilter.gainers,
-        onTap: () => onFilterChanged(_WatchlistFilter.gainers),
+        selected: filter == WatchlistFilter.gainers,
+        onTap: () => onFilterChanged(WatchlistFilter.gainers),
       ),
-      _WatchlistChipData(
+      WatchlistChipData(
         label: 'Losers',
-        selected: filter == _WatchlistFilter.losers,
-        onTap: () => onFilterChanged(_WatchlistFilter.losers),
+        selected: filter == WatchlistFilter.losers,
+        onTap: () => onFilterChanged(WatchlistFilter.losers),
       ),
-      _WatchlistChipData(
+      WatchlistChipData(
         label: 'Price',
         selected:
-            sortOrder == _WatchlistSortOrder.priceDesc ||
-            sortOrder == _WatchlistSortOrder.priceAsc,
+            sortOrder == WatchlistSortOrder.priceDesc ||
+            sortOrder == WatchlistSortOrder.priceAsc,
         sortIcon: true,
         onTap: () => onSortChanged(
-          sortOrder == _WatchlistSortOrder.priceDesc
-              ? _WatchlistSortOrder.priceAsc
-              : _WatchlistSortOrder.priceDesc,
+          sortOrder == WatchlistSortOrder.priceDesc
+              ? WatchlistSortOrder.priceAsc
+              : WatchlistSortOrder.priceDesc,
         ),
       ),
-      _WatchlistChipData(
+      WatchlistChipData(
         label: '24h Change',
         selected:
-            sortOrder == _WatchlistSortOrder.changeDesc ||
-            sortOrder == _WatchlistSortOrder.changeAsc,
+            sortOrder == WatchlistSortOrder.changeDesc ||
+            sortOrder == WatchlistSortOrder.changeAsc,
         sortIcon: true,
         onTap: () => onSortChanged(
-          sortOrder == _WatchlistSortOrder.changeDesc
-              ? _WatchlistSortOrder.changeAsc
-              : _WatchlistSortOrder.changeDesc,
+          sortOrder == WatchlistSortOrder.changeDesc
+              ? WatchlistSortOrder.changeAsc
+              : WatchlistSortOrder.changeDesc,
         ),
       ),
     ];
@@ -178,8 +183,8 @@ class _WatchlistTabsAndFilters extends StatelessWidget {
                           if (chip.sortIcon) ...[
                             const SizedBox(width: 2),
                             Icon(
-                              sortOrder == _WatchlistSortOrder.priceAsc ||
-                                      sortOrder == _WatchlistSortOrder.changeAsc
+                              sortOrder == WatchlistSortOrder.priceAsc ||
+                                      sortOrder == WatchlistSortOrder.changeAsc
                                   ? Icons.keyboard_arrow_up_rounded
                                   : Icons.keyboard_arrow_down_rounded,
                               size: 14,

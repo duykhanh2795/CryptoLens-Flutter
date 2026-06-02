@@ -1,11 +1,16 @@
-part of '../screens/alerts_screen.dart';
+import 'package:flutter/material.dart';
 
-class _CreateAlertSheet extends StatefulWidget {
-  const _CreateAlertSheet({
+import 'package:cryptolens_flutter/features/alerts/domain/alert_rule.dart';
+import 'package:cryptolens_flutter/features/alerts/presentation/widgets/alert_common_widgets.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+
+class CreateAlertSheet extends StatefulWidget {
+  const CreateAlertSheet({
     required this.coins,
     required this.onCreate,
     this.initialCoin,
     this.initialMetric,
+    super.key,
   });
 
   final List<Coin> coins;
@@ -14,10 +19,10 @@ class _CreateAlertSheet extends StatefulWidget {
   final AlertMetric? initialMetric;
 
   @override
-  State<_CreateAlertSheet> createState() => _CreateAlertSheetState();
+  State<CreateAlertSheet> createState() => CreateAlertSheetState();
 }
 
-class _CreateAlertSheetState extends State<_CreateAlertSheet> {
+class CreateAlertSheetState extends State<CreateAlertSheet> {
   late Coin _coin = widget.initialCoin ?? widget.coins.first;
   late AlertMetric _metric = widget.initialMetric ?? AlertMetric.price;
   AlertDirection _direction = AlertDirection.above;
@@ -54,12 +59,12 @@ class _CreateAlertSheetState extends State<_CreateAlertSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Create Alert', style: _Dark.title),
+            const Text('Create Alert', style: AlertColors.title),
             const SizedBox(height: 16),
             DropdownButtonFormField<Coin>(
               initialValue: _coin,
               isExpanded: true,
-              dropdownColor: _Dark.surface,
+              dropdownColor: AlertColors.surface,
               decoration: const InputDecoration(labelText: 'Coin'),
               items: [
                 for (final coin in widget.coins)
@@ -84,7 +89,7 @@ class _CreateAlertSheetState extends State<_CreateAlertSheet> {
             DropdownButtonFormField<AlertMetric>(
               initialValue: _metric,
               isExpanded: true,
-              dropdownColor: _Dark.surface,
+              dropdownColor: AlertColors.surface,
               decoration: const InputDecoration(labelText: 'Metric'),
               items: AlertMetric.values
                   .map(
@@ -182,7 +187,7 @@ class _CreateAlertSheetState extends State<_CreateAlertSheet> {
             Text(
               _previewText(target),
               style: const TextStyle(
-                color: _Dark.textSecondary,
+                color: AlertColors.textSecondary,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
               ),

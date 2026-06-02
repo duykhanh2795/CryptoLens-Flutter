@@ -1,7 +1,7 @@
-part of '../screens/register_screen.dart';
+import 'package:flutter/material.dart';
 
-class _PasswordStrength extends StatelessWidget {
-  const _PasswordStrength({required this.password});
+class PasswordStrength extends StatelessWidget {
+  const PasswordStrength({required this.password, super.key});
 
   final String password;
 
@@ -15,7 +15,7 @@ class _PasswordStrength extends StatelessWidget {
     final color = strength >= 3
         ? const Color(0xFF00C087)
         : strength == 2
-        ? _AuthColors.yellow
+        ? AuthColors.yellow
         : const Color(0xFFFF7182);
     final label = strength >= 3
         ? 'Good'
@@ -34,7 +34,7 @@ class _PasswordStrength extends StatelessWidget {
                     height: 3,
                     margin: const EdgeInsets.only(right: 4),
                     decoration: BoxDecoration(
-                      color: i < strength ? color : _AuthColors.surfaceVariant,
+                      color: i < strength ? color : AuthColors.surfaceVariant,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -55,8 +55,8 @@ class _PasswordStrength extends StatelessWidget {
   }
 }
 
-class _AuthField extends StatelessWidget {
-  const _AuthField({
+class AuthField extends StatelessWidget {
+  const AuthField({
     required this.controller,
     required this.label,
     required this.icon,
@@ -64,6 +64,7 @@ class _AuthField extends StatelessWidget {
     this.obscureText = false,
     this.suffix,
     this.onChanged,
+    super.key,
   });
 
   final TextEditingController controller;
@@ -81,13 +82,13 @@ class _AuthField extends StatelessWidget {
       keyboardType: keyboardType,
       obscureText: obscureText,
       onChanged: onChanged,
-      style: const TextStyle(color: _AuthColors.textPrimary),
+      style: const TextStyle(color: AuthColors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: _AuthColors.textSecondary),
+        prefixIcon: Icon(icon, color: AuthColors.textSecondary),
         suffixIcon: suffix,
         filled: true,
-        fillColor: _AuthColors.surfaceVariant,
+        fillColor: AuthColors.surfaceVariant,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
@@ -97,8 +98,8 @@ class _AuthField extends StatelessWidget {
   }
 }
 
-class _Logo extends StatelessWidget {
-  const _Logo({required this.size, required this.textSize});
+class AuthLogo extends StatelessWidget {
+  const AuthLogo({required this.size, required this.textSize, super.key});
 
   final double size;
   final double textSize;
@@ -109,7 +110,7 @@ class _Logo extends StatelessWidget {
       width: size,
       height: size,
       decoration: const BoxDecoration(
-        color: _AuthColors.yellow,
+        color: AuthColors.yellow,
         shape: BoxShape.circle,
       ),
       alignment: Alignment.center,
@@ -125,19 +126,20 @@ class _Logo extends StatelessWidget {
   }
 }
 
-ButtonStyle _yellowButton() {
+ButtonStyle authYellowButton() {
   return FilledButton.styleFrom(
-    backgroundColor: _AuthColors.yellow,
+    backgroundColor: AuthColors.yellow,
     foregroundColor: const Color(0xFF1A1400),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
   );
 }
 
-class _AuthColors {
+class AuthColors {
   static const background = Color(0xFF050607);
   static const surfaceVariant = Color(0xFF1B1C1E);
   static const textPrimary = Color(0xFFF4F5F6);
   static const textSecondary = Color(0xFFA7ABB0);
+  static const textTertiary = Color(0xFF6E737A);
   static const yellow = Color(0xFFF0B90B);
 }

@@ -1,7 +1,12 @@
-part of '../screens/alerts_screen.dart';
+import 'package:flutter/material.dart';
 
-class _DarkScaffold extends StatelessWidget {
-  const _DarkScaffold({required this.title, required this.child, this.action});
+class DarkScaffold extends StatelessWidget {
+  const DarkScaffold({
+    required this.title,
+    required this.child,
+    this.action,
+    super.key,
+  });
 
   final String title;
   final Widget child;
@@ -10,10 +15,10 @@ class _DarkScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _Dark.background,
+      backgroundColor: AlertColors.background,
       appBar: AppBar(
-        backgroundColor: _Dark.background,
-        foregroundColor: _Dark.textPrimary,
+        backgroundColor: AlertColors.background,
+        foregroundColor: AlertColors.textPrimary,
         title: Text(title),
         actions: [?action],
       ),
@@ -22,11 +27,12 @@ class _DarkScaffold extends StatelessWidget {
   }
 }
 
-class _EmptyPanel extends StatelessWidget {
-  const _EmptyPanel({
+class EmptyPanel extends StatelessWidget {
+  const EmptyPanel({
     required this.icon,
     required this.title,
     required this.message,
+    super.key,
   });
 
   final IconData icon;
@@ -41,13 +47,13 @@ class _EmptyPanel extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: _Dark.textTertiary, size: 64),
+            Icon(icon, color: AlertColors.textTertiary, size: 64),
             const SizedBox(height: 16),
-            Text(title, style: _Dark.title, textAlign: TextAlign.center),
+            Text(title, style: AlertColors.title, textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
               message,
-              style: const TextStyle(color: _Dark.textSecondary),
+              style: const TextStyle(color: AlertColors.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -57,7 +63,7 @@ class _EmptyPanel extends StatelessWidget {
   }
 }
 
-class _Dark {
+class AlertColors {
   static const background = Color(0xFF050607);
   static const surface = Color(0xFF111112);
   static const surfaceVariant = Color(0xFF1B1C1E);

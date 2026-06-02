@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-part '../widgets/login_widgets.dart';
+import 'package:cryptolens_flutter/features/auth/presentation/widgets/auth_widgets.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -41,19 +41,19 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _AuthColors.background,
+      backgroundColor: AuthColors.background,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           children: [
             const SizedBox(height: 60),
-            const Center(child: _Logo(size: 64, textSize: 22)),
+            const Center(child: AuthLogo(size: 64, textSize: 22)),
             const SizedBox(height: 16),
             const Text(
               'Welcome back',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _AuthColors.textPrimary,
+                color: AuthColors.textPrimary,
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
               ),
@@ -62,17 +62,17 @@ class _LoginScreenState extends State<LoginScreen> {
             const Text(
               'Log in to your CryptoLens account',
               textAlign: TextAlign.center,
-              style: TextStyle(color: _AuthColors.textSecondary),
+              style: TextStyle(color: AuthColors.textSecondary),
             ),
             const SizedBox(height: 40),
-            _AuthField(
+            AuthField(
               controller: _email,
               label: 'Email',
               icon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 14),
-            _AuthField(
+            AuthField(
               controller: _password,
               label: 'Password',
               icon: Icons.lock_outline_rounded,
@@ -83,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   _visible
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
-                  color: _AuthColors.textSecondary,
+                  color: AuthColors.textSecondary,
                 ),
               ),
             ),
@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 Checkbox(
                   value: _remember,
-                  activeColor: _AuthColors.yellow,
+                  activeColor: AuthColors.yellow,
                   checkColor: const Color(0xFF1A1400),
                   onChanged: (value) =>
                       setState(() => _remember = value ?? true),
@@ -104,14 +104,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 const Expanded(
                   child: Text(
                     'Remember me',
-                    style: TextStyle(color: _AuthColors.textSecondary),
+                    style: TextStyle(color: AuthColors.textSecondary),
                   ),
                 ),
                 TextButton(
                   onPressed: _showForgotPassword,
                   child: const Text(
                     'Forgot password?',
-                    style: TextStyle(color: _AuthColors.yellow),
+                    style: TextStyle(color: AuthColors.yellow),
                   ),
                 ),
               ],
@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 52,
               child: FilledButton(
                 onPressed: _submitting ? null : _submit,
-                style: _yellowButton(),
+                style: authYellowButton(),
                 child: _submitting
                     ? const SizedBox.square(
                         dimension: 18,
@@ -134,15 +134,15 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 24),
             const Row(
               children: [
-                Expanded(child: Divider(color: _AuthColors.surfaceVariant)),
+                Expanded(child: Divider(color: AuthColors.surfaceVariant)),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   child: Text(
                     'or',
-                    style: TextStyle(color: _AuthColors.textTertiary),
+                    style: TextStyle(color: AuthColors.textTertiary),
                   ),
                 ),
-                Expanded(child: Divider(color: _AuthColors.surfaceVariant)),
+                Expanded(child: Divider(color: AuthColors.surfaceVariant)),
               ],
             ),
             const SizedBox(height: 24),
@@ -151,13 +151,13 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const Text(
                   "Don't have an account? ",
-                  style: TextStyle(color: _AuthColors.textSecondary),
+                  style: TextStyle(color: AuthColors.textSecondary),
                 ),
                 TextButton(
                   onPressed: widget.onRegister,
                   child: const Text(
                     'Register Now',
-                    style: TextStyle(color: _AuthColors.yellow),
+                    style: TextStyle(color: AuthColors.yellow),
                   ),
                 ),
               ],

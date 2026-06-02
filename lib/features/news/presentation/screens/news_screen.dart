@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
 import 'package:cryptolens_flutter/features/news/data/news_api.dart';
-import 'package:cryptolens_flutter/core/theme/app_theme.dart';
-
-part '../widgets/news_preview_section.dart';
-part '../widgets/news_common_widgets.dart';
-part '../widgets/news_helpers.dart';
+import 'package:cryptolens_flutter/features/news/presentation/widgets/news_common_widgets.dart';
+import 'package:cryptolens_flutter/features/news/presentation/widgets/news_helpers.dart';
+import 'package:cryptolens_flutter/features/news/presentation/widgets/news_preview_section.dart';
 
 class NewsScreen extends StatefulWidget {
   const NewsScreen({this.coinId, this.symbol, super.key});
@@ -51,11 +48,11 @@ class _NewsScreenState extends State<NewsScreen> {
         ? 'Crypto News'
         : '${widget.symbol} News';
     return Scaffold(
-      backgroundColor: _NewsColors.background,
+      backgroundColor: NewsColors.background,
       appBar: AppBar(
         title: Text(title),
-        backgroundColor: _NewsColors.surfaceElevated,
-        foregroundColor: _NewsColors.textPrimary,
+        backgroundColor: NewsColors.surfaceElevated,
+        foregroundColor: NewsColors.textPrimary,
         actions: [
           IconButton(
             tooltip: 'Refresh news',
@@ -71,7 +68,7 @@ class _NewsScreenState extends State<NewsScreen> {
             child: TextField(
               controller: _query,
               onChanged: (_) => setState(() {}),
-              style: const TextStyle(color: _NewsColors.textPrimary),
+              style: const TextStyle(color: NewsColors.textPrimary),
               decoration: const InputDecoration(
                 hintText: 'Search news',
                 prefixIcon: Icon(Icons.search_rounded),
@@ -94,15 +91,15 @@ class _NewsScreenState extends State<NewsScreen> {
                       _future = _load();
                     });
                   },
-                  selectedColor: _NewsColors.yellow.withValues(alpha: 0.18),
-                  checkmarkColor: _NewsColors.yellow,
+                  selectedColor: NewsColors.yellow.withValues(alpha: 0.18),
+                  checkmarkColor: NewsColors.yellow,
                   labelStyle: TextStyle(
                     color: _filter == filter
-                        ? _NewsColors.yellow
-                        : _NewsColors.textSecondary,
+                        ? NewsColors.yellow
+                        : NewsColors.textSecondary,
                     fontWeight: FontWeight.w800,
                   ),
-                  backgroundColor: _NewsColors.surfaceVariant,
+                  backgroundColor: NewsColors.surfaceVariant,
                   side: BorderSide.none,
                 );
               },
@@ -116,11 +113,11 @@ class _NewsScreenState extends State<NewsScreen> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Center(
-                    child: CircularProgressIndicator(color: _NewsColors.yellow),
+                    child: CircularProgressIndicator(color: NewsColors.yellow),
                   );
                 }
                 if (snapshot.hasError) {
-                  return _NewsError(
+                  return NewsError(
                     message: snapshot.error.toString(),
                     onRetry: _refresh,
                   );
@@ -137,7 +134,7 @@ class _NewsScreenState extends State<NewsScreen> {
                           ),
                     )
                     .toList();
-                if (news.isEmpty) return const _EmptyNews();
+                if (news.isEmpty) return const EmptyNews();
                 return RefreshIndicator(
                   onRefresh: () async => _refresh(),
                   child: ListView.separated(
@@ -145,7 +142,7 @@ class _NewsScreenState extends State<NewsScreen> {
                     itemBuilder: (context, index) =>
                         NewsRow(item: news[index], compact: false, dark: true),
                     separatorBuilder: (_, _) => const Divider(
-                      color: _NewsColors.divider,
+                      color: NewsColors.divider,
                       height: 1,
                       indent: 70,
                     ),
@@ -159,13 +156,4 @@ class _NewsScreenState extends State<NewsScreen> {
       ),
     );
   }
-}
-
-class NewsPreviewSection extends StatefulWidget {
-  const NewsPreviewSection({required this.onSeeAll, super.key});
-
-  final VoidCallback onSeeAll;
-
-  @override
-  State<NewsPreviewSection> createState() => _NewsPreviewSectionState();
 }

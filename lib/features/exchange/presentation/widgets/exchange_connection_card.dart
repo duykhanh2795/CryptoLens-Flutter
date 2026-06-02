@@ -1,12 +1,18 @@
-part of '../screens/manage_exchange_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class _ExchangeConnectionCard extends StatelessWidget {
-  const _ExchangeConnectionCard({
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/exchange/domain/exchange.dart';
+import 'package:cryptolens_flutter/features/exchange/presentation/widgets/exchange_common_widgets.dart';
+
+class ExchangeConnectionCard extends StatelessWidget {
+  const ExchangeConnectionCard({
     required this.connection,
     required this.syncing,
     required this.onToggle,
     required this.onDelete,
     required this.onSync,
+    super.key,
   });
 
   final ExchangeConnection connection;
@@ -23,7 +29,7 @@ class _ExchangeConnectionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _Dark.surface,
+        color: ExchangeColors.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -33,8 +39,8 @@ class _ExchangeConnectionCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 backgroundColor: connection.isActive
-                    ? _Dark.yellow
-                    : _Dark.surfaceVariant,
+                    ? ExchangeColors.yellow
+                    : ExchangeColors.surfaceVariant,
                 child: Text(
                   connection.exchangeType.displayName.substring(0, 1),
                   style: const TextStyle(
@@ -48,8 +54,11 @@ class _ExchangeConnectionCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(connection.label, style: _Dark.title),
-                    Text(connection.exchangeType.displayName, style: _Dark.sub),
+                    Text(connection.label, style: ExchangeColors.title),
+                    Text(
+                      connection.exchangeType.displayName,
+                      style: ExchangeColors.sub,
+                    ),
                   ],
                 ),
               ),
@@ -57,8 +66,8 @@ class _ExchangeConnectionCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(connection.maskedApiKey, style: _Dark.sub),
-          Text(lastSync, style: _Dark.sub),
+          Text(connection.maskedApiKey, style: ExchangeColors.sub),
+          Text(lastSync, style: ExchangeColors.sub),
           const SizedBox(height: 12),
           Row(
             children: [

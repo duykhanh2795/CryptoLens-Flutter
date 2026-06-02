@@ -1,20 +1,26 @@
-part of '../screens/manage_exchange_screen.dart';
+import 'package:flutter/material.dart';
 
-class _ConnectExchangeScreen extends StatefulWidget {
-  const _ConnectExchangeScreen();
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/exchange/data/exchange_store.dart';
+import 'package:cryptolens_flutter/features/exchange/domain/exchange.dart';
+import 'package:cryptolens_flutter/features/exchange/presentation/widgets/exchange_common_widgets.dart';
+import 'package:cryptolens_flutter/features/exchange/presentation/widgets/exchange_step_widgets.dart';
+
+class ConnectExchangeScreen extends StatefulWidget {
+  const ConnectExchangeScreen({super.key});
 
   @override
-  State<_ConnectExchangeScreen> createState() => _ConnectExchangeScreenState();
+  State<ConnectExchangeScreen> createState() => ConnectExchangeScreenState();
 }
 
-class _ConnectExchangeScreenState extends State<_ConnectExchangeScreen> {
+class ConnectExchangeScreenState extends State<ConnectExchangeScreen> {
   final _store = ExchangeStore();
   final _binance = BinanceExchangeService();
   final _label = TextEditingController();
   final _apiKey = TextEditingController();
   final _secret = TextEditingController();
   ExchangeType _exchangeType = ExchangeType.binance;
-  _ConnectStep _step = _ConnectStep.selectExchange;
+  ConnectStep _step = ConnectStep.selectExchange;
   ApiKeyValidation? _validation;
   bool _busy = false;
   bool _showSecret = false;
@@ -31,25 +37,25 @@ class _ConnectExchangeScreenState extends State<_ConnectExchangeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _Dark.background,
+      backgroundColor: ExchangeColors.background,
       appBar: AppBar(
         title: Text(switch (_step) {
-          _ConnectStep.selectExchange => 'Connect Exchange',
-          _ConnectStep.enterKeys => 'Enter API Keys',
-          _ConnectStep.validated => 'Confirm Connection',
+          ConnectStep.selectExchange => 'Connect Exchange',
+          ConnectStep.enterKeys => 'Enter API Keys',
+          ConnectStep.validated => 'Confirm Connection',
         }),
-        backgroundColor: _Dark.background,
-        foregroundColor: _Dark.textPrimary,
+        backgroundColor: ExchangeColors.background,
+        foregroundColor: ExchangeColors.textPrimary,
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),
         children: [
-          _StepIndicator(step: _step),
+          StepIndicator(step: _step),
           const SizedBox(height: 18),
           switch (_step) {
-            _ConnectStep.selectExchange => _selectExchangeStep(),
-            _ConnectStep.enterKeys => _enterKeysStep(),
-            _ConnectStep.validated => _validatedStep(),
+            ConnectStep.selectExchange => _selectExchangeStep(),
+            ConnectStep.enterKeys => _enterKeysStep(),
+            ConnectStep.validated => _validatedStep(),
           },
         ],
       ),
@@ -60,7 +66,7 @@ class _ConnectExchangeScreenState extends State<_ConnectExchangeScreen> {
     return Column(
       children: [
         for (final type in ExchangeType.values)
-          _ExchangeOption(
+          ExchangeOption(
             type: type,
             onTap: () {
               if (type != ExchangeType.binance) {
@@ -69,7 +75,7 @@ class _ConnectExchangeScreenState extends State<_ConnectExchangeScreen> {
               }
               setState(() {
                 _exchangeType = type;
-                _step = _ConnectStep.enterKeys;
+                _step = ConnectStep.enterKeys;
                 _label.text = '${type.displayName} main';
               });
             },
@@ -125,20 +131,20 @@ class _ConnectExchangeScreenState extends State<_ConnectExchangeScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: _Dark.surface,
+            color: ExchangeColors.surface,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_exchangeType.displayName, style: _Dark.title),
+              Text(_exchangeType.displayName, style: ExchangeColors.title),
               const SizedBox(height: 8),
-              Text(_label.text.trim(), style: _Dark.sub),
+              Text(_label.text.trim(), style: ExchangeColors.sub),
               const SizedBox(height: 8),
               Text(
                 validation?.accountType ?? 'Spot',
                 style: const TextStyle(
-                  color: _Dark.yellow,
+                  color: ExchangeColors.yellow,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -162,7 +168,7 @@ class _ConnectExchangeScreenState extends State<_ConnectExchangeScreen> {
           child: const Text('Save Connection'),
         ),
         TextButton(
-          onPressed: () => setState(() => _step = _ConnectStep.enterKeys),
+          onPressed: () => setState(() => _step = ConnectStep.enterKeys),
           child: const Text('Back'),
         ),
       ],
@@ -186,7 +192,7 @@ class _ConnectExchangeScreenState extends State<_ConnectExchangeScreen> {
     }
     setState(() {
       _validation = result;
-      _step = _ConnectStep.validated;
+      _step = ConnectStep.validated;
     });
   }
 

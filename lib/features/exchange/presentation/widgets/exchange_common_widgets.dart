@@ -1,7 +1,9 @@
-part of '../screens/manage_exchange_screen.dart';
+import 'package:flutter/material.dart';
 
-class _InfoBanner extends StatelessWidget {
-  const _InfoBanner({required this.result});
+import 'package:cryptolens_flutter/features/exchange/domain/exchange.dart';
+
+class InfoBanner extends StatelessWidget {
+  const InfoBanner({required this.result, super.key});
 
   final SyncResult? result;
 
@@ -11,7 +13,7 @@ class _InfoBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _Dark.surface,
+        color: ExchangeColors.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Text(
@@ -19,7 +21,7 @@ class _InfoBanner extends StatelessWidget {
             ? 'Read-only exchange sync imports trades into your local Portfolio.'
             : 'Last sync imported ${syncResult.tradesImported} trades and skipped ${syncResult.tradesSkipped} duplicates.',
         style: const TextStyle(
-          color: _Dark.textSecondary,
+          color: ExchangeColors.textSecondary,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -27,7 +29,7 @@ class _InfoBanner extends StatelessWidget {
   }
 }
 
-class _Dark {
+class ExchangeColors {
   static const background = Color(0xFF050607);
   static const surface = Color(0xFF111112);
   static const surfaceVariant = Color(0xFF1B1C1E);

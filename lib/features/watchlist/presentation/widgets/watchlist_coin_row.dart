@@ -1,10 +1,15 @@
-part of '../screens/watchlist_screen.dart';
+import 'package:flutter/material.dart';
 
-class _WatchlistCoinRow extends StatelessWidget {
-  const _WatchlistCoinRow({
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+
+class WatchlistCoinRow extends StatelessWidget {
+  const WatchlistCoinRow({
     required this.coin,
     required this.onTap,
     required this.onRemove,
+    super.key,
   });
 
   final Coin coin;

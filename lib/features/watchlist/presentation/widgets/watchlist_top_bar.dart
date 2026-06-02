@@ -1,11 +1,15 @@
-part of '../screens/watchlist_screen.dart';
+import 'package:flutter/material.dart';
 
-class _WatchlistTopBar extends StatelessWidget {
-  const _WatchlistTopBar({
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
+
+class WatchlistTopBar extends StatelessWidget {
+  const WatchlistTopBar({
     required this.controller,
     required this.isSearchVisible,
     required this.onSearchToggle,
     required this.onSort,
+    super.key,
   });
 
   final MarketController controller;

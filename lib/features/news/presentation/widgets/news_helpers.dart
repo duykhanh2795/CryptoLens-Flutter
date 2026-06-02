@@ -1,6 +1,6 @@
-part of '../screens/news_screen.dart';
+import 'package:flutter/material.dart';
 
-String _relativeTime(DateTime date) {
+String relativeTime(DateTime date) {
   final delta = DateTime.now().difference(date);
   if (delta.inMinutes < 1) return 'now';
   if (delta.inHours < 1) return '${delta.inMinutes}m ago';
@@ -9,11 +9,11 @@ String _relativeTime(DateTime date) {
   return '${(delta.inDays / 7).floor()}w ago';
 }
 
-extension on Iterable<String> {
+extension NewsStringIterableX on Iterable<String> {
   String joinToString(String separator) => join(separator);
 }
 
-class _NewsColors {
+class NewsColors {
   static const background = Color(0xFF050607);
   static const surfaceElevated = Color(0xFF121419);
   static const surfaceVariant = Color(0xFF1B1C1E);

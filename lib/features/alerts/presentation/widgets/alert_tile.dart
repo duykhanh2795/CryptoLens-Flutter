@@ -1,11 +1,17 @@
-part of '../screens/alerts_screen.dart';
+import 'package:flutter/material.dart';
 
-class _AlertTile extends StatelessWidget {
-  const _AlertTile({
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/alerts/domain/alert_rule.dart';
+import 'package:cryptolens_flutter/features/alerts/presentation/widgets/alert_common_widgets.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+
+class AlertTile extends StatelessWidget {
+  const AlertTile({
     required this.rule,
     required this.liveCoin,
     required this.onToggle,
     required this.onDelete,
+    super.key,
   });
 
   final AlertRule rule;
@@ -20,7 +26,7 @@ class _AlertTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _Dark.surface,
+        color: AlertColors.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -31,7 +37,7 @@ class _AlertTile extends StatelessWidget {
               width: 38,
               height: 38,
               errorBuilder: (_, _, _) => const CircleAvatar(
-                backgroundColor: _Dark.surfaceVariant,
+                backgroundColor: AlertColors.surfaceVariant,
                 child: Icon(Icons.currency_bitcoin),
               ),
             ),
@@ -43,13 +49,13 @@ class _AlertTile extends StatelessWidget {
               children: [
                 Text(
                   '${rule.coin.symbol} ${rule.metric.label}',
-                  style: _Dark.rowTitle,
+                  style: AlertColors.rowTitle,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   rule.targetLabel,
                   style: const TextStyle(
-                    color: _Dark.textSecondary,
+                    color: AlertColors.textSecondary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -57,7 +63,9 @@ class _AlertTile extends StatelessWidget {
                 Text(
                   'Current ${rule.metric.format(current)}',
                   style: TextStyle(
-                    color: triggered ? AppColors.green : _Dark.textTertiary,
+                    color: triggered
+                        ? AppColors.green
+                        : AlertColors.textTertiary,
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                   ),
@@ -71,11 +79,11 @@ class _AlertTile extends StatelessWidget {
                           rule.status.label,
                         rule.frequency.label,
                         if (rule.note.isNotEmpty) rule.note,
-                      ].join(' Ã¢â‚¬Â¢ '),
+                      ].join(' ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ '),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: _Dark.textTertiary,
+                        color: AlertColors.textTertiary,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                       ),
@@ -87,7 +95,7 @@ class _AlertTile extends StatelessWidget {
           Switch(
             value: rule.enabled,
             onChanged: onToggle,
-            activeTrackColor: _Dark.yellow,
+            activeTrackColor: AlertColors.yellow,
           ),
           IconButton(
             tooltip: 'Delete',

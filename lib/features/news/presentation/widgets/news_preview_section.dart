@@ -1,4 +1,20 @@
-part of '../screens/news_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/news/data/news_api.dart';
+import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
+import 'package:cryptolens_flutter/features/news/presentation/widgets/news_common_widgets.dart';
+import 'package:cryptolens_flutter/features/news/presentation/widgets/news_helpers.dart';
+
+class NewsPreviewSection extends StatefulWidget {
+  const NewsPreviewSection({required this.onSeeAll, super.key});
+
+  final VoidCallback onSeeAll;
+
+  @override
+  State<NewsPreviewSection> createState() => _NewsPreviewSectionState();
+}
 
 class _NewsPreviewSectionState extends State<NewsPreviewSection> {
   final _api = NewsApi();
@@ -96,11 +112,9 @@ class NewsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = dark ? _NewsColors.textPrimary : AppColors.textPrimary;
-    final secondary = dark
-        ? _NewsColors.textSecondary
-        : AppColors.textSecondary;
-    final tertiary = dark ? _NewsColors.textTertiary : AppColors.textTertiary;
+    final primary = dark ? NewsColors.textPrimary : AppColors.textPrimary;
+    final secondary = dark ? NewsColors.textSecondary : AppColors.textSecondary;
+    final tertiary = dark ? NewsColors.textTertiary : AppColors.textTertiary;
     return InkWell(
       onTap: () => _openUrl(context, item.url),
       child: Padding(
@@ -113,11 +127,11 @@ class NewsRow extends StatelessWidget {
             CircleAvatar(
               radius: compact ? 18 : 21,
               backgroundColor: dark
-                  ? _NewsColors.surfaceVariant
+                  ? NewsColors.surfaceVariant
                   : AppColors.surfaceVariant,
               child: const Icon(
                 Icons.newspaper_rounded,
-                color: _NewsColors.yellow,
+                color: NewsColors.yellow,
                 size: 20,
               ),
             ),
@@ -152,7 +166,7 @@ class NewsRow extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '  â€¢  ${_relativeTime(item.publishedAt)}',
+                        '  Ã¢â‚¬Â¢  ${relativeTime(item.publishedAt)}',
                         style: TextStyle(
                           color: tertiary,
                           fontSize: 11,
@@ -176,7 +190,7 @@ class NewsRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            _SentimentBadge(sentiment: item.sentiment),
+            SentimentBadge(sentiment: item.sentiment),
           ],
         ),
       ),

@@ -2,26 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
-import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'package:cryptolens_flutter/core/widgets/empty_state.dart';
 import 'package:cryptolens_flutter/features/market/presentation/screens/coin_detail_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
-
-part '../widgets/watchlist_coin_row.dart';
-part '../widgets/watchlist_top_bar.dart';
-part '../widgets/watchlist_filter_widgets.dart';
-part '../widgets/watchlist_models.dart';
-
-enum _WatchlistFilter { all, gainers, losers }
-
-enum _WatchlistSortOrder {
-  defaultOrder,
-  nameAsc,
-  changeDesc,
-  changeAsc,
-  priceDesc,
-  priceAsc,
-}
+import 'package:cryptolens_flutter/features/watchlist/presentation/widgets/watchlist_coin_row.dart';
+import 'package:cryptolens_flutter/features/watchlist/presentation/widgets/watchlist_filter_widgets.dart';
+import 'package:cryptolens_flutter/features/watchlist/presentation/widgets/watchlist_models.dart';
+import 'package:cryptolens_flutter/features/watchlist/presentation/widgets/watchlist_top_bar.dart';
 
 class WatchlistScreen extends StatefulWidget {
   const WatchlistScreen({required this.controller, super.key});
@@ -34,8 +21,8 @@ class WatchlistScreen extends StatefulWidget {
 
 class _WatchlistScreenState extends State<WatchlistScreen> {
   bool _showSearch = false;
-  _WatchlistFilter _filter = _WatchlistFilter.all;
-  _WatchlistSortOrder _sortOrder = _WatchlistSortOrder.defaultOrder;
+  WatchlistFilter _filter = WatchlistFilter.all;
+  WatchlistSortOrder _sortOrder = WatchlistSortOrder.defaultOrder;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +35,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 24),
         children: [
-          _WatchlistTopBar(
+          WatchlistTopBar(
             controller: widget.controller,
             isSearchVisible: _showSearch || query.isNotEmpty,
             onSearchToggle: () {
@@ -57,7 +44,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
             },
             onSort: _showSortSheet,
           ),
-          _WatchlistTabsAndFilters(
+          WatchlistTabsAndFilters(
             controller: widget.controller,
             showSearch: _showSearch || query.isNotEmpty,
             filter: _filter,
@@ -82,7 +69,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
               child: Column(
                 children: [
                   for (final coin in coins)
-                    _WatchlistCoinRow(
+                    WatchlistCoinRow(
                       coin: coin,
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
@@ -115,9 +102,9 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
         )
         .where((coin) {
           return switch (_filter) {
-            _WatchlistFilter.all => true,
-            _WatchlistFilter.gainers => coin.priceChangePercent24h >= 0,
-            _WatchlistFilter.losers => coin.priceChangePercent24h < 0,
+            WatchlistFilter.all => true,
+            WatchlistFilter.gainers => coin.priceChangePercent24h >= 0,
+            WatchlistFilter.losers => coin.priceChangePercent24h < 0,
           };
         })
         .toList();
@@ -127,21 +114,21 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
   List<Coin> _applySort(List<Coin> source) {
     final coins = [...source];
     switch (_sortOrder) {
-      case _WatchlistSortOrder.defaultOrder:
+      case WatchlistSortOrder.defaultOrder:
         return coins;
-      case _WatchlistSortOrder.nameAsc:
+      case WatchlistSortOrder.nameAsc:
         coins.sort((a, b) => a.name.compareTo(b.name));
-      case _WatchlistSortOrder.changeDesc:
+      case WatchlistSortOrder.changeDesc:
         coins.sort(
           (a, b) => b.priceChangePercent24h.compareTo(a.priceChangePercent24h),
         );
-      case _WatchlistSortOrder.changeAsc:
+      case WatchlistSortOrder.changeAsc:
         coins.sort(
           (a, b) => a.priceChangePercent24h.compareTo(b.priceChangePercent24h),
         );
-      case _WatchlistSortOrder.priceDesc:
+      case WatchlistSortOrder.priceDesc:
         coins.sort((a, b) => b.currentPrice.compareTo(a.currentPrice));
-      case _WatchlistSortOrder.priceAsc:
+      case WatchlistSortOrder.priceAsc:
         coins.sort((a, b) => a.currentPrice.compareTo(b.currentPrice));
     }
     return coins;
@@ -169,7 +156,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              for (final order in _WatchlistSortOrder.values)
+              for (final order in WatchlistSortOrder.values)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(order.label),

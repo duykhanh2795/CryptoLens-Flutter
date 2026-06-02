@@ -8,7 +8,7 @@ import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'package:cryptolens_flutter/features/market/presentation/screens/coin_detail_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
-import 'package:cryptolens_flutter/features/news/presentation/screens/news_screen.dart';
+import 'package:cryptolens_flutter/features/news/presentation/widgets/news_preview_section.dart';
 
 part '../widgets/home_navigation.dart';
 part '../widgets/home_dashboard_widgets.dart';

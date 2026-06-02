@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-part '../widgets/register_widgets.dart';
+import 'package:cryptolens_flutter/features/auth/presentation/widgets/auth_widgets.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({
@@ -45,10 +45,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _AuthColors.background,
+      backgroundColor: AuthColors.background,
       appBar: AppBar(
-        backgroundColor: _AuthColors.background,
-        foregroundColor: _AuthColors.textPrimary,
+        backgroundColor: AuthColors.background,
+        foregroundColor: AuthColors.textPrimary,
         title: const Text('Create Account'),
         leading: IconButton(
           onPressed: widget.onBack,
@@ -58,13 +58,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
         children: [
-          const Center(child: _Logo(size: 56, textSize: 18)),
+          const Center(child: AuthLogo(size: 56, textSize: 18)),
           const SizedBox(height: 12),
           const Text(
             'Join CryptoLens',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: _AuthColors.textPrimary,
+              color: AuthColors.textPrimary,
               fontSize: 22,
               fontWeight: FontWeight.w900,
             ),
@@ -73,23 +73,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const Text(
             'Start your smart crypto journey',
             textAlign: TextAlign.center,
-            style: TextStyle(color: _AuthColors.textSecondary),
+            style: TextStyle(color: AuthColors.textSecondary),
           ),
           const SizedBox(height: 32),
-          _AuthField(
+          AuthField(
             controller: _name,
             label: 'Full Name',
             icon: Icons.person_outline_rounded,
           ),
           const SizedBox(height: 14),
-          _AuthField(
+          AuthField(
             controller: _email,
             label: 'Email',
             icon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
           ),
           const SizedBox(height: 14),
-          _AuthField(
+          AuthField(
             controller: _password,
             label: 'Password',
             icon: Icons.lock_outline_rounded,
@@ -106,9 +106,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             onChanged: (_) => setState(() {}),
           ),
           if (_password.text.isNotEmpty)
-            _PasswordStrength(password: _password.text),
+            PasswordStrength(password: _password.text),
           const SizedBox(height: 14),
-          _AuthField(
+          AuthField(
             controller: _confirm,
             label: 'Confirm Password',
             icon: Icons.lock_open_outlined,
@@ -130,14 +130,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: _AuthColors.surfaceVariant,
+                color: AuthColors.surfaceVariant,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
                   Checkbox(
                     value: _terms,
-                    activeColor: _AuthColors.yellow,
+                    activeColor: AuthColors.yellow,
                     checkColor: const Color(0xFF1A1400),
                     onChanged: (value) =>
                         setState(() => _terms = value ?? false),
@@ -146,7 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Text(
                       'I agree to the Terms of Service and Privacy Policy',
                       style: TextStyle(
-                        color: _AuthColors.textSecondary,
+                        color: AuthColors.textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -164,7 +164,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             height: 52,
             child: FilledButton(
               onPressed: _submitting ? null : _submit,
-              style: _yellowButton(),
+              style: authYellowButton(),
               child: _submitting
                   ? const SizedBox.square(
                       dimension: 18,
@@ -179,13 +179,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               const Text(
                 'Already have an account? ',
-                style: TextStyle(color: _AuthColors.textSecondary),
+                style: TextStyle(color: AuthColors.textSecondary),
               ),
               TextButton(
                 onPressed: widget.onBack,
                 child: const Text(
                   'Log In',
-                  style: TextStyle(color: _AuthColors.yellow),
+                  style: TextStyle(color: AuthColors.yellow),
                 ),
               ),
             ],

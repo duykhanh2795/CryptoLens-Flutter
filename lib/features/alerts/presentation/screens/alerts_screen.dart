@@ -7,12 +7,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/alerts/domain/alert_rule.dart';
 import 'package:cryptolens_flutter/core/services/alert_realtime_service.dart';
-import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 
-part '../widgets/alert_create_sheet.dart';
-part '../widgets/alert_tile.dart';
-part '../widgets/alert_common_widgets.dart';
+import 'package:cryptolens_flutter/features/alerts/presentation/widgets/alert_common_widgets.dart';
+import 'package:cryptolens_flutter/features/alerts/presentation/widgets/alert_create_sheet.dart';
+import 'package:cryptolens_flutter/features/alerts/presentation/widgets/alert_tile.dart';
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({required this.controller, this.prefill, super.key});
@@ -72,15 +71,15 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _DarkScaffold(
+    return DarkScaffold(
       title: 'Alerts',
       action: IconButton(
         tooltip: 'Create alert',
         onPressed: () => _showCreateDialog(),
-        icon: const Icon(Icons.add_rounded, color: _Dark.yellow),
+        icon: const Icon(Icons.add_rounded, color: AlertColors.yellow),
       ),
       child: _rules.isEmpty
-          ? const _EmptyPanel(
+          ? const EmptyPanel(
               icon: Icons.notifications_none_rounded,
               title: 'No alerts yet',
               message: 'Create a price, volume, or market cap rule.',
@@ -95,7 +94,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   (coin) => coin.id == rule.coin.id,
                   orElse: () => rule.coin,
                 );
-                return _AlertTile(
+                return AlertTile(
                   rule: rule,
                   liveCoin: liveCoin,
                   onToggle: (enabled) {
@@ -133,11 +132,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: _Dark.surface,
+      backgroundColor: AlertColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
-      builder: (_) => _CreateAlertSheet(
+      builder: (_) => CreateAlertSheet(
         coins: coins,
         initialCoin: prefill?.coin,
         initialMetric: prefill?.metric,
