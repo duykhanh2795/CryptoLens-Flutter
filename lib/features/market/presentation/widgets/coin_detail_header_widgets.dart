@@ -1,12 +1,17 @@
-part of '../screens/coin_detail_screen.dart';
+import 'package:flutter/material.dart';
 
-class _PriceHeader extends StatelessWidget {
-  const _PriceHeader({
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_colors.dart';
+
+class PriceHeader extends StatelessWidget {
+  const PriceHeader({
     required this.coin,
     required this.showCandles,
     required this.spotSelected,
     required this.onToggleMarket,
     required this.onToggleChart,
+    super.key,
   });
 
   final Coin coin;
@@ -29,7 +34,7 @@ class _PriceHeader extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  color: _DetailColors.textPrimary,
+                  color: CoinDetailColors.textPrimary,
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
                 ),
@@ -39,7 +44,7 @@ class _PriceHeader extends StatelessWidget {
             Text(
               coin.symbol,
               style: const TextStyle(
-                color: _DetailColors.textSecondary,
+                color: CoinDetailColors.textSecondary,
                 fontSize: 14,
                 fontWeight: FontWeight.w800,
               ),
@@ -49,12 +54,12 @@ class _PriceHeader extends StatelessWidget {
         const SizedBox(height: 8),
         const Row(
           children: [
-            CircleAvatar(radius: 3, backgroundColor: _DetailColors.green),
+            CircleAvatar(radius: 3, backgroundColor: CoinDetailColors.green),
             SizedBox(width: 4),
             Text(
               'LIVE',
               style: TextStyle(
-                color: _DetailColors.green,
+                color: CoinDetailColors.green,
                 fontSize: 10,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1,
@@ -75,7 +80,7 @@ class _PriceHeader extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: _DetailColors.textPrimary,
+                      color: CoinDetailColors.textPrimary,
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
                       height: 1.05,
@@ -85,7 +90,9 @@ class _PriceHeader extends StatelessWidget {
                   Text(
                     formatPercent(coin.priceChangePercent24h),
                     style: TextStyle(
-                      color: positive ? _DetailColors.green : _DetailColors.red,
+                      color: positive
+                          ? CoinDetailColors.green
+                          : CoinDetailColors.red,
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
                     ),
@@ -97,26 +104,26 @@ class _PriceHeader extends StatelessWidget {
               padding: const EdgeInsets.only(top: 4),
               child: Row(
                 children: [
-                  _TinyToggle(
+                  TinyToggle(
                     label: r'$',
                     selected: spotSelected,
                     onTap: onToggleMarket,
                   ),
                   const SizedBox(width: 3),
-                  _TinyToggle(
-                    glyph: _TinyToggleGlyph.futures,
+                  TinyToggle(
+                    glyph: TinyToggleGlyph.futures,
                     selected: !spotSelected,
                     onTap: onToggleMarket,
                   ),
                   const SizedBox(width: 3),
-                  _TinyToggle(
-                    glyph: _TinyToggleGlyph.candles,
+                  TinyToggle(
+                    glyph: TinyToggleGlyph.candles,
                     selected: showCandles,
                     onTap: onToggleChart,
                   ),
                   const SizedBox(width: 3),
-                  _TinyToggle(
-                    glyph: _TinyToggleGlyph.line,
+                  TinyToggle(
+                    glyph: TinyToggleGlyph.line,
                     selected: !showCandles,
                     onTap: onToggleChart,
                   ),
@@ -130,18 +137,19 @@ class _PriceHeader extends StatelessWidget {
   }
 }
 
-class _TinyToggle extends StatelessWidget {
-  const _TinyToggle({
+class TinyToggle extends StatelessWidget {
+  const TinyToggle({
     required this.selected,
     required this.onTap,
     this.label,
     this.glyph,
+    super.key,
   });
 
   final bool selected;
   final VoidCallback onTap;
   final String? label;
-  final _TinyToggleGlyph? glyph;
+  final TinyToggleGlyph? glyph;
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +161,7 @@ class _TinyToggle extends StatelessWidget {
         height: 26,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? _DetailColors.selected : Colors.transparent,
+          color: selected ? CoinDetailColors.selected : Colors.transparent,
           borderRadius: BorderRadius.circular(7),
         ),
         child: glyph == null
@@ -161,19 +169,19 @@ class _TinyToggle extends StatelessWidget {
                 label ?? '',
                 style: TextStyle(
                   color: selected
-                      ? _DetailColors.textPrimary
-                      : _DetailColors.textTertiary,
+                      ? CoinDetailColors.textPrimary
+                      : CoinDetailColors.textTertiary,
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
                 ),
               )
             : CustomPaint(
                 size: const Size.square(15),
-                painter: _TinyToggleGlyphPainter(
+                painter: TinyToggleGlyphPainter(
                   glyph: glyph!,
                   color: selected
-                      ? _DetailColors.textPrimary
-                      : _DetailColors.textTertiary,
+                      ? CoinDetailColors.textPrimary
+                      : CoinDetailColors.textTertiary,
                 ),
               ),
       ),
@@ -181,12 +189,12 @@ class _TinyToggle extends StatelessWidget {
   }
 }
 
-enum _TinyToggleGlyph { futures, candles, line }
+enum TinyToggleGlyph { futures, candles, line }
 
-class _TinyToggleGlyphPainter extends CustomPainter {
-  const _TinyToggleGlyphPainter({required this.glyph, required this.color});
+class TinyToggleGlyphPainter extends CustomPainter {
+  const TinyToggleGlyphPainter({required this.glyph, required this.color});
 
-  final _TinyToggleGlyph glyph;
+  final TinyToggleGlyph glyph;
   final Color color;
 
   @override
@@ -198,7 +206,7 @@ class _TinyToggleGlyphPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     switch (glyph) {
-      case _TinyToggleGlyph.futures:
+      case TinyToggleGlyph.futures:
         canvas.drawLine(
           Offset(size.width * 0.18, size.height * 0.36),
           Offset(size.width * 0.68, size.height * 0.36),
@@ -229,11 +237,11 @@ class _TinyToggleGlyphPainter extends CustomPainter {
           Offset(size.width * 0.30, size.height * 0.64),
           paint,
         );
-      case _TinyToggleGlyph.candles:
+      case TinyToggleGlyph.candles:
         _drawCandle(canvas, paint, size, 0.25, 0.52, 0.30);
         _drawCandle(canvas, paint, size, 0.50, 0.38, 0.48);
         _drawCandle(canvas, paint, size, 0.75, 0.66, 0.24);
-      case _TinyToggleGlyph.line:
+      case TinyToggleGlyph.line:
         final path = Path()
           ..moveTo(size.width * 0.12, size.height * 0.70)
           ..lineTo(size.width * 0.34, size.height * 0.56)
@@ -272,6 +280,6 @@ class _TinyToggleGlyphPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _TinyToggleGlyphPainter oldDelegate) =>
+  bool shouldRepaint(covariant TinyToggleGlyphPainter oldDelegate) =>
       oldDelegate.glyph != glyph || oldDelegate.color != color;
 }

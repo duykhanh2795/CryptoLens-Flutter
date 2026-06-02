@@ -1,10 +1,14 @@
-part of '../screens/coin_detail_screen.dart';
+import 'package:flutter/material.dart';
 
-class _CoinNewsSection extends StatelessWidget {
-  const _CoinNewsSection({
+import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_colors.dart';
+
+class CoinNewsSection extends StatelessWidget {
+  const CoinNewsSection({
     required this.symbol,
     required this.future,
     required this.onSeeAll,
+    super.key,
   });
 
   final String symbol;
@@ -16,7 +20,7 @@ class _CoinNewsSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
       decoration: BoxDecoration(
-        color: _DetailColors.panel,
+        color: CoinDetailColors.panel,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -27,7 +31,7 @@ class _CoinNewsSection extends StatelessWidget {
                 child: Text(
                   '$symbol News',
                   style: const TextStyle(
-                    color: _DetailColors.textPrimary,
+                    color: CoinDetailColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w900,
                   ),
@@ -53,7 +57,7 @@ class _CoinNewsSection extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Related news is unavailable right now.',
-                      style: TextStyle(color: _DetailColors.textSecondary),
+                      style: TextStyle(color: CoinDetailColors.textSecondary),
                     ),
                   ),
                 );
@@ -70,7 +74,7 @@ class _CoinNewsSection extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: _DetailColors.textSecondary,
+                            color: CoinDetailColors.textSecondary,
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                           ),

@@ -1,7 +1,15 @@
-part of '../screens/coin_detail_screen.dart';
+import 'package:flutter/material.dart';
 
-class _MarketInfoSection extends StatelessWidget {
-  const _MarketInfoSection({required this.coin, required this.detail});
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_colors.dart';
+
+class MarketInfoSection extends StatelessWidget {
+  const MarketInfoSection({
+    required this.coin,
+    required this.detail,
+    super.key,
+  });
 
   final Coin coin;
   final CoinDetail detail;
@@ -61,7 +69,7 @@ class _MarketInfoSection extends StatelessWidget {
           Text(
             'About ${coin.symbol}',
             style: const TextStyle(
-              color: _DetailColors.textPrimary,
+              color: CoinDetailColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
@@ -104,7 +112,7 @@ class _InfoRow extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              color: _DetailColors.textTertiary,
+              color: CoinDetailColors.textTertiary,
               fontSize: 14,
               height: 1.18,
               fontWeight: FontWeight.w400,
@@ -123,7 +131,7 @@ class _InfoRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.end,
                 style: const TextStyle(
-                  color: _DetailColors.textPrimary,
+                  color: CoinDetailColors.textPrimary,
                   fontSize: 14,
                   height: 1.18,
                   fontWeight: FontWeight.w400,
@@ -137,7 +145,7 @@ class _InfoRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
                   style: const TextStyle(
-                    color: _DetailColors.textTertiary,
+                    color: CoinDetailColors.textTertiary,
                     fontSize: 12,
                     height: 1.25,
                     fontWeight: FontWeight.w500,

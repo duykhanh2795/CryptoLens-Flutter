@@ -1,7 +1,12 @@
-part of '../screens/coin_detail_screen.dart';
+import 'package:flutter/material.dart';
 
-class _FuturesMetricsPanel extends StatelessWidget {
-  const _FuturesMetricsPanel({required this.future});
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/data/market_api.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_colors.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_stats_widgets.dart';
+
+class FuturesMetricsPanel extends StatelessWidget {
+  const FuturesMetricsPanel({required this.future, super.key});
 
   final Future<FuturesMetrics>? future;
 
@@ -22,13 +27,13 @@ class _FuturesMetricsPanel extends StatelessWidget {
           return Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: _DetailColors.panel,
+              color: CoinDetailColors.panel,
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Text(
               'Futures metrics unavailable for this symbol.',
               style: TextStyle(
-                color: _DetailColors.textSecondary,
+                color: CoinDetailColors.textSecondary,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -38,7 +43,7 @@ class _FuturesMetricsPanel extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: _DetailColors.panel,
+            color: CoinDetailColors.panel,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Column(
@@ -47,7 +52,7 @@ class _FuturesMetricsPanel extends StatelessWidget {
               const Text(
                 'Futures',
                 style: TextStyle(
-                  color: _DetailColors.textPrimary,
+                  color: CoinDetailColors.textPrimary,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -55,26 +60,26 @@ class _FuturesMetricsPanel extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: _QuickStat(
+                    child: QuickStat(
                       label: 'Mark',
                       value: formatPrice(data.markPrice),
-                      color: _DetailColors.textPrimary,
+                      color: CoinDetailColors.textPrimary,
                     ),
                   ),
                   Expanded(
-                    child: _QuickStat(
+                    child: QuickStat(
                       label: 'Funding',
                       value: '${data.fundingPercent.toStringAsFixed(4)}%',
                       color: data.fundingPercent >= 0
-                          ? _DetailColors.green
-                          : _DetailColors.red,
+                          ? CoinDetailColors.green
+                          : CoinDetailColors.red,
                     ),
                   ),
                   Expanded(
-                    child: _QuickStat(
+                    child: QuickStat(
                       label: 'Open Interest',
                       value: formatCompactNumber(data.openInterest),
-                      color: _DetailColors.textPrimary,
+                      color: CoinDetailColors.textPrimary,
                     ),
                   ),
                 ],
@@ -84,7 +89,7 @@ class _FuturesMetricsPanel extends StatelessWidget {
                 Text(
                   'Next funding: ${data.nextFundingTime}',
                   style: const TextStyle(
-                    color: _DetailColors.textSecondary,
+                    color: CoinDetailColors.textSecondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),

@@ -1,12 +1,20 @@
-part of '../screens/coin_detail_screen.dart';
+import 'dart:math' as math;
 
-class _ChartPanel extends StatelessWidget {
-  const _ChartPanel({
+import 'package:flutter/material.dart';
+
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/domain/kline.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_colors.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_stats_widgets.dart';
+
+class ChartPanel extends StatelessWidget {
+  const ChartPanel({
     required this.chartFuture,
     required this.showCandles,
     required this.intervals,
     required this.selected,
     required this.onSelected,
+    super.key,
   });
 
   final Future<List<Kline>> chartFuture;
@@ -34,7 +42,7 @@ class _ChartPanel extends StatelessWidget {
               child: Text(
                 'Chart data is unavailable for this market.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: _DetailColors.textSecondary),
+                style: TextStyle(color: CoinDetailColors.textSecondary),
               ),
             ),
           );
@@ -51,7 +59,7 @@ class _ChartPanel extends StatelessWidget {
           height: 280,
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: _DetailColors.panelAlt,
+            color: CoinDetailColors.panelAlt,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Column(
@@ -61,8 +69,8 @@ class _ChartPanel extends StatelessWidget {
                 height: 42,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.symmetric(horizontal: 22),
-                color: _DetailColors.panelAlt,
-                child: _IntervalSelector(
+                color: CoinDetailColors.panelAlt,
+                child: IntervalSelector(
                   intervals: intervals,
                   selected: selected,
                   onSelected: onSelected,
@@ -109,10 +117,10 @@ class _KlineChartPainter extends CustomPainter {
     final candleWidth = math.max(2.0, step * 0.5);
 
     final gridPaint = Paint()
-      ..color = _DetailColors.divider.withValues(alpha: 0.55)
+      ..color = CoinDetailColors.divider.withValues(alpha: 0.55)
       ..strokeWidth = 0.7;
     final labelStyle = const TextStyle(
-      color: _DetailColors.textTertiary,
+      color: CoinDetailColors.textTertiary,
       fontSize: 9,
       fontWeight: FontWeight.w600,
     );
@@ -144,7 +152,7 @@ class _KlineChartPainter extends CustomPainter {
       canvas.drawPath(
         path,
         Paint()
-          ..color = _DetailColors.green
+          ..color = CoinDetailColors.green
           ..strokeWidth = 2
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round
@@ -156,7 +164,7 @@ class _KlineChartPainter extends CustomPainter {
       final kline = visible[i];
       final x = step * i + step / 2;
       final up = kline.close >= kline.open;
-      final color = up ? _DetailColors.green : _DetailColors.red;
+      final color = up ? CoinDetailColors.green : CoinDetailColors.red;
       final paint = Paint()
         ..color = color
         ..strokeWidth = 1;

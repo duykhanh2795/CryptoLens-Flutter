@@ -1,7 +1,10 @@
-part of '../screens/coin_detail_screen.dart';
+import 'package:flutter/material.dart';
 
-class _AboutSection extends StatelessWidget {
-  const _AboutSection({required this.detail});
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_colors.dart';
+
+class AboutSection extends StatelessWidget {
+  const AboutSection({required this.detail, super.key});
 
   final CoinDetail detail;
 
@@ -10,7 +13,7 @@ class _AboutSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _DetailColors.panel,
+        color: CoinDetailColors.panel,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -19,7 +22,7 @@ class _AboutSection extends StatelessWidget {
           Text(
             'About ${detail.coin.name}',
             style: const TextStyle(
-              color: _DetailColors.textPrimary,
+              color: CoinDetailColors.textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w900,
             ),
@@ -30,7 +33,7 @@ class _AboutSection extends StatelessWidget {
             maxLines: 8,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              color: _DetailColors.textSecondary,
+              color: CoinDetailColors.textSecondary,
               height: 1.45,
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -42,8 +45,12 @@ class _AboutSection extends StatelessWidget {
   }
 }
 
-class _DetailError extends StatelessWidget {
-  const _DetailError({required this.message, required this.onRetry});
+class CoinDetailError extends StatelessWidget {
+  const CoinDetailError({
+    required this.message,
+    required this.onRetry,
+    super.key,
+  });
 
   final String message;
   final Future<void> Function() onRetry;
@@ -57,14 +64,14 @@ class _DetailError extends StatelessWidget {
         const Icon(
           Icons.error_outline_rounded,
           size: 46,
-          color: _DetailColors.red,
+          color: CoinDetailColors.red,
         ),
         const SizedBox(height: 14),
         const Text(
           'Unable to load coin detail',
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: _DetailColors.textPrimary,
+            color: CoinDetailColors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w900,
           ),
@@ -73,7 +80,7 @@ class _DetailError extends StatelessWidget {
         Text(
           message,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: _DetailColors.textSecondary),
+          style: const TextStyle(color: CoinDetailColors.textSecondary),
         ),
         const SizedBox(height: 18),
         FilledButton(onPressed: onRetry, child: const Text('Retry')),
@@ -82,7 +89,7 @@ class _DetailError extends StatelessWidget {
   }
 }
 
-String _trimHolding(double value) {
+String trimHoldingValue(double value) {
   return value
       .toStringAsFixed(8)
       .replaceFirst(RegExp(r'0+$'), '')

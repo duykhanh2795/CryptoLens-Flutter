@@ -5,41 +5,26 @@ import 'package:flutter/material.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin_holding.dart';
 import 'package:cryptolens_flutter/features/market/domain/kline.dart';
-import 'package:cryptolens_flutter/features/alerts/domain/alert_rule.dart';
 import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
 import 'package:cryptolens_flutter/features/news/data/news_api.dart';
 import 'package:cryptolens_flutter/features/market/data/market_api.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
-import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'package:cryptolens_flutter/features/alerts/presentation/screens/alerts_screen.dart';
 import 'package:cryptolens_flutter/features/news/presentation/screens/news_screen.dart';
 import 'package:cryptolens_flutter/features/portfolio/presentation/screens/portfolio_screen.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_alert_widgets.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_chart_widgets.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_chrome_widgets.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_colors.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_futures_widgets.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_header_widgets.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_holding_widgets.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_market_info_widgets.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_misc_widgets.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_news_widgets.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_stats_widgets.dart';
 import '../market_controller.dart';
-
-part '../widgets/coin_detail_chrome_widgets.dart';
-part '../widgets/coin_detail_alert_widgets.dart';
-part '../widgets/coin_detail_header_widgets.dart';
-part '../widgets/coin_detail_chart_widgets.dart';
-part '../widgets/coin_detail_stats_widgets.dart';
-part '../widgets/coin_detail_holding_widgets.dart';
-part '../widgets/coin_detail_futures_widgets.dart';
-part '../widgets/coin_detail_market_info_widgets.dart';
-part '../widgets/coin_detail_news_widgets.dart';
-part '../widgets/coin_detail_misc_widgets.dart';
-
-class _DetailColors {
-  static const background = Color(0xFF252629);
-  static const panel = Color(0xFF252629);
-  static const panelAlt = Color(0xFF252629);
-  static const selected = Color(0xFF202124);
-  static const divider = Color(0xFF26272A);
-  static const textPrimary = Color(0xFFF4F5F6);
-  static const textSecondary = Color(0xFFA7ABB0);
-  static const textTertiary = Color(0xFF6E737A);
-  static const green = Color(0xFF00C087);
-  static const red = Color(0xFFFF7182);
-}
 
 class CoinDetailScreen extends StatefulWidget {
   const CoinDetailScreen({
@@ -138,7 +123,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _DetailColors.background,
+      backgroundColor: CoinDetailColors.background,
       body: SafeArea(
         bottom: false,
         child: Stack(
@@ -155,7 +140,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError && detail == null) {
-                    return _DetailError(
+                    return CoinDetailError(
                       message: snapshot.error.toString(),
                       onRetry: _refresh,
                     );
@@ -164,7 +149,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
                   return ListView(
                     padding: const EdgeInsets.fromLTRB(14, 44, 14, 110),
                     children: [
-                      _PriceHeader(
+                      PriceHeader(
                         coin: coin,
                         showCandles: _showCandles,
                         spotSelected: _spotSelected,
@@ -173,16 +158,16 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
                             setState(() => _showCandles = !_showCandles),
                       ),
                       const SizedBox(height: 8),
-                      _ChartPanel(
+                      ChartPanel(
                         chartFuture: _chartFuture,
                         showCandles: _showCandles,
                         intervals: _intervals,
                         selected: _interval,
                         onSelected: _setInterval,
                       ),
-                      _PerformanceRow(coin: coin),
+                      PerformanceRow(coin: coin),
                       const SizedBox(height: 10),
-                      _QuickStatsRow(coin: coin),
+                      QuickStatsRow(coin: coin),
                       FutureBuilder<CoinHolding?>(
                         future: _holdingFuture,
                         builder: (context, holdingSnapshot) {
@@ -190,7 +175,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
                           if (holding == null) return const SizedBox.shrink();
                           return Padding(
                             padding: const EdgeInsets.only(top: 14),
-                            child: _YourHoldingSection(
+                            child: YourHoldingSection(
                               holding: holding.withPrice(coin.currentPrice),
                               onOpenPortfolio: _openPortfolio,
                             ),
@@ -199,13 +184,13 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
                       ),
                       if (!_spotSelected) ...[
                         const SizedBox(height: 16),
-                        _FuturesMetricsPanel(future: _futuresMetricsFuture),
+                        FuturesMetricsPanel(future: _futuresMetricsFuture),
                       ],
                       const SizedBox(height: 18),
                       if (detail != null)
-                        _MarketInfoSection(coin: coin, detail: detail),
+                        MarketInfoSection(coin: coin, detail: detail),
                       const SizedBox(height: 24),
-                      _CoinNewsSection(
+                      CoinNewsSection(
                         symbol: coin.symbol,
                         future: _newsFuture,
                         onSeeAll: () => Navigator.of(context).push(
@@ -219,20 +204,20 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
                       ),
                       const SizedBox(height: 10),
                       if (detail != null && detail.description.isNotEmpty)
-                        _AboutSection(detail: detail),
+                        AboutSection(detail: detail),
                     ],
                   );
                 },
               ),
             ),
-            _TopChrome(
+            TopChrome(
               coin: _activeCoin,
               controller: widget.controller,
               onRefresh: _refresh,
               onAlert: () => _showAlertTypePicker(context, widget.coin),
               onWatchlistToggle: _toggleWatchlist,
             ),
-            _BuySellBar(onOpenPortfolio: _openPortfolio),
+            BuySellBar(onOpenPortfolio: _openPortfolio),
           ],
         ),
       ),
@@ -353,11 +338,11 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
   void _showAlertTypePicker(BuildContext context, Coin coin) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: _DetailColors.panel,
+      backgroundColor: CoinDetailColors.panel,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
-      builder: (_) => _AlertTypePickerSheet(
+      builder: (_) => AlertTypePickerSheet(
         coin: coin,
         onSelected: (metric) {
           Navigator.of(context).pop();

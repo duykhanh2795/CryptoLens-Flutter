@@ -1,9 +1,15 @@
-part of '../screens/coin_detail_screen.dart';
+import 'package:flutter/material.dart';
 
-class _YourHoldingSection extends StatelessWidget {
-  const _YourHoldingSection({
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin_holding.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_colors.dart';
+import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_misc_widgets.dart';
+
+class YourHoldingSection extends StatelessWidget {
+  const YourHoldingSection({
     required this.holding,
     required this.onOpenPortfolio,
+    super.key,
   });
 
   final CoinHolding holding;
@@ -16,7 +22,7 @@ class _YourHoldingSection extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _DetailColors.panel,
+        color: CoinDetailColors.panel,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -27,7 +33,7 @@ class _YourHoldingSection extends StatelessWidget {
                 child: Text(
                   'Your Holdings',
                   style: TextStyle(
-                    color: _DetailColors.textPrimary,
+                    color: CoinDetailColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                   ),
@@ -46,14 +52,14 @@ class _YourHoldingSection extends StatelessWidget {
                     Text(
                       'Portfolio',
                       style: TextStyle(
-                        color: _DetailColors.textSecondary,
+                        color: CoinDetailColors.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     Icon(
                       Icons.chevron_right_rounded,
-                      color: _DetailColors.textSecondary,
+                      color: CoinDetailColors.textSecondary,
                       size: 16,
                     ),
                   ],
@@ -65,17 +71,17 @@ class _YourHoldingSection extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _HoldingMetric(
+                child: HoldingMetric(
                   label: 'Value',
                   value: formatCompactUsd(holding.currentValue),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _HoldingMetric(
+                child: HoldingMetric(
                   label: 'Quantity',
                   value:
-                      '${_trimHolding(holding.quantity)} ${holding.coin.symbol}',
+                      '${trimHoldingValue(holding.quantity)} ${holding.coin.symbol}',
                 ),
               ),
             ],
@@ -84,24 +90,26 @@ class _YourHoldingSection extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _HoldingMetric(
+                child: HoldingMetric(
                   label: 'Avg Buy',
                   value: formatPrice(holding.averagePrice),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _HoldingMetric(
+                child: HoldingMetric(
                   label: 'P&L',
                   value:
                       '${holding.profitLoss >= 0 ? '+' : '-'}${formatCompactUsd(holding.profitLoss.abs())} (${holding.profitLossPercent.abs().toStringAsFixed(2)}%)',
-                  valueColor: profit ? _DetailColors.green : _DetailColors.red,
+                  valueColor: profit
+                      ? CoinDetailColors.green
+                      : CoinDetailColors.red,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          _HoldingMetric(
+          HoldingMetric(
             label: 'Portfolio Allocation',
             value: '${holding.allocationPercent.toStringAsFixed(2)}%',
           ),
@@ -111,11 +119,12 @@ class _YourHoldingSection extends StatelessWidget {
   }
 }
 
-class _HoldingMetric extends StatelessWidget {
-  const _HoldingMetric({
+class HoldingMetric extends StatelessWidget {
+  const HoldingMetric({
     required this.label,
     required this.value,
-    this.valueColor = _DetailColors.textPrimary,
+    this.valueColor = CoinDetailColors.textPrimary,
+    super.key,
   });
 
   final String label;
@@ -127,7 +136,7 @@ class _HoldingMetric extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: _DetailColors.selected,
+        color: CoinDetailColors.selected,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -136,7 +145,7 @@ class _HoldingMetric extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              color: _DetailColors.textTertiary,
+              color: CoinDetailColors.textTertiary,
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
@@ -158,8 +167,8 @@ class _HoldingMetric extends StatelessWidget {
   }
 }
 
-class _BuySellBar extends StatelessWidget {
-  const _BuySellBar({required this.onOpenPortfolio});
+class BuySellBar extends StatelessWidget {
+  const BuySellBar({required this.onOpenPortfolio, super.key});
 
   final VoidCallback onOpenPortfolio;
 
@@ -176,7 +185,7 @@ class _BuySellBar extends StatelessWidget {
           14,
           MediaQuery.paddingOf(context).bottom + 10,
         ),
-        color: _DetailColors.background,
+        color: CoinDetailColors.background,
         child: Row(
           children: [
             Expanded(
@@ -185,7 +194,7 @@ class _BuySellBar extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: onOpenPortfolio,
                   style: FilledButton.styleFrom(
-                    backgroundColor: _DetailColors.green,
+                    backgroundColor: CoinDetailColors.green,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -206,9 +215,9 @@ class _BuySellBar extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onOpenPortfolio,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: _DetailColors.red,
-                    backgroundColor: _DetailColors.panel,
-                    side: const BorderSide(color: _DetailColors.divider),
+                    foregroundColor: CoinDetailColors.red,
+                    backgroundColor: CoinDetailColors.panel,
+                    side: const BorderSide(color: CoinDetailColors.divider),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -224,45 +233,6 @@ class _BuySellBar extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _QuickStat extends StatelessWidget {
-  const _QuickStat({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: _DetailColors.textSecondary,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: color,
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ],
     );
   }
 }
