@@ -1,10 +1,23 @@
-part of '../screens/portfolio_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class _PortfolioTabs extends StatelessWidget {
-  const _PortfolioTabs({required this.selectedTab, required this.onChanged});
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_models.dart';
+import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/state/portfolio_tab.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_format_helpers.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_shared_widgets.dart';
 
-  final _PortfolioTab selectedTab;
-  final ValueChanged<_PortfolioTab> onChanged;
+class PortfolioTabs extends StatelessWidget {
+  const PortfolioTabs({
+    required this.selectedTab,
+    required this.onChanged,
+    super.key,
+  });
+
+  final PortfolioTab selectedTab;
+  final ValueChanged<PortfolioTab> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -17,15 +30,15 @@ class _PortfolioTabs extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _PortfolioTabButton(
+          PortfolioTabButton(
             label: 'Assets',
-            selected: selectedTab == _PortfolioTab.assets,
-            onTap: () => onChanged(_PortfolioTab.assets),
+            selected: selectedTab == PortfolioTab.assets,
+            onTap: () => onChanged(PortfolioTab.assets),
           ),
-          _PortfolioTabButton(
+          PortfolioTabButton(
             label: 'Transactions',
-            selected: selectedTab == _PortfolioTab.transactions,
-            onTap: () => onChanged(_PortfolioTab.transactions),
+            selected: selectedTab == PortfolioTab.transactions,
+            onTap: () => onChanged(PortfolioTab.transactions),
           ),
         ],
       ),
@@ -33,11 +46,12 @@ class _PortfolioTabs extends StatelessWidget {
   }
 }
 
-class _PortfolioTabButton extends StatelessWidget {
-  const _PortfolioTabButton({
+class PortfolioTabButton extends StatelessWidget {
+  const PortfolioTabButton({
     required this.label,
     required this.selected,
     required this.onTap,
+    super.key,
   });
 
   final String label;
@@ -78,11 +92,12 @@ class _PortfolioTabButton extends StatelessWidget {
   }
 }
 
-class _AssetsTab extends StatelessWidget {
-  const _AssetsTab({
+class AssetsTab extends StatelessWidget {
+  const AssetsTab({
     required this.assets,
     required this.onCoinTap,
     required this.onDelete,
+    super.key,
   });
 
   final List<PortfolioAsset> assets;
@@ -92,7 +107,7 @@ class _AssetsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (assets.isEmpty) {
-      return const _PortfolioEmptyState(
+      return const PortfolioEmptyState(
         icon: Icons.account_balance_wallet_outlined,
         title: 'No assets yet',
         message: 'Tap + to record your first buy.',
@@ -106,7 +121,7 @@ class _AssetsTab extends StatelessWidget {
     return Column(
       children: [
         for (final asset in assets)
-          _AssetRow(
+          AssetRow(
             asset: asset,
             allocation: total <= 0 ? 0 : asset.currentValue / total * 100,
             onTap: () => onCoinTap(asset),
@@ -117,12 +132,13 @@ class _AssetsTab extends StatelessWidget {
   }
 }
 
-class _AssetRow extends StatelessWidget {
-  const _AssetRow({
+class AssetRow extends StatelessWidget {
+  const AssetRow({
     required this.asset,
     required this.allocation,
     required this.onTap,
     required this.onDelete,
+    super.key,
   });
 
   final PortfolioAsset asset;
@@ -172,16 +188,16 @@ class _AssetRow extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Qty: ${_trim(asset.quantity)}',
-                    style: _assetMetaStyle(AppColors.textSecondary),
+                    'Qty: ${trimPortfolioValue(asset.quantity)}',
+                    style: portfolioAssetMetaStyle(AppColors.textSecondary),
                   ),
                   Text(
                     'Avg: ${formatPrice(asset.averagePrice)}',
-                    style: _assetMetaStyle(AppColors.textTertiary),
+                    style: portfolioAssetMetaStyle(AppColors.textTertiary),
                   ),
                   Text(
                     '${allocation.toStringAsFixed(1)}% allocation',
-                    style: _assetMetaStyle(AppColors.textTertiary),
+                    style: portfolioAssetMetaStyle(AppColors.textTertiary),
                   ),
                 ],
               ),
@@ -198,7 +214,7 @@ class _AssetRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  _signedMoney(asset.unrealizedPnl),
+                  signedPortfolioMoney(asset.unrealizedPnl),
                   style: TextStyle(
                     color: isProfit ? AppColors.green : AppColors.red,
                     fontSize: 12,
@@ -214,7 +230,7 @@ class _AssetRow extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '24h ${_signedMoney(coin.priceChange24h * asset.quantity)}',
+                  '24h ${signedPortfolioMoney(coin.priceChange24h * asset.quantity)}',
                   style: TextStyle(
                     color: coin.priceChange24h >= 0
                         ? AppColors.green
@@ -232,8 +248,12 @@ class _AssetRow extends StatelessWidget {
   }
 }
 
-class _TransactionsTab extends StatelessWidget {
-  const _TransactionsTab({required this.transactions, required this.onDelete});
+class TransactionsTab extends StatelessWidget {
+  const TransactionsTab({
+    required this.transactions,
+    required this.onDelete,
+    super.key,
+  });
 
   final List<PortfolioTransaction> transactions;
   final ValueChanged<PortfolioTransaction> onDelete;
@@ -241,7 +261,7 @@ class _TransactionsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (transactions.isEmpty) {
-      return const _PortfolioEmptyState(
+      return const PortfolioEmptyState(
         icon: Icons.receipt_long_outlined,
         title: 'No transactions',
         message: 'Your buy/sell history will appear here.',
@@ -250,14 +270,18 @@ class _TransactionsTab extends StatelessWidget {
     return Column(
       children: [
         for (final tx in transactions)
-          _TransactionRow(transaction: tx, onDelete: () => onDelete(tx)),
+          TransactionRow(transaction: tx, onDelete: () => onDelete(tx)),
       ],
     );
   }
 }
 
-class _TransactionRow extends StatelessWidget {
-  const _TransactionRow({required this.transaction, required this.onDelete});
+class TransactionRow extends StatelessWidget {
+  const TransactionRow({
+    required this.transaction,
+    required this.onDelete,
+    super.key,
+  });
 
   final PortfolioTransaction transaction;
   final VoidCallback onDelete;
@@ -314,14 +338,14 @@ class _TransactionRow extends StatelessWidget {
                     DateFormat(
                       'dd MMM yyyy, HH:mm',
                     ).format(transaction.timestamp),
-                    style: _assetMetaStyle(AppColors.textTertiary),
+                    style: portfolioAssetMetaStyle(AppColors.textTertiary),
                   ),
                   if (transaction.note.isNotEmpty)
                     Text(
                       transaction.note,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: _assetMetaStyle(AppColors.textSecondary),
+                      style: portfolioAssetMetaStyle(AppColors.textSecondary),
                     ),
                 ],
               ),
@@ -330,7 +354,7 @@ class _TransactionRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${_trim(transaction.quantity)} ${transaction.coin.symbol}',
+                  '${trimPortfolioValue(transaction.quantity)} ${transaction.coin.symbol}',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
@@ -338,7 +362,7 @@ class _TransactionRow extends StatelessWidget {
                 ),
                 Text(
                   '@ ${formatPrice(transaction.price)}',
-                  style: _assetMetaStyle(AppColors.textSecondary),
+                  style: portfolioAssetMetaStyle(AppColors.textSecondary),
                 ),
                 Text(
                   formatPrice(transaction.total),

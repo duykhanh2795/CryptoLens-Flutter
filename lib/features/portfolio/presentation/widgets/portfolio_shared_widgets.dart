@@ -1,10 +1,15 @@
-part of '../screens/portfolio_screen.dart';
+import 'dart:math' as math;
 
-class _PortfolioEmptyState extends StatelessWidget {
-  const _PortfolioEmptyState({
+import 'package:flutter/material.dart';
+
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+
+class PortfolioEmptyState extends StatelessWidget {
+  const PortfolioEmptyState({
     required this.icon,
     required this.title,
     required this.message,
+    super.key,
   });
 
   final IconData icon;
@@ -37,8 +42,8 @@ class _PortfolioEmptyState extends StatelessWidget {
   }
 }
 
-class _PortfolioChartPainter extends CustomPainter {
-  const _PortfolioChartPainter({required this.values, required this.color});
+class PortfolioChartPainter extends CustomPainter {
+  const PortfolioChartPainter({required this.values, required this.color});
 
   final List<double> values;
   final Color color;
@@ -90,7 +95,7 @@ class _PortfolioChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _PortfolioChartPainter oldDelegate) {
+  bool shouldRepaint(covariant PortfolioChartPainter oldDelegate) {
     return oldDelegate.values != values || oldDelegate.color != color;
   }
 }

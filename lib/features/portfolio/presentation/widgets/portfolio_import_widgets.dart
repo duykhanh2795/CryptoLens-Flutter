@@ -1,7 +1,15 @@
-part of '../screens/portfolio_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class _ImportPreviewPanel extends StatelessWidget {
-  const _ImportPreviewPanel({required this.preview, required this.mode});
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
+
+class ImportPreviewPanel extends StatelessWidget {
+  const ImportPreviewPanel({
+    required this.preview,
+    required this.mode,
+    super.key,
+  });
 
   final PortfolioImportPreview preview;
   final PortfolioImportMode mode;
@@ -30,14 +38,14 @@ class _ImportPreviewPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          _PreviewRow('Transactions', '${preview.transactionCount}'),
-          _PreviewRow(
+          PreviewRow('Transactions', '${preview.transactionCount}'),
+          PreviewRow(
             'Buys / Sells',
             '${preview.buyCount} / ${preview.sellCount}',
           ),
-          _PreviewRow('Coins', '${preview.coinCount}'),
+          PreviewRow('Coins', '${preview.coinCount}'),
           if (first != null && last != null)
-            _PreviewRow(
+            PreviewRow(
               'Range',
               '${DateFormat('dd MMM yyyy').format(first)} - ${DateFormat('dd MMM yyyy').format(last)}',
             ),
@@ -58,8 +66,8 @@ class _ImportPreviewPanel extends StatelessWidget {
   }
 }
 
-class _PreviewRow extends StatelessWidget {
-  const _PreviewRow(this.label, this.value);
+class PreviewRow extends StatelessWidget {
+  const PreviewRow(this.label, this.value, {super.key});
 
   final String label;
   final String value;
@@ -92,29 +100,6 @@ class _PreviewRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _HeaderIcon extends StatelessWidget {
-  const _HeaderIcon({
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: tooltip,
-      constraints: const BoxConstraints.tightFor(width: 38, height: 40),
-      padding: EdgeInsets.zero,
-      onPressed: onTap,
-      icon: Icon(icon, color: AppColors.textSecondary, size: 22),
     );
   }
 }

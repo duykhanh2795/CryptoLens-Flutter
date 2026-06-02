@@ -1,15 +1,21 @@
-part of '../screens/portfolio_screen.dart';
+import 'package:flutter/material.dart';
 
-class _PortfolioHero extends StatefulWidget {
-  const _PortfolioHero({required this.summary});
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_models.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_format_helpers.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_shared_widgets.dart';
+
+class PortfolioHero extends StatefulWidget {
+  const PortfolioHero({required this.summary, super.key});
 
   final PortfolioSummary summary;
 
   @override
-  State<_PortfolioHero> createState() => _PortfolioHeroState();
+  State<PortfolioHero> createState() => _PortfolioHeroState();
 }
 
-class _PortfolioHeroState extends State<_PortfolioHero> {
+class _PortfolioHeroState extends State<PortfolioHero> {
   String _range = '24H';
 
   @override
@@ -76,7 +82,7 @@ class _PortfolioHeroState extends State<_PortfolioHero> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              _signedMoney(summary.pnl),
+              signedPortfolioMoney(summary.pnl),
               style: TextStyle(
                 color: isProfit ? AppColors.green : AppColors.red,
                 fontWeight: FontWeight.w900,
@@ -104,13 +110,13 @@ class _PortfolioHeroState extends State<_PortfolioHero> {
           height: 228,
           width: double.infinity,
           child: CustomPaint(
-            painter: _PortfolioChartPainter(
+            painter: PortfolioChartPainter(
               values: summary.chartValues,
               color: isDayUp ? AppColors.green : AppColors.red,
             ),
           ),
         ),
-        _RangeSelector(
+        RangeSelector(
           selected: _range,
           onChanged: (value) => setState(() => _range = value),
         ),
@@ -120,7 +126,7 @@ class _PortfolioHeroState extends State<_PortfolioHero> {
             _Metric(label: 'Invested', value: formatPrice(summary.invested)),
             _Metric(
               label: 'Unrealized',
-              value: _signedMoney(summary.unrealized),
+              value: signedPortfolioMoney(summary.unrealized),
               valueColor: summary.unrealized >= 0
                   ? AppColors.green
                   : AppColors.red,
@@ -128,7 +134,7 @@ class _PortfolioHeroState extends State<_PortfolioHero> {
             ),
             _Metric(
               label: 'Realized',
-              value: _signedMoney(summary.realized),
+              value: signedPortfolioMoney(summary.realized),
               valueColor: summary.realized >= 0
                   ? AppColors.green
                   : AppColors.red,
@@ -143,7 +149,7 @@ class _PortfolioHeroState extends State<_PortfolioHero> {
             _Metric(
               label: '24H',
               value:
-                  '${_signedMoney(summary.dayChange)} / ${formatPercent(summary.dayChangePercent)}',
+                  '${signedPortfolioMoney(summary.dayChange)} / ${formatPercent(summary.dayChangePercent)}',
               valueColor: isDayUp ? AppColors.green : AppColors.red,
               align: TextAlign.center,
             ),
@@ -159,8 +165,12 @@ class _PortfolioHeroState extends State<_PortfolioHero> {
   }
 }
 
-class _RangeSelector extends StatelessWidget {
-  const _RangeSelector({required this.selected, required this.onChanged});
+class RangeSelector extends StatelessWidget {
+  const RangeSelector({
+    required this.selected,
+    required this.onChanged,
+    super.key,
+  });
 
   final String selected;
   final ValueChanged<String> onChanged;

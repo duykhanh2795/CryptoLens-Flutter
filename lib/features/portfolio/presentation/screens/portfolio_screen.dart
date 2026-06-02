@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
@@ -10,20 +8,15 @@ import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_calculato
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_models.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
-import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'package:cryptolens_flutter/features/exchange/presentation/screens/manage_exchange_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/screens/coin_detail_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
-
-part '../widgets/portfolio_header_widgets.dart';
-part '../widgets/portfolio_import_widgets.dart';
-part '../widgets/portfolio_hero_widgets.dart';
-part '../widgets/portfolio_tab_widgets.dart';
-part '../widgets/portfolio_transaction_sheet.dart';
-part '../widgets/portfolio_shared_widgets.dart';
-part '../widgets/portfolio_format_helpers.dart';
-
-enum _PortfolioTab { assets, transactions }
+import 'package:cryptolens_flutter/features/portfolio/presentation/state/portfolio_tab.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_header_widgets.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_hero_widgets.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_import_widgets.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_tab_widgets.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_transaction_sheet.dart';
 
 class PortfolioScreen extends StatefulWidget {
   const PortfolioScreen({required this.controller, super.key});
@@ -38,7 +31,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   final _store = PortfolioStore();
   final List<PortfolioTransaction> _transactions = [];
   final List<PortfolioSnapshot> _snapshots = [];
-  _PortfolioTab _selectedTab = _PortfolioTab.assets;
+  PortfolioTab _selectedTab = PortfolioTab.assets;
 
   @override
   void initState() {
@@ -63,7 +56,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
         children: [
-          _PortfolioTopBar(
+          PortfolioTopBar(
             isBusy: widget.controller.isRefreshing,
             onImport: _showImportDialog,
             onExport: _showExportDialog,
@@ -78,15 +71,15 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
             onAdd: _showAddTransactionSheet,
           ),
           const SizedBox(height: 10),
-          _PortfolioHero(summary: summary),
+          PortfolioHero(summary: summary),
           const SizedBox(height: 12),
-          _PortfolioTabs(
+          PortfolioTabs(
             selectedTab: _selectedTab,
             onChanged: (tab) => setState(() => _selectedTab = tab),
           ),
           const SizedBox(height: 10),
-          if (_selectedTab == _PortfolioTab.assets)
-            _AssetsTab(
+          if (_selectedTab == PortfolioTab.assets)
+            AssetsTab(
               assets: assets,
               onCoinTap: (asset) => Navigator.of(context).push(
                 MaterialPageRoute(
@@ -99,7 +92,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
               onDelete: _deleteAsset,
             )
           else
-            _TransactionsTab(
+            TransactionsTab(
               transactions: _transactions,
               onDelete: _deleteTransaction,
             ),
@@ -117,7 +110,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     }
     setState(() {
       _transactions.insert(0, transaction);
-      _selectedTab = _PortfolioTab.assets;
+      _selectedTab = PortfolioTab.assets;
     });
     unawaited(_saveTransactions());
     _showMessage('${transaction.type.label} ${transaction.coin.symbol} added.');
@@ -153,7 +146,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
-      builder: (_) => _AddTransactionSheet(
+      builder: (_) => AddTransactionSheet(
         coins: coins,
         availableQuantityByCoin: {
           for (final asset in PortfolioCalculator.buildAssets(
@@ -245,7 +238,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                       ),
                     )
                   else if (preview != null)
-                    _ImportPreviewPanel(preview: preview!, mode: mode)
+                    ImportPreviewPanel(preview: preview!, mode: mode)
                   else
                     const Text(
                       'Preview the CSV before importing. Append keeps existing transactions and skips duplicate IDs. Replace clears portfolio history first.',

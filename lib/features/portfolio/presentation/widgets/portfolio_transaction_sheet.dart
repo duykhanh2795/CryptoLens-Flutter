@@ -1,10 +1,18 @@
-part of '../screens/portfolio_screen.dart';
+import 'package:flutter/material.dart';
 
-class _AddTransactionSheet extends StatefulWidget {
-  const _AddTransactionSheet({
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
+import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_format_helpers.dart';
+
+class AddTransactionSheet extends StatefulWidget {
+  const AddTransactionSheet({
     required this.coins,
     required this.availableQuantityByCoin,
     required this.onConfirm,
+    super.key,
   });
 
   final List<Coin> coins;
@@ -12,10 +20,10 @@ class _AddTransactionSheet extends StatefulWidget {
   final ValueChanged<PortfolioTransaction> onConfirm;
 
   @override
-  State<_AddTransactionSheet> createState() => _AddTransactionSheetState();
+  State<AddTransactionSheet> createState() => _AddTransactionSheetState();
 }
 
-class _AddTransactionSheetState extends State<_AddTransactionSheet> {
+class _AddTransactionSheetState extends State<AddTransactionSheet> {
   late Coin _coin = widget.coins.first;
   PortfolioTransactionType _type = PortfolioTransactionType.buy;
   final _quantity = TextEditingController();
@@ -82,7 +90,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
             const SizedBox(height: 16),
             Row(
               children: [
-                _TypeButton(
+                TypeButton(
                   label: 'BUY',
                   selected: _type == PortfolioTransactionType.buy,
                   color: AppColors.green,
@@ -90,7 +98,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
                       setState(() => _type = PortfolioTransactionType.buy),
                 ),
                 const SizedBox(width: 8),
-                _TypeButton(
+                TypeButton(
                   label: 'SELL',
                   selected: _type == PortfolioTransactionType.sell,
                   color: AppColors.red,
@@ -119,7 +127,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
               },
             ),
             const SizedBox(height: 12),
-            _SheetField(
+            SheetField(
               controller: _quantity,
               label: 'Quantity',
               hint: 'e.g. 0.5',
@@ -128,7 +136,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
             if (_type == PortfolioTransactionType.sell) ...[
               const SizedBox(height: 6),
               Text(
-                'Available: ${_trim(availableQuantity)} ${_coin.symbol}',
+                'Available: ${trimPortfolioValue(availableQuantity)} ${_coin.symbol}',
                 style: TextStyle(
                   color: sellTooMuch ? AppColors.red : AppColors.textSecondary,
                   fontSize: 12,
@@ -137,7 +145,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
               ),
             ],
             const SizedBox(height: 12),
-            _SheetField(
+            SheetField(
               controller: _price,
               label: 'Price per coin (USD)',
               hint: 'e.g. 65000',
@@ -145,7 +153,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 12),
-            _SheetField(
+            SheetField(
               controller: _fee,
               label: 'Fee (optional)',
               hint: 'e.g. 1.5',
@@ -233,12 +241,13 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
   }
 }
 
-class _TypeButton extends StatelessWidget {
-  const _TypeButton({
+class TypeButton extends StatelessWidget {
+  const TypeButton({
     required this.label,
     required this.selected,
     required this.color,
     required this.onTap,
+    super.key,
   });
 
   final String label;
@@ -272,13 +281,14 @@ class _TypeButton extends StatelessWidget {
   }
 }
 
-class _SheetField extends StatelessWidget {
-  const _SheetField({
+class SheetField extends StatelessWidget {
+  const SheetField({
     required this.controller,
     required this.label,
     required this.hint,
     required this.onChanged,
     this.prefix,
+    super.key,
   });
 
   final TextEditingController controller;

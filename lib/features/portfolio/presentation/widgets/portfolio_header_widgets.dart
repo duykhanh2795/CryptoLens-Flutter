@@ -1,12 +1,15 @@
-part of '../screens/portfolio_screen.dart';
+import 'package:flutter/material.dart';
 
-class _PortfolioTopBar extends StatelessWidget {
-  const _PortfolioTopBar({
+import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+
+class PortfolioTopBar extends StatelessWidget {
+  const PortfolioTopBar({
     required this.isBusy,
     required this.onImport,
     required this.onExport,
     required this.onConnect,
     required this.onAdd,
+    super.key,
   });
 
   final bool isBusy;
@@ -36,23 +39,51 @@ class _PortfolioTopBar extends StatelessWidget {
           ),
           const SizedBox(width: 8),
         ],
-        _HeaderIcon(
+        PortfolioHeaderIcon(
           icon: Icons.upload_file_rounded,
           tooltip: 'Import',
           onTap: onImport,
         ),
-        _HeaderIcon(
+        PortfolioHeaderIcon(
           icon: Icons.file_download_rounded,
           tooltip: 'Export',
           onTap: onExport,
         ),
-        _HeaderIcon(
+        PortfolioHeaderIcon(
           icon: Icons.account_balance_rounded,
           tooltip: 'Connect Exchange',
           onTap: onConnect,
         ),
-        _HeaderIcon(icon: Icons.add_rounded, tooltip: 'Add', onTap: onAdd),
+        PortfolioHeaderIcon(
+          icon: Icons.add_rounded,
+          tooltip: 'Add',
+          onTap: onAdd,
+        ),
       ],
+    );
+  }
+}
+
+class PortfolioHeaderIcon extends StatelessWidget {
+  const PortfolioHeaderIcon({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    super.key,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      constraints: const BoxConstraints.tightFor(width: 38, height: 40),
+      padding: EdgeInsets.zero,
+      onPressed: onTap,
+      icon: Icon(icon, color: AppColors.textSecondary, size: 22),
     );
   }
 }

@@ -1,15 +1,17 @@
-part of '../screens/portfolio_screen.dart';
+import 'package:flutter/material.dart';
 
-TextStyle _assetMetaStyle(Color color) {
+import 'package:cryptolens_flutter/core/utils/formatters.dart';
+
+TextStyle portfolioAssetMetaStyle(Color color) {
   return TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700);
 }
 
-String _signedMoney(double value) {
+String signedPortfolioMoney(double value) {
   final sign = value >= 0 ? '+' : '-';
   return '$sign${formatPrice(value.abs())}';
 }
 
-String _trim(double value) {
+String trimPortfolioValue(double value) {
   return value
       .toStringAsFixed(8)
       .replaceFirst(RegExp(r'0+$'), '')

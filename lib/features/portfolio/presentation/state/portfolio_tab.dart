@@ -1,0 +1,1 @@
+enum PortfolioTab { assets, transactions }
