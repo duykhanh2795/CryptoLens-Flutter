@@ -10,6 +10,7 @@ import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
 import 'package:cryptolens_flutter/features/news/data/news_api.dart';
 import 'package:cryptolens_flutter/features/market/data/market_api.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
+import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'package:cryptolens_flutter/features/alerts/presentation/screens/alerts_screen.dart';
 import 'package:cryptolens_flutter/features/news/presentation/screens/news_screen.dart';

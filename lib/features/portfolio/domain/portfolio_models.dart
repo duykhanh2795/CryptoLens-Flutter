@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
-import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
+import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 
 class PortfolioSummary {
   const PortfolioSummary({

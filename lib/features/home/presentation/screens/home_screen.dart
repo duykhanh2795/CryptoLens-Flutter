@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
+import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'package:cryptolens_flutter/features/market/presentation/screens/coin_detail_screen.dart';
