@@ -10,6 +10,7 @@ import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
 import 'package:cryptolens_flutter/core/network/api_client.dart';
 import 'package:cryptolens_flutter/core/storage/json_preferences_store.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/core/utils/json_readers.dart';
 import 'firebase_messaging_service.dart';
 
 @pragma('vm:entry-point')
@@ -126,9 +127,9 @@ class AlertRealtimeService {
           final id = item['id']?.toString() ?? '';
           if (id.isEmpty) continue;
           result[id] = _MarketValue(
-            price: _number(item['current_price']),
-            volume24h: _number(item['total_volume']),
-            marketCap: _number(item['market_cap']),
+            price: readDouble(item['current_price']),
+            volume24h: readDouble(item['total_volume']),
+            marketCap: readDouble(item['market_cap']),
           );
         }
       }
@@ -136,11 +137,6 @@ class AlertRealtimeService {
     } finally {
       if (ownedClient) apiClient.close();
     }
-  }
-
-  static double _number(Object? value) {
-    if (value is num) return value.toDouble();
-    return double.tryParse(value?.toString() ?? '') ?? 0;
   }
 }
 
@@ -196,11 +192,11 @@ class _StoredAlertRule {
       name: coin?['name']?.toString() ?? json['name']?.toString() ?? coinId,
       metric: metric,
       direction: direction,
-      target: _number(json['target'] ?? json['targetPrice']),
+      target: readDouble(json['target'] ?? json['targetPrice']),
       enabled: json['enabled'] != false,
       frequency: _AlertFrequency.from(json['frequency']),
       valueType: _AlertValueType.from(json['valueType']),
-      baselineValue: _number(json['baselineValue']),
+      baselineValue: readDouble(json['baselineValue']),
     );
   }
 
@@ -250,11 +246,6 @@ class _StoredAlertRule {
   }
 
   Map<String, Object?> toJson() => raw;
-
-  static double _number(Object? value) {
-    if (value is num) return value.toDouble();
-    return double.tryParse(value?.toString() ?? '') ?? 0;
-  }
 }
 
 class _MarketValue {

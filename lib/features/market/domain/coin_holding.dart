@@ -26,22 +26,7 @@ class CoinHolding {
 
   CoinHolding withPrice(double price) {
     return CoinHolding(
-      coin: Coin(
-        id: coin.id,
-        symbol: coin.symbol,
-        name: coin.name,
-        imageUrl: coin.imageUrl,
-        currentPrice: price,
-        priceChangePercent24h: coin.priceChangePercent24h,
-        priceChange24h: coin.priceChange24h,
-        marketCap: coin.marketCap,
-        volume24h: coin.volume24h,
-        high24h: coin.high24h,
-        low24h: coin.low24h,
-        circulatingSupply: coin.circulatingSupply,
-        rank: coin.rank,
-        lastUpdated: coin.lastUpdated,
-      ),
+      coin: coin.copyWith(currentPrice: price),
       quantity: quantity,
       costBasis: costBasis,
       realizedPnl: realizedPnl,

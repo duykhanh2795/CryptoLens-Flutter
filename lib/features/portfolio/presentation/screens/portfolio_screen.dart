@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin_resolver.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_calculator.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_models.dart';
@@ -357,24 +358,11 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     required String name,
     required String imageUrl,
   }) {
-    return widget.controller.coins.firstWhere(
-      (coin) => coin.id == coinId,
-      orElse: () => Coin(
-        id: coinId,
-        symbol: symbol,
-        name: name,
-        imageUrl: imageUrl,
-        currentPrice: 0,
-        priceChangePercent24h: 0,
-        priceChange24h: 0,
-        marketCap: 0,
-        volume24h: 0,
-        high24h: 0,
-        low24h: 0,
-        circulatingSupply: 0,
-        rank: 0,
-        lastUpdated: DateTime.now(),
-      ),
+    return CoinResolver(widget.controller.coins).resolveSnapshot(
+      coinId: coinId,
+      symbol: symbol,
+      name: name,
+      imageUrl: imageUrl,
     );
   }
 

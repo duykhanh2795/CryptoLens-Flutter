@@ -1,4 +1,5 @@
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/core/utils/json_readers.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 
 enum AlertMetric { price, volume, marketCap }
@@ -86,8 +87,8 @@ class AlertRule {
     if (coinJson is! Map) return null;
     final coin = _coinFromJson(coinJson.cast<String, Object?>());
     if (coin == null) return null;
-    final metric = _enumByName(AlertMetric.values, json['metric']);
-    final direction = _enumByName(AlertDirection.values, json['direction']);
+    final metric = readEnum(AlertMetric.values, json['metric']);
+    final direction = readEnum(AlertDirection.values, json['direction']);
     if (metric == null || direction == null) return null;
     final enabled = json['enabled'] == true;
     final status = _statusFromJson(json['status'], enabled: enabled);
@@ -98,16 +99,16 @@ class AlertRule {
       coin: coin,
       metric: metric,
       direction: direction,
-      target: (json['target'] as num?)?.toDouble() ?? 0,
-      baselineValue: (json['baselineValue'] as num?)?.toDouble() ?? 0,
+      target: readDouble(json['target']),
+      baselineValue: readDouble(json['baselineValue']),
       valueType:
-          _enumByName(AlertValueType.values, json['valueType']) ??
+          readEnum(AlertValueType.values, json['valueType']) ??
           AlertValueType.number,
       frequency:
-          _enumByName(AlertFrequency.values, json['frequency']) ??
+          readEnum(AlertFrequency.values, json['frequency']) ??
           AlertFrequency.oneTime,
       status: status,
-      note: json['note']?.toString() ?? '',
+      note: readString(json['note']),
       enabled: enabled && status == AlertStatus.active,
     );
   }
@@ -187,34 +188,13 @@ Map<String, Object?> _coinToJson(Coin coin) => {
 };
 
 Coin? _coinFromJson(Map<String, Object?> json) {
-  final id = json['id']?.toString();
-  if (id == null || id.isEmpty) return null;
-  return Coin(
+  final id = readString(json['id']);
+  if (id.isEmpty) return null;
+  return Coin.snapshot(
     id: id,
-    symbol: json['symbol']?.toString() ?? '',
-    name: json['name']?.toString() ?? id,
-    imageUrl: json['imageUrl']?.toString() ?? '',
-    currentPrice: (json['currentPrice'] as num?)?.toDouble() ?? 0,
-    priceChangePercent24h:
-        (json['priceChangePercent24h'] as num?)?.toDouble() ?? 0,
-    priceChange24h: (json['priceChange24h'] as num?)?.toDouble() ?? 0,
-    marketCap: (json['marketCap'] as num?)?.toDouble() ?? 0,
-    volume24h: (json['volume24h'] as num?)?.toDouble() ?? 0,
-    high24h: (json['high24h'] as num?)?.toDouble() ?? 0,
-    low24h: (json['low24h'] as num?)?.toDouble() ?? 0,
-    circulatingSupply: (json['circulatingSupply'] as num?)?.toDouble() ?? 0,
-    rank: (json['rank'] as num?)?.toInt() ?? 0,
-    lastUpdated: DateTime.fromMillisecondsSinceEpoch(
-      (json['lastUpdated'] as num?)?.toInt() ??
-          DateTime.now().millisecondsSinceEpoch,
-    ),
+    symbol: readString(json['symbol']),
+    name: readString(json['name'], fallback: id),
+    imageUrl: readString(json['imageUrl']),
+    currentPrice: readDouble(json['currentPrice']),
   );
-}
-
-T? _enumByName<T extends Enum>(Iterable<T> values, Object? name) {
-  final normalized = name?.toString().replaceAll('_', '').toLowerCase();
-  for (final value in values) {
-    if (value.name.toLowerCase() == normalized) return value;
-  }
-  return null;
 }

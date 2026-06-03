@@ -1,3 +1,4 @@
+import 'package:cryptolens_flutter/core/utils/json_readers.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 
 enum PortfolioTransactionType {
@@ -71,19 +72,13 @@ class PortfolioSnapshot {
 
   static PortfolioSnapshot? fromJson(Map<String, Object?> json) {
     return PortfolioSnapshot(
-      dayStart: DateTime.fromMillisecondsSinceEpoch(
-        (json['dayStart'] as num?)?.toInt() ?? 0,
-      ),
-      totalValue: (json['totalValue'] as num?)?.toDouble() ?? 0,
-      totalInvested: (json['totalInvested'] as num?)?.toDouble() ?? 0,
-      totalProfitLoss: (json['totalProfitLoss'] as num?)?.toDouble() ?? 0,
-      totalProfitLossPercent:
-          (json['totalProfitLossPercent'] as num?)?.toDouble() ?? 0,
-      assetCount: (json['assetCount'] as num?)?.toInt() ?? 0,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-        (json['createdAt'] as num?)?.toInt() ??
-            DateTime.now().millisecondsSinceEpoch,
-      ),
+      dayStart: DateTime.fromMillisecondsSinceEpoch(readInt(json['dayStart'])),
+      totalValue: readDouble(json['totalValue']),
+      totalInvested: readDouble(json['totalInvested']),
+      totalProfitLoss: readDouble(json['totalProfitLoss']),
+      totalProfitLossPercent: readDouble(json['totalProfitLossPercent']),
+      assetCount: readInt(json['assetCount']),
+      createdAt: readDateTime(json['createdAt']),
     );
   }
 }

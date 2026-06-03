@@ -1,3 +1,5 @@
+import 'package:cryptolens_flutter/core/utils/json_readers.dart';
+
 class Kline {
   const Kline({
     required this.openTime,
@@ -19,30 +21,18 @@ class Kline {
 
   factory Kline.fromBinance(List<dynamic> raw) {
     return Kline(
-      openTime: _int(raw.elementAtOrNull(0)),
-      open: _double(raw.elementAtOrNull(1)),
-      high: _double(raw.elementAtOrNull(2)),
-      low: _double(raw.elementAtOrNull(3)),
-      close: _double(raw.elementAtOrNull(4)),
-      volume: _double(raw.elementAtOrNull(5)),
-      closeTime: _int(raw.elementAtOrNull(6)),
+      openTime: readInt(raw.elementAtOrNull(0)),
+      open: readDouble(raw.elementAtOrNull(1)),
+      high: readDouble(raw.elementAtOrNull(2)),
+      low: readDouble(raw.elementAtOrNull(3)),
+      close: readDouble(raw.elementAtOrNull(4)),
+      volume: readDouble(raw.elementAtOrNull(5)),
+      closeTime: readInt(raw.elementAtOrNull(6)),
     );
   }
 }
 
-extension _SafeListAccess<T> on List<T> {
+extension SafeListAccess<T> on List<T> {
   T? elementAtOrNull(int index) =>
       index >= 0 && index < length ? this[index] : null;
-}
-
-double _double(Object? value) {
-  if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value) ?? 0;
-  return 0;
-}
-
-int _int(Object? value) {
-  if (value is num) return value.toInt();
-  if (value is String) return int.tryParse(value) ?? 0;
-  return 0;
 }

@@ -5,7 +5,9 @@ import 'package:http/http.dart' as http;
 
 import 'package:cryptolens_flutter/core/config/app_config.dart';
 import 'package:cryptolens_flutter/core/network/api_client.dart';
+import 'package:cryptolens_flutter/core/utils/json_readers.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin_resolver.dart';
 import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
 
 class WalletIndexerService {
@@ -84,22 +86,23 @@ class WalletIndexerService {
         ? decoded['result']
         : decoded;
     if (rawItems is! List) return const [];
+    final coinResolver = CoinResolver(coins);
 
     return rawItems
         .whereType<Map<String, dynamic>>()
         .map((json) {
-          final symbol = _string(json['symbol']).toUpperCase();
-          final decimals = _int(json['decimals'], fallback: 18).clamp(0, 36);
-          final rawBalance = _string(json['balance']);
+          final symbol = readString(json['symbol']).toUpperCase();
+          final decimals = readInt(json['decimals'], fallback: 18).clamp(0, 36);
+          final rawBalance = readString(json['balance']);
           final quantity = _parseTokenQuantity(rawBalance, decimals);
-          final price = _number(json['usd_price']);
-          final value = _number(json['usd_value']);
-          final coin = _coinBySymbol(symbol, coins);
+          final price = readDouble(json['usd_price']);
+          final value = readDouble(json['usd_value']);
+          final coin = coinResolver.findBySymbol(symbol);
           return WalletAsset(
             symbol: symbol.isEmpty ? 'TOKEN' : symbol,
-            name: _string(json['name']).isEmpty
+            name: readString(json['name']).isEmpty
                 ? symbol
-                : _string(json['name']),
+                : readString(json['name']),
             quantity: quantity,
             priceUsd: price > 0 ? price : coin?.currentPrice,
             valueUsd: value > 0
@@ -108,11 +111,11 @@ class WalletIndexerService {
             changePercent24h: coin?.priceChangePercent24h ?? 0,
             chain: wallet.chain,
             networkLabel: wallet.chain.label,
-            contractAddress: _string(json['token_address']),
+            contractAddress: readString(json['token_address']),
             coinId: coin?.id,
-            logoUrl: _string(json['logo']).isEmpty
+            logoUrl: readString(json['logo']).isEmpty
                 ? coin?.imageUrl
-                : _string(json['logo']),
+                : readString(json['logo']),
           );
         })
         .where((asset) => asset.quantity > 0)
@@ -154,14 +157,15 @@ class WalletIndexerService {
         : null;
     final transfers = result?['transfers'];
     if (transfers is! List) return const [];
+    final coinResolver = CoinResolver(coins);
 
     return transfers.whereType<Map<String, dynamic>>().map((json) {
-      final from = _string(json['from']);
-      final to = _string(json['to']);
-      final symbol = _string(json['asset']).toUpperCase();
-      final amount = _number(json['value']);
-      final coin = _coinBySymbol(symbol, coins);
-      final hash = _string(json['hash']);
+      final from = readString(json['from']);
+      final to = readString(json['to']);
+      final symbol = readString(json['asset']).toUpperCase();
+      final amount = readDouble(json['value']);
+      final coin = coinResolver.findBySymbol(symbol);
+      final hash = readString(json['hash']);
       final rawTime =
           (json['metadata'] as Map<String, dynamic>?)?['blockTimestamp']
               ?.toString();
@@ -198,30 +202,11 @@ class WalletIndexerService {
       ..sort((a, b) => (b.valueUsd ?? 0).compareTo(a.valueUsd ?? 0));
   }
 
-  Coin? _coinBySymbol(String symbol, List<Coin> coins) {
-    for (final coin in coins) {
-      if (coin.symbol.toUpperCase() == symbol.toUpperCase()) return coin;
-    }
-    return null;
-  }
-
   double _parseTokenQuantity(String raw, int decimals) {
     if (raw.isEmpty) return 0;
     final integer = BigInt.tryParse(raw);
     if (integer == null) return double.tryParse(raw) ?? 0;
     return integer.toDouble() / pow(10, decimals);
-  }
-
-  String _string(Object? value) => value?.toString() ?? '';
-
-  int _int(Object? value, {required int fallback}) {
-    if (value is num) return value.toInt();
-    return int.tryParse(value?.toString() ?? '') ?? fallback;
-  }
-
-  double _number(Object? value) {
-    if (value is num) return value.toDouble();
-    return double.tryParse(value?.toString() ?? '') ?? 0;
   }
 }
 

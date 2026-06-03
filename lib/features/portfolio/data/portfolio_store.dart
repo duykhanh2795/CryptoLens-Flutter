@@ -4,6 +4,7 @@ import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
 import 'package:cryptolens_flutter/core/errors/app_exception.dart';
 import 'package:cryptolens_flutter/core/storage/json_preferences_store.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/portfolio/data/portfolio_csv_codec.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 
 class PortfolioStore {
@@ -12,6 +13,7 @@ class PortfolioStore {
   static const storageKey = StorageKeys.portfolioTransactionsCsv;
   static const snapshotsKey = StorageKeys.portfolioSnapshots;
   static const _snapshotStore = JsonPreferencesStore(snapshotsKey);
+  static const _csvCodec = PortfolioCsvCodec();
 
   Future<List<PortfolioTransaction>> load({
     required Coin Function(
@@ -25,12 +27,12 @@ class PortfolioStore {
     final prefs = await SharedPreferences.getInstance();
     final csv = prefs.getString(storageKey);
     if (csv == null || csv.trim().isEmpty) return const [];
-    return parseCsv(csv, coinResolver: coinResolver);
+    return _csvCodec.decode(csv, coinResolver: coinResolver);
   }
 
   Future<void> save(List<PortfolioTransaction> transactions) async {
     final prefs = await SharedPreferences.getInstance();
-    final csv = exportCsv(transactions);
+    final csv = _csvCodec.encode(transactions);
     if (csv.isEmpty) {
       await prefs.remove(storageKey);
     } else {
@@ -107,7 +109,7 @@ class PortfolioStore {
     )
     coinResolver,
   }) async {
-    final transactions = parseCsv(input, coinResolver: coinResolver);
+    final transactions = _csvCodec.decode(input, coinResolver: coinResolver);
     if (transactions.isEmpty) {
       throw const PortfolioCsvException('No valid transactions found.');
     }
@@ -165,26 +167,7 @@ class PortfolioStore {
   }
 
   static String exportCsv(List<PortfolioTransaction> transactions) {
-    if (transactions.isEmpty) return '';
-    final rows = [
-      'id,coinId,symbol,name,imageUrl,type,quantity,price,fee,timestamp,note,sourceConnectionId',
-      for (final tx in transactions)
-        [
-          tx.id,
-          tx.coin.id,
-          tx.coin.symbol,
-          tx.coin.name,
-          tx.coin.imageUrl,
-          tx.type.name,
-          tx.quantity.toStringAsFixed(12),
-          tx.price.toStringAsFixed(8),
-          tx.fee.toStringAsFixed(8),
-          tx.timestamp.millisecondsSinceEpoch.toString(),
-          tx.note,
-          tx.sourceConnectionId ?? '',
-        ].map(_escapeCsv).join(','),
-    ];
-    return rows.join('\n');
+    return _csvCodec.encode(transactions);
   }
 
   static List<PortfolioTransaction> parseCsv(
@@ -197,37 +180,7 @@ class PortfolioStore {
     )
     coinResolver,
   }) {
-    final lines = input
-        .split(RegExp(r'\r?\n'))
-        .where((line) => line.trim().isNotEmpty)
-        .toList();
-    if (lines.length < 2) return const [];
-    final imported = <PortfolioTransaction>[];
-    for (final line in lines.skip(1)) {
-      final columns = _splitCsv(line);
-      if (columns.length < 11) continue;
-      final coin = coinResolver(columns[1], columns[2], columns[3], columns[4]);
-      imported.add(
-        PortfolioTransaction(
-          id: columns[0].isEmpty ? newPortfolioId() : columns[0],
-          coin: coin,
-          type: columns[5] == 'sell'
-              ? PortfolioTransactionType.sell
-              : PortfolioTransactionType.buy,
-          quantity: double.tryParse(columns[6]) ?? 0,
-          price: double.tryParse(columns[7]) ?? coin.currentPrice,
-          fee: double.tryParse(columns[8]) ?? 0,
-          timestamp: DateTime.fromMillisecondsSinceEpoch(
-            int.tryParse(columns[9]) ?? DateTime.now().millisecondsSinceEpoch,
-          ),
-          note: columns[10],
-          sourceConnectionId: columns.length > 11 && columns[11].isNotEmpty
-              ? columns[11]
-              : null,
-        ),
-      );
-    }
-    return imported.where((tx) => tx.quantity > 0 && tx.price >= 0).toList();
+    return _csvCodec.decode(input, coinResolver: coinResolver);
   }
 }
 
@@ -255,35 +208,4 @@ extension PortfolioTransactionListOps on List<PortfolioTransaction> {
   void sortByNewest() {
     sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
-}
-
-String newPortfolioId() => DateTime.now().microsecondsSinceEpoch.toString();
-
-String _escapeCsv(String value) {
-  if (!value.contains(RegExp('[,"\n]'))) return value;
-  return '"${value.replaceAll('"', '""')}"';
-}
-
-List<String> _splitCsv(String row) {
-  final values = <String>[];
-  final buffer = StringBuffer();
-  var quoted = false;
-  for (var i = 0; i < row.length; i++) {
-    final char = row[i];
-    if (char == '"') {
-      if (quoted && i + 1 < row.length && row[i + 1] == '"') {
-        buffer.write('"');
-        i++;
-      } else {
-        quoted = !quoted;
-      }
-    } else if (char == ',' && !quoted) {
-      values.add(buffer.toString());
-      buffer.clear();
-    } else {
-      buffer.write(char);
-    }
-  }
-  values.add(buffer.toString());
-  return values;
 }

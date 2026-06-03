@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:cryptolens_flutter/features/home/domain/home_portfolio_summary.dart';
-import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin_resolver.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
@@ -13,28 +13,9 @@ class HomePortfolioSummaryLoader {
   final PortfolioStore _store;
 
   Future<HomePortfolioSummary> load(MarketController controller) async {
+    final coinResolver = CoinResolver(controller.coins);
     final transactions = await _store.load(
-      coinResolver: (coinId, symbol, name, imageUrl) {
-        for (final coin in controller.coins) {
-          if (coin.id == coinId) return coin;
-        }
-        return Coin(
-          id: coinId,
-          symbol: symbol,
-          name: name,
-          imageUrl: imageUrl,
-          currentPrice: 0,
-          priceChangePercent24h: 0,
-          priceChange24h: 0,
-          marketCap: 0,
-          volume24h: 0,
-          high24h: 0,
-          low24h: 0,
-          circulatingSupply: 0,
-          rank: 0,
-          lastUpdated: DateTime.now(),
-        );
-      },
+      coinResolver: coinResolver.snapshotResolver,
     );
     if (transactions.isEmpty) return HomePortfolioSummary.empty();
 
@@ -71,7 +52,7 @@ class HomePortfolioSummaryLoader {
         realized += coinRealized;
         continue;
       }
-      final coin = _liveCoin(controller, entry.key) ?? txs.last.coin;
+      final coin = coinResolver.findById(entry.key) ?? txs.last.coin;
       final value = quantity * coin.currentPrice;
       totalValue += value;
       invested += costBasis;
@@ -89,12 +70,5 @@ class HomePortfolioSummaryLoader {
       assetCount: assetCount,
       transactionCount: transactions.length,
     );
-  }
-
-  static Coin? _liveCoin(MarketController controller, String coinId) {
-    for (final coin in controller.coins) {
-      if (coin.id == coinId) return coin;
-    }
-    return null;
   }
 }

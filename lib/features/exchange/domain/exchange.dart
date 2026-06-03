@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cryptolens_flutter/core/utils/json_readers.dart';
+
 enum ExchangeType {
   binance('Binance'),
   okx('OKX'),
@@ -70,21 +72,16 @@ class ExchangeConnection {
     return ExchangeConnection(
       id: id,
       exchangeType:
-          _enumValue(ExchangeType.values, json['exchangeType']) ??
+          readEnum(ExchangeType.values, json['exchangeType']) ??
           ExchangeType.binance,
-      label: json['label']?.toString() ?? 'Binance account',
+      label: readString(json['label'], fallback: 'Binance account'),
       apiKey: apiKey,
       secret: secret,
       isActive: json['isActive'] as bool? ?? true,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-        (json['createdAt'] as num?)?.toInt() ??
-            DateTime.now().millisecondsSinceEpoch,
-      ),
-      lastSyncAt: (json['lastSyncAt'] as num?) == null
+      createdAt: readDateTime(json['createdAt']),
+      lastSyncAt: json['lastSyncAt'] == null
           ? null
-          : DateTime.fromMillisecondsSinceEpoch(
-              (json['lastSyncAt'] as num).toInt(),
-            ),
+          : readDateTime(json['lastSyncAt']),
     );
   }
 }
@@ -135,13 +132,4 @@ String _deobfuscate(String value) {
   } catch (_) {
     return '';
   }
-}
-
-T? _enumValue<T extends Enum>(List<T> values, Object? raw) {
-  final name = raw?.toString();
-  if (name == null) return null;
-  for (final value in values) {
-    if (value.name == name) return value;
-  }
-  return null;
 }

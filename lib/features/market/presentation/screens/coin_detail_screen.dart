@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin_resolver.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin_holding.dart';
 import 'package:cryptolens_flutter/features/market/domain/kline.dart';
 import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
@@ -250,24 +251,12 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
   Future<CoinHolding?> _loadHolding(Coin activeCoin) async {
     final transactions = await _portfolioStore.load(
       coinResolver: (coinId, symbol, name, imageUrl) {
-        return widget.controller.coins.firstWhere(
-          (coin) => coin.id == coinId,
-          orElse: () => Coin(
-            id: coinId,
-            symbol: symbol,
-            name: name,
-            imageUrl: imageUrl,
-            currentPrice: activeCoin.currentPrice,
-            priceChangePercent24h: 0,
-            priceChange24h: 0,
-            marketCap: 0,
-            volume24h: 0,
-            high24h: 0,
-            low24h: 0,
-            circulatingSupply: 0,
-            rank: 0,
-            lastUpdated: DateTime.now(),
-          ),
+        return CoinResolver(widget.controller.coins).resolveSnapshot(
+          coinId: coinId,
+          symbol: symbol,
+          name: name,
+          imageUrl: imageUrl,
+          currentPrice: activeCoin.currentPrice,
         );
       },
     );

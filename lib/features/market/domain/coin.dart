@@ -1,3 +1,5 @@
+import 'package:cryptolens_flutter/core/utils/json_readers.dart';
+
 class Coin {
   const Coin({
     required this.id,
@@ -34,43 +36,93 @@ class Coin {
   bool get isPositive => priceChangePercent24h >= 0;
   String get spotSymbol => '${symbol.toUpperCase()}USDT';
 
-  factory Coin.fromCoinGecko(Map<String, dynamic> json) {
-    return Coin(
-      id: json['id'] as String? ?? '',
-      symbol: (json['symbol'] as String? ?? '').toUpperCase(),
-      name: json['name'] as String? ?? '',
-      imageUrl: json['image'] as String? ?? '',
-      currentPrice: _number(json['current_price']),
-      priceChangePercent24h: _number(json['price_change_percentage_24h']),
-      priceChange24h: _number(json['price_change_24h']),
-      marketCap: _number(json['market_cap']),
-      volume24h: _number(json['total_volume']),
-      high24h: _number(json['high_24h']),
-      low24h: _number(json['low_24h']),
-      circulatingSupply: _number(json['circulating_supply']),
-      rank: (json['market_cap_rank'] as num?)?.toInt() ?? 0,
-      lastUpdated:
-          DateTime.tryParse(json['last_updated'] as String? ?? '') ??
-          DateTime.now(),
-    );
-  }
-
-  Coin applyTicker(PriceTicker ticker) {
-    if (ticker.price <= 0) return this;
+  factory Coin.snapshot({
+    required String id,
+    required String symbol,
+    required String name,
+    required String imageUrl,
+    double currentPrice = 0,
+  }) {
     return Coin(
       id: id,
       symbol: symbol,
       name: name,
       imageUrl: imageUrl,
+      currentPrice: currentPrice,
+      priceChangePercent24h: 0,
+      priceChange24h: 0,
+      marketCap: 0,
+      volume24h: 0,
+      high24h: 0,
+      low24h: 0,
+      circulatingSupply: 0,
+      rank: 0,
+      lastUpdated: DateTime.now(),
+    );
+  }
+
+  Coin copyWith({
+    String? id,
+    String? symbol,
+    String? name,
+    String? imageUrl,
+    double? currentPrice,
+    double? priceChangePercent24h,
+    double? priceChange24h,
+    double? marketCap,
+    double? volume24h,
+    double? high24h,
+    double? low24h,
+    double? circulatingSupply,
+    int? rank,
+    DateTime? lastUpdated,
+  }) {
+    return Coin(
+      id: id ?? this.id,
+      symbol: symbol ?? this.symbol,
+      name: name ?? this.name,
+      imageUrl: imageUrl ?? this.imageUrl,
+      currentPrice: currentPrice ?? this.currentPrice,
+      priceChangePercent24h:
+          priceChangePercent24h ?? this.priceChangePercent24h,
+      priceChange24h: priceChange24h ?? this.priceChange24h,
+      marketCap: marketCap ?? this.marketCap,
+      volume24h: volume24h ?? this.volume24h,
+      high24h: high24h ?? this.high24h,
+      low24h: low24h ?? this.low24h,
+      circulatingSupply: circulatingSupply ?? this.circulatingSupply,
+      rank: rank ?? this.rank,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+    );
+  }
+
+  factory Coin.fromCoinGecko(Map<String, dynamic> json) {
+    return Coin(
+      id: readString(json['id']),
+      symbol: readString(json['symbol']).toUpperCase(),
+      name: readString(json['name']),
+      imageUrl: readString(json['image']),
+      currentPrice: readDouble(json['current_price']),
+      priceChangePercent24h: readDouble(json['price_change_percentage_24h']),
+      priceChange24h: readDouble(json['price_change_24h']),
+      marketCap: readDouble(json['market_cap']),
+      volume24h: readDouble(json['total_volume']),
+      high24h: readDouble(json['high_24h']),
+      low24h: readDouble(json['low_24h']),
+      circulatingSupply: readDouble(json['circulating_supply']),
+      rank: readInt(json['market_cap_rank']),
+      lastUpdated: readDateTime(json['last_updated']),
+    );
+  }
+
+  Coin applyTicker(PriceTicker ticker) {
+    if (ticker.price <= 0) return this;
+    return copyWith(
       currentPrice: ticker.price,
       priceChangePercent24h: ticker.priceChangePercent,
-      priceChange24h: priceChange24h,
-      marketCap: marketCap,
       volume24h: ticker.volume,
       high24h: ticker.high,
       low24h: ticker.low,
-      circulatingSupply: circulatingSupply,
-      rank: rank,
       lastUpdated: DateTime.now(),
     );
   }
@@ -95,12 +147,12 @@ class PriceTicker {
 
   factory PriceTicker.fromBinance(Map<String, dynamic> json) {
     return PriceTicker(
-      symbol: json['symbol'] as String? ?? '',
-      price: _number(json['lastPrice']),
-      priceChangePercent: _number(json['priceChangePercent']),
-      volume: _number(json['quoteVolume']),
-      high: _number(json['highPrice']),
-      low: _number(json['lowPrice']),
+      symbol: readString(json['symbol']),
+      price: readDouble(json['lastPrice']),
+      priceChangePercent: readDouble(json['priceChangePercent']),
+      volume: readDouble(json['quoteVolume']),
+      high: readDouble(json['highPrice']),
+      low: readDouble(json['lowPrice']),
     );
   }
 }
@@ -131,58 +183,54 @@ class CoinDetail {
   final double maxSupply;
 
   factory CoinDetail.fromCoinGecko(Map<String, dynamic> json) {
-    final marketData = json['market_data'] as Map<String, dynamic>? ?? {};
-    final image = json['image'] as Map<String, dynamic>? ?? {};
-    final links = json['links'] as Map<String, dynamic>? ?? {};
-    final reposUrl = links['repos_url'] as Map<String, dynamic>? ?? {};
-    final description = json['description'] as Map<String, dynamic>? ?? {};
+    final marketData = readObjectMap(json['market_data']);
+    final image = readObjectMap(json['image']);
+    final links = readObjectMap(json['links']);
+    final reposUrl = readObjectMap(links['repos_url']);
+    final description = readObjectMap(json['description']);
 
     double usd(String key) {
-      final values = marketData[key] as Map<String, dynamic>? ?? {};
-      return _number(values['usd']);
+      final values = readObjectMap(marketData[key]);
+      return readDouble(values['usd']);
     }
 
     String usdDate(String key) {
-      final values = marketData[key] as Map<String, dynamic>? ?? {};
-      return values['usd'] as String? ?? '';
+      final values = readObjectMap(marketData[key]);
+      return readString(values['usd']);
     }
 
     final coin = Coin(
-      id: json['id'] as String? ?? '',
-      symbol: (json['symbol'] as String? ?? '').toUpperCase(),
-      name: json['name'] as String? ?? '',
-      imageUrl: image['large'] as String? ?? '',
+      id: readString(json['id']),
+      symbol: readString(json['symbol']).toUpperCase(),
+      name: readString(json['name']),
+      imageUrl: readString(image['large']),
       currentPrice: usd('current_price'),
-      priceChangePercent24h: _number(marketData['price_change_percentage_24h']),
+      priceChangePercent24h: readDouble(
+        marketData['price_change_percentage_24h'],
+      ),
       priceChange24h: 0,
       marketCap: usd('market_cap'),
       volume24h: usd('total_volume'),
       high24h: usd('high_24h'),
       low24h: usd('low_24h'),
-      circulatingSupply: _number(marketData['circulating_supply']),
-      rank: (json['market_cap_rank'] as num?)?.toInt() ?? 0,
+      circulatingSupply: readDouble(marketData['circulating_supply']),
+      rank: readInt(json['market_cap_rank']),
       lastUpdated: DateTime.now(),
     );
 
     return CoinDetail(
       coin: coin,
-      description: _stripHtml(description['en'] as String? ?? ''),
+      description: _stripHtml(readString(description['en'])),
       homepageUrl: _firstString(links['homepage']),
       githubUrl: _firstString(reposUrl['github']),
       allTimeHigh: usd('ath'),
       allTimeHighDate: usdDate('ath_date'),
       allTimeLow: usd('atl'),
       allTimeLowDate: usdDate('atl_date'),
-      totalSupply: _number(marketData['total_supply']),
-      maxSupply: _number(marketData['max_supply']),
+      totalSupply: readDouble(marketData['total_supply']),
+      maxSupply: readDouble(marketData['max_supply']),
     );
   }
-}
-
-double _number(Object? value) {
-  if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value) ?? 0;
-  return 0;
 }
 
 String _firstString(Object? value) {

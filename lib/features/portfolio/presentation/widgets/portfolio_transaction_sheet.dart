@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/core/widgets/app_bottom_sheet.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
-import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
+import 'package:cryptolens_flutter/features/portfolio/data/portfolio_csv_codec.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_format_helpers.dart';
 
@@ -60,182 +61,163 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         price >= 0 &&
         (_type == PortfolioTransactionType.buy || !sellTooMuch);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + 24,
-        top: 12,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
-                  borderRadius: BorderRadius.circular(99),
-                ),
+    return AppBottomSheetScaffold(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Add Transaction',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              TypeButton(
+                label: 'BUY',
+                selected: _type == PortfolioTransactionType.buy,
+                color: AppColors.green,
+                onTap: () =>
+                    setState(() => _type = PortfolioTransactionType.buy),
               ),
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'Add Transaction',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                TypeButton(
-                  label: 'BUY',
-                  selected: _type == PortfolioTransactionType.buy,
-                  color: AppColors.green,
-                  onTap: () =>
-                      setState(() => _type = PortfolioTransactionType.buy),
-                ),
-                const SizedBox(width: 8),
-                TypeButton(
-                  label: 'SELL',
-                  selected: _type == PortfolioTransactionType.sell,
-                  color: AppColors.red,
-                  onTap: () =>
-                      setState(() => _type = PortfolioTransactionType.sell),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            DropdownButtonFormField<Coin>(
-              initialValue: _coin,
-              decoration: const InputDecoration(labelText: 'Coin'),
-              items: [
-                for (final coin in widget.coins)
-                  DropdownMenuItem(
-                    value: coin,
-                    child: Text('${coin.symbol} - ${coin.name}'),
-                  ),
-              ],
-              onChanged: (coin) {
-                if (coin == null) return;
-                setState(() {
-                  _coin = coin;
-                  _price.text = coin.currentPrice.toStringAsFixed(2);
-                });
-              },
-            ),
-            const SizedBox(height: 12),
-            SheetField(
-              controller: _quantity,
-              label: 'Quantity',
-              hint: 'e.g. 0.5',
-              onChanged: (_) => setState(() {}),
-            ),
-            if (_type == PortfolioTransactionType.sell) ...[
-              const SizedBox(height: 6),
-              Text(
-                'Available: ${trimPortfolioValue(availableQuantity)} ${_coin.symbol}',
-                style: TextStyle(
-                  color: sellTooMuch ? AppColors.red : AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
+              const SizedBox(width: 8),
+              TypeButton(
+                label: 'SELL',
+                selected: _type == PortfolioTransactionType.sell,
+                color: AppColors.red,
+                onTap: () =>
+                    setState(() => _type = PortfolioTransactionType.sell),
               ),
             ],
-            const SizedBox(height: 12),
-            SheetField(
-              controller: _price,
-              label: 'Price per coin (USD)',
-              hint: 'e.g. 65000',
-              prefix: r'$',
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 12),
-            SheetField(
-              controller: _fee,
-              label: 'Fee (optional)',
-              hint: 'e.g. 1.5',
-              prefix: r'$',
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _note,
-              decoration: const InputDecoration(
-                labelText: 'Note (optional)',
-                hintText: 'e.g. DCA strategy',
-              ),
-            ),
-            if (total > 0) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
-                  borderRadius: BorderRadius.circular(8),
+          ),
+          const SizedBox(height: 14),
+          DropdownButtonFormField<Coin>(
+            initialValue: _coin,
+            decoration: const InputDecoration(labelText: 'Coin'),
+            items: [
+              for (final coin in widget.coins)
+                DropdownMenuItem(
+                  value: coin,
+                  child: Text('${coin.symbol} - ${coin.name}'),
                 ),
-                child: Row(
-                  children: [
-                    const Text(
-                      'Total',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      formatPrice(total),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: _type == PortfolioTransactionType.buy
-                      ? AppColors.green
-                      : AppColors.red,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: !canSubmit
-                    ? null
-                    : () {
-                        widget.onConfirm(
-                          PortfolioTransaction(
-                            id: newPortfolioId(),
-                            coin: _coin,
-                            type: _type,
-                            quantity: quantity,
-                            price: price,
-                            fee: fee,
-                            timestamp: DateTime.now(),
-                            note: _note.text.trim(),
-                          ),
-                        );
-                        Navigator.of(context).pop();
-                      },
-                child: Text(
-                  'Confirm ${_type.label.toUpperCase()}',
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
+            onChanged: (coin) {
+              if (coin == null) return;
+              setState(() {
+                _coin = coin;
+                _price.text = coin.currentPrice.toStringAsFixed(2);
+              });
+            },
+          ),
+          const SizedBox(height: 12),
+          SheetField(
+            controller: _quantity,
+            label: 'Quantity',
+            hint: 'e.g. 0.5',
+            onChanged: (_) => setState(() {}),
+          ),
+          if (_type == PortfolioTransactionType.sell) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Available: ${trimPortfolioValue(availableQuantity)} ${_coin.symbol}',
+              style: TextStyle(
+                color: sellTooMuch ? AppColors.red : AppColors.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],
-        ),
+          const SizedBox(height: 12),
+          SheetField(
+            controller: _price,
+            label: 'Price per coin (USD)',
+            hint: 'e.g. 65000',
+            prefix: r'$',
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 12),
+          SheetField(
+            controller: _fee,
+            label: 'Fee (optional)',
+            hint: 'e.g. 1.5',
+            prefix: r'$',
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _note,
+            decoration: const InputDecoration(
+              labelText: 'Note (optional)',
+              hintText: 'e.g. DCA strategy',
+            ),
+          ),
+          if (total > 0) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceVariant,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Text(
+                    'Total',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    formatPrice(total),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: _type == PortfolioTransactionType.buy
+                    ? AppColors.green
+                    : AppColors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: !canSubmit
+                  ? null
+                  : () {
+                      widget.onConfirm(
+                        PortfolioTransaction(
+                          id: newPortfolioId(),
+                          coin: _coin,
+                          type: _type,
+                          quantity: quantity,
+                          price: price,
+                          fee: fee,
+                          timestamp: DateTime.now(),
+                          note: _note.text.trim(),
+                        ),
+                      );
+                      Navigator.of(context).pop();
+                    },
+              child: Text(
+                'Confirm ${_type.label.toUpperCase()}',
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

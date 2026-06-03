@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin_resolver.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_models.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 
@@ -17,6 +18,7 @@ class PortfolioCalculator {
     }
 
     final assets = <PortfolioAsset>[];
+    final coinResolver = CoinResolver(liveCoins);
     for (final entry in byCoin.entries) {
       final txs = [...entry.value]
         ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
@@ -40,10 +42,9 @@ class PortfolioCalculator {
       }
 
       if (quantity > 0.00000001) {
-        final liveCoin = _findLiveCoin(entry.key, liveCoins);
         assets.add(
           PortfolioAsset(
-            coin: liveCoin ?? txs.last.coin,
+            coin: coinResolver.findById(entry.key) ?? txs.last.coin,
             quantity: quantity,
             costBasis: costBasis,
             realizedPnl: realized,
@@ -55,12 +56,5 @@ class PortfolioCalculator {
 
     assets.sort((a, b) => b.currentValue.compareTo(a.currentValue));
     return assets;
-  }
-
-  static Coin? _findLiveCoin(String coinId, List<Coin> coins) {
-    for (final coin in coins) {
-      if (coin.id == coinId) return coin;
-    }
-    return null;
   }
 }

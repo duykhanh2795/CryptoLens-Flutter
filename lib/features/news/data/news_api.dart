@@ -5,6 +5,7 @@ import 'package:xml/xml.dart';
 import 'package:cryptolens_flutter/core/config/app_config.dart';
 import 'package:cryptolens_flutter/core/network/api_client.dart';
 import 'package:cryptolens_flutter/core/network/network_config.dart';
+import 'package:cryptolens_flutter/core/utils/json_readers.dart';
 import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
 
 class NewsApi {
@@ -132,8 +133,8 @@ class NewsApi {
   }
 
   NewsItem _fromCoinGeckoNews(Map<String, dynamic> json) {
-    final title = json['title'] as String? ?? '';
-    final url = json['url'] as String? ?? '';
+    final title = readString(json['title']);
+    final url = readString(json['url']);
     final relatedCoins =
         (json['related_coin_ids'] as List?)?.whereType<String>().toList() ??
         const <String>[];
@@ -141,15 +142,11 @@ class NewsApi {
       id: (json['id'] ?? url.hashCode).toString(),
       title: title,
       url: url,
-      sourceTitle:
-          json['source_name'] as String? ??
-          json['author'] as String? ??
-          Uri.tryParse(url)?.host ??
-          'CoinGecko News',
+      sourceTitle: readString(json['source_name'])
+          .ifEmpty(readString(json['author']))
+          .ifEmpty(Uri.tryParse(url)?.host ?? 'CoinGecko News'),
       sourceDomain: Uri.tryParse(url)?.host ?? '',
-      publishedAt:
-          DateTime.tryParse(json['posted_at'] as String? ?? '') ??
-          DateTime.now(),
+      publishedAt: readDateTime(json['posted_at']),
       currencies: relatedCoins.map((value) => value.toUpperCase()).toList(),
       sentiment: _inferSentiment(title),
       positiveVotes: 0,

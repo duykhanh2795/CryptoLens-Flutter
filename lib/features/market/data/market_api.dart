@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:cryptolens_flutter/core/errors/network_exception.dart';
 import 'package:cryptolens_flutter/core/network/api_client.dart';
 import 'package:cryptolens_flutter/core/network/network_config.dart';
+import 'package:cryptolens_flutter/core/utils/json_readers.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/market/domain/kline.dart';
 
@@ -163,21 +164,15 @@ class FuturesMetrics {
     Map<String, dynamic> premium,
     Map<String, dynamic> openInterest,
   ) {
-    final nextFundingMillis =
-        (premium['nextFundingTime'] as num?)?.toInt() ?? 0;
+    final nextFundingMillis = readInt(premium['nextFundingTime']);
     return FuturesMetrics(
-      markPrice: _number(premium['markPrice']),
-      indexPrice: _number(premium['indexPrice']),
-      lastFundingRate: _number(premium['lastFundingRate']),
+      markPrice: readDouble(premium['markPrice']),
+      indexPrice: readDouble(premium['indexPrice']),
+      lastFundingRate: readDouble(premium['lastFundingRate']),
       nextFundingTime: nextFundingMillis <= 0
           ? null
           : DateTime.fromMillisecondsSinceEpoch(nextFundingMillis),
-      openInterest: _number(openInterest['openInterest']),
+      openInterest: readDouble(openInterest['openInterest']),
     );
   }
-}
-
-double _number(Object? value) {
-  if (value is num) return value.toDouble();
-  return double.tryParse(value?.toString() ?? '') ?? 0;
 }

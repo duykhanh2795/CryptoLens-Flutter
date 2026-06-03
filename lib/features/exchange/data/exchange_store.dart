@@ -9,7 +9,9 @@ import 'package:cryptolens_flutter/core/network/api_client.dart';
 import 'package:cryptolens_flutter/core/network/api_response.dart';
 import 'package:cryptolens_flutter/core/network/network_config.dart';
 import 'package:cryptolens_flutter/core/storage/json_preferences_store.dart';
+import 'package:cryptolens_flutter/core/utils/json_readers.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
+import 'package:cryptolens_flutter/features/market/domain/coin_resolver.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 import 'package:cryptolens_flutter/features/exchange/domain/exchange.dart';
@@ -138,10 +140,10 @@ class BinanceExchangeService {
       for (final raw in decoded.whereType<Map<String, dynamic>>()) {
         final id = raw['id']?.toString();
         if (id == null || id.isEmpty) continue;
-        final quantity = double.tryParse(raw['qty']?.toString() ?? '') ?? 0;
-        final price = double.tryParse(raw['price']?.toString() ?? '') ?? 0;
+        final quantity = readDouble(raw['qty']);
+        final price = readDouble(raw['price']);
         if (quantity <= 0 || price <= 0) continue;
-        final fee = double.tryParse(raw['commission']?.toString() ?? '') ?? 0;
+        final fee = readDouble(raw['commission']);
         final isBuyer = raw['isBuyer'] == true;
         imported.add(
           PortfolioTransaction(
@@ -153,10 +155,7 @@ class BinanceExchangeService {
             quantity: quantity,
             price: price,
             fee: fee,
-            timestamp: DateTime.fromMillisecondsSinceEpoch(
-              (raw['time'] as num?)?.toInt() ??
-                  DateTime.now().millisecondsSinceEpoch,
-            ),
+            timestamp: readDateTime(raw['time']),
             note: 'Imported from Binance Â· $symbol',
             sourceConnectionId: connection.id,
           ),
@@ -164,14 +163,13 @@ class BinanceExchangeService {
       }
     }
 
+    final coinResolver = CoinResolver(coins);
     final before = await portfolioStore.load(
-      coinResolver: (coinId, symbol, name, imageUrl) =>
-          _resolveCoin(coinId, symbol, name, imageUrl, coins),
+      coinResolver: coinResolver.snapshotResolver,
     );
     final added = await portfolioStore.mergeImported(
       imported,
-      coinResolver: (coinId, symbol, name, imageUrl) =>
-          _resolveCoin(coinId, symbol, name, imageUrl, coins),
+      coinResolver: coinResolver.snapshotResolver,
     );
     skipped = math.max(imported.length - added, 0);
     return SyncResult(
@@ -240,37 +238,6 @@ Coin? _coinForSymbol(String binanceSymbol, List<Coin> coins) {
     if (coin.symbol.toUpperCase() == base) return coin;
   }
   return null;
-}
-
-Coin _resolveCoin(
-  String coinId,
-  String symbol,
-  String name,
-  String imageUrl,
-  List<Coin> coins,
-) {
-  for (final coin in coins) {
-    if (coin.id == coinId ||
-        coin.symbol.toUpperCase() == symbol.toUpperCase()) {
-      return coin;
-    }
-  }
-  return Coin(
-    id: coinId,
-    symbol: symbol,
-    name: name,
-    imageUrl: imageUrl,
-    currentPrice: 0,
-    priceChangePercent24h: 0,
-    priceChange24h: 0,
-    marketCap: 0,
-    volume24h: 0,
-    high24h: 0,
-    low24h: 0,
-    circulatingSupply: 0,
-    rank: 0,
-    lastUpdated: DateTime.now(),
-  );
 }
 
 String _binanceError(ApiResponse<Object?> response) {

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cryptolens_flutter/core/utils/json_readers.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 
 enum WalletChain {
@@ -69,19 +70,17 @@ class WatchedWallet {
     final address = json['address']?.toString();
     if (address == null || address.length < 8) return null;
     return WatchedWallet(
-      id:
-          json['id']?.toString() ??
-          DateTime.now().microsecondsSinceEpoch.toString(),
-      label: json['label']?.toString() ?? 'Wallet',
+      id: readString(
+        json['id'],
+        fallback: DateTime.now().microsecondsSinceEpoch.toString(),
+      ),
+      label: readString(json['label'], fallback: 'Wallet'),
       chain:
-          _enumValue(WalletChain.values, json['chain']) ??
+          readEnum(WalletChain.values, json['chain']) ??
           _legacyChain(json['chain']) ??
           WalletChain.ethereum,
       address: address,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-        (json['createdAt'] as num?)?.toInt() ??
-            DateTime.now().millisecondsSinceEpoch,
-      ),
+      createdAt: readDateTime(json['createdAt']),
     );
   }
 }
@@ -514,14 +513,5 @@ Coin? _nativeCoin(WalletChain chain, List<Coin> coins) {
 WalletChain? _legacyChain(Object? raw) {
   final name = raw?.toString();
   if (name == 'bsc') return WalletChain.bnbChain;
-  return null;
-}
-
-T? _enumValue<T extends Enum>(List<T> values, Object? raw) {
-  final name = raw?.toString();
-  if (name == null) return null;
-  for (final value in values) {
-    if (value.name == name || value.toString() == name) return value;
-  }
   return null;
 }
