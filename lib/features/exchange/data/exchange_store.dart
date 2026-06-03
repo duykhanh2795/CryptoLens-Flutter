@@ -3,23 +3,25 @@ import 'dart:math' as math;
 
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
+import 'package:cryptolens_flutter/core/network/api_client.dart';
+import 'package:cryptolens_flutter/core/network/api_response.dart';
 import 'package:cryptolens_flutter/core/network/network_config.dart';
+import 'package:cryptolens_flutter/core/storage/json_preferences_store.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 import 'package:cryptolens_flutter/features/exchange/domain/exchange.dart';
 
 class ExchangeStore {
+  const ExchangeStore();
+
   static const storageKey = StorageKeys.exchangeConnectionsV2;
+  static const _store = JsonPreferencesStore(storageKey);
 
   Future<List<ExchangeConnection>> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(storageKey);
-    if (raw == null || raw.trim().isEmpty) return const [];
-    final decoded = jsonDecode(raw);
+    final decoded = await _store.load();
     if (decoded is! List) return const [];
     return decoded
         .whereType<Map<String, Object?>>()
@@ -29,14 +31,12 @@ class ExchangeStore {
   }
 
   Future<void> save(List<ExchangeConnection> connections) async {
-    final prefs = await SharedPreferences.getInstance();
     if (connections.isEmpty) {
-      await prefs.remove(storageKey);
+      await _store.remove();
       return;
     }
-    await prefs.setString(
-      storageKey,
-      jsonEncode(connections.map((connection) => connection.toJson()).toList()),
+    await _store.save(
+      connections.map((connection) => connection.toJson()).toList(),
     );
   }
 
@@ -65,10 +65,10 @@ class ExchangeStore {
 
 class BinanceExchangeService {
   BinanceExchangeService({http.Client? client})
-    : _client = client ?? http.Client();
+    : _client = ApiClient(client: client);
 
   static final Uri _base = NetworkConfig.binanceSpotBase;
-  final http.Client _client;
+  final ApiClient _client;
 
   Future<ApiKeyValidation> validate(String apiKey, String secret) async {
     if (apiKey.trim().isEmpty || secret.trim().isEmpty) {
@@ -84,8 +84,8 @@ class BinanceExchangeService {
         secret: secret,
         query: const {},
       );
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        final body = jsonDecode(response.body);
+      if (ApiClient.isSuccessStatus(response.statusCode)) {
+        final body = response.data;
         final permissions = body is Map ? body['permissions'] : null;
         final canTrade = body is Map && body['canTrade'] == true;
         return ApiKeyValidation(
@@ -128,10 +128,10 @@ class BinanceExchangeService {
         query: {'symbol': symbol},
       );
       if (response.statusCode == 400 || response.statusCode == 404) continue;
-      if (response.statusCode < 200 || response.statusCode >= 300) {
+      if (!ApiClient.isSuccessStatus(response.statusCode)) {
         throw Exception(_binanceError(response));
       }
-      final decoded = jsonDecode(response.body);
+      final decoded = response.data;
       if (decoded is! List) continue;
       final coin = _coinForSymbol(symbol, coins);
       if (coin == null) continue;
@@ -186,7 +186,7 @@ class BinanceExchangeService {
 
   void dispose() => _client.close();
 
-  Future<http.Response> _signedGet({
+  Future<ApiResponse<Object?>> _signedGet({
     required String path,
     required String apiKey,
     required String secret,
@@ -208,9 +208,12 @@ class BinanceExchangeService {
       path: '${_base.path}$path',
       query: '$queryString&signature=$signature',
     );
-    return _client
-        .get(uri, headers: {'X-MBX-APIKEY': apiKey})
-        .timeout(NetworkConfig.defaultTimeout);
+    return _client.getJson(
+      uri,
+      label: 'Binance $path',
+      headers: {'X-MBX-APIKEY': apiKey},
+      throwOnHttpError: false,
+    );
   }
 }
 
@@ -270,14 +273,10 @@ Coin _resolveCoin(
   );
 }
 
-String _binanceError(http.Response response) {
-  try {
-    final body = jsonDecode(response.body);
-    if (body is Map && body['msg'] != null) {
-      return 'Binance HTTP ${response.statusCode}: ${body['msg']}';
-    }
-  } catch (_) {
-    // Fall through to generic message.
+String _binanceError(ApiResponse<Object?> response) {
+  final body = response.data;
+  if (body is Map && body['msg'] != null) {
+    return 'Binance HTTP ${response.statusCode}: ${body['msg']}';
   }
   return 'Binance HTTP ${response.statusCode}';
 }

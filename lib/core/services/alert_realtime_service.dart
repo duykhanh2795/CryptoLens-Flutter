@@ -1,15 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
-import 'package:cryptolens_flutter/core/network/network_config.dart';
+import 'package:cryptolens_flutter/core/network/api_client.dart';
+import 'package:cryptolens_flutter/core/storage/json_preferences_store.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'firebase_messaging_service.dart';
 
@@ -27,6 +26,7 @@ class AlertRealtimeService {
   AlertRealtimeService._();
 
   static const storageKey = StorageKeys.alertsRules;
+  static const _ruleStore = JsonPreferencesStore(storageKey);
   static const periodicWorkName = 'price_alert_check';
   static const immediateWorkName = 'price_alert_check_immediate';
   static const taskName = 'cryptolens_alert_check';
@@ -56,10 +56,7 @@ class AlertRealtimeService {
   }
 
   static Future<bool> runAlertCheck({http.Client? client}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(storageKey);
-    if (raw == null || raw.trim().isEmpty) return true;
-    final decoded = jsonDecode(raw);
+    final decoded = await _ruleStore.load();
     if (decoded is! List) return true;
 
     final rules = decoded
@@ -88,10 +85,7 @@ class AlertRealtimeService {
     }
 
     if (changed) {
-      await prefs.setString(
-        storageKey,
-        jsonEncode(rules.map((rule) => rule.toJson()).toList()),
-      );
+      await _ruleStore.save(rules.map((rule) => rule.toJson()).toList());
     }
     return true;
   }
@@ -107,6 +101,7 @@ class AlertRealtimeService {
     if (ids.isEmpty) return const {};
     final httpClient = client ?? http.Client();
     final ownedClient = client == null;
+    final apiClient = ApiClient(client: httpClient);
     try {
       final result = <String, _MarketValue>{};
       final chunks = ids.toList();
@@ -119,11 +114,13 @@ class AlertRealtimeService {
           'per_page': '${batch.length}',
           'precision': 'full',
         });
-        final response = await httpClient
-            .get(uri)
-            .timeout(NetworkConfig.defaultTimeout);
-        if (response.statusCode < 200 || response.statusCode >= 300) continue;
-        final body = jsonDecode(response.body);
+        final response = await apiClient.getJson(
+          uri,
+          label: 'CoinGecko alert markets',
+          throwOnHttpError: false,
+        );
+        if (!ApiClient.isSuccessStatus(response.statusCode)) continue;
+        final body = response.data;
         if (body is! List) continue;
         for (final item in body.whereType<Map<String, dynamic>>()) {
           final id = item['id']?.toString() ?? '';
@@ -137,7 +134,7 @@ class AlertRealtimeService {
       }
       return result;
     } finally {
-      if (ownedClient) httpClient.close();
+      if (ownedClient) apiClient.close();
     }
   }
 

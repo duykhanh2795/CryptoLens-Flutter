@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
 import 'package:cryptolens_flutter/core/errors/app_exception.dart';
+import 'package:cryptolens_flutter/core/storage/json_preferences_store.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 
@@ -12,6 +11,7 @@ class PortfolioStore {
 
   static const storageKey = StorageKeys.portfolioTransactionsCsv;
   static const snapshotsKey = StorageKeys.portfolioSnapshots;
+  static const _snapshotStore = JsonPreferencesStore(snapshotsKey);
 
   Future<List<PortfolioTransaction>> load({
     required Coin Function(
@@ -45,10 +45,7 @@ class PortfolioStore {
   }
 
   Future<List<PortfolioSnapshot>> loadSnapshots({int limit = 90}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(snapshotsKey);
-    if (raw == null || raw.trim().isEmpty) return const [];
-    final decoded = jsonDecode(raw);
+    final decoded = await _snapshotStore.load();
     if (decoded is! List) return const [];
     final snapshots =
         decoded
@@ -61,22 +58,19 @@ class PortfolioStore {
   }
 
   Future<void> saveSnapshot(PortfolioSnapshot snapshot) async {
-    final prefs = await SharedPreferences.getInstance();
     final existing = await loadSnapshots(limit: 120);
     final day = _dayStart(snapshot.dayStart);
     final merged = [
       snapshot,
       ...existing.where((item) => _dayStart(item.dayStart) != day),
     ]..sort((a, b) => b.dayStart.compareTo(a.dayStart));
-    await prefs.setString(
-      snapshotsKey,
-      jsonEncode(merged.take(90).map((item) => item.toJson()).toList()),
+    await _snapshotStore.save(
+      merged.take(90).map((item) => item.toJson()).toList(),
     );
   }
 
   Future<void> clearSnapshots() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(snapshotsKey);
+    await _snapshotStore.remove();
   }
 
   Future<int> mergeImported(

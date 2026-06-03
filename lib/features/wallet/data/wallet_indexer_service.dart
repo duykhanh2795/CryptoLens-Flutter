@@ -4,17 +4,18 @@ import 'dart:math';
 import 'package:http/http.dart' as http;
 
 import 'package:cryptolens_flutter/core/config/app_config.dart';
+import 'package:cryptolens_flutter/core/network/api_client.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
 
 class WalletIndexerService {
   WalletIndexerService({http.Client? client})
-    : _client = client ?? http.Client();
+    : _client = ApiClient(client: client);
 
   static const _moralisApiKey = AppConfig.moralisApiKey;
   static const _alchemyApiKey = AppConfig.alchemyApiKey;
 
-  final http.Client _client;
+  final ApiClient _client;
 
   bool get hasMoralisKey => _moralisApiKey.trim().isNotEmpty;
   bool get hasAlchemyKey => _alchemyApiKey.trim().isNotEmpty;
@@ -74,14 +75,11 @@ class WalletIndexerService {
       '/api/v2.2/wallets/${wallet.address}/tokens',
       {'chain': wallet.chain.moralisChain, 'exclude_spam': 'true'},
     );
-    final response = await _client.get(
+    final decoded = (await _client.getJson(
       uri,
+      label: 'Moralis token balances',
       headers: {'X-API-Key': _moralisApiKey},
-    );
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw 'HTTP ${response.statusCode}';
-    }
-    final decoded = jsonDecode(response.body);
+    )).data;
     final rawItems = decoded is Map<String, dynamic>
         ? decoded['result']
         : decoded;
@@ -145,15 +143,12 @@ class WalletIndexerService {
         },
       ],
     });
-    final response = await _client.post(
+    final decoded = (await _client.postJson(
       uri,
+      label: 'Alchemy asset transfers',
       headers: {'content-type': 'application/json'},
       body: body,
-    );
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw 'HTTP ${response.statusCode}';
-    }
-    final decoded = jsonDecode(response.body);
+    )).data;
     final result = decoded is Map<String, dynamic>
         ? decoded['result'] as Map<String, dynamic>?
         : null;

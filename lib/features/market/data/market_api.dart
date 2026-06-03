@@ -1,20 +1,19 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
-import 'package:cryptolens_flutter/core/errors/app_exception.dart';
+import 'package:cryptolens_flutter/core/errors/network_exception.dart';
+import 'package:cryptolens_flutter/core/network/api_client.dart';
 import 'package:cryptolens_flutter/core/network/network_config.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/market/domain/kline.dart';
 
 class MarketApi {
-  MarketApi({http.Client? client}) : _client = client ?? http.Client();
+  MarketApi({http.Client? client}) : _client = ApiClient(client: client);
 
   static final Uri _coinGeckoBase = NetworkConfig.coinGeckoBase;
   static final Uri _binanceBase = NetworkConfig.binanceSpotBase;
   static final Uri _binanceFuturesBase = NetworkConfig.binanceFuturesBase;
 
-  final http.Client _client;
+  final ApiClient _client;
 
   Future<List<Coin>> fetchTopCoins({
     String currency = 'usd',
@@ -34,25 +33,17 @@ class MarketApi {
         'precision': 'full',
       },
     );
-    final response = await _client
-        .get(uri)
-        .timeout(NetworkConfig.defaultTimeout);
-    _throwIfFailed(response, 'CoinGecko markets');
-    final body = jsonDecode(response.body);
+    final body = (await _client.getJson(uri, label: 'CoinGecko markets')).data;
     if (body is! List) {
-      throw const FormatException('Unexpected markets payload');
+      throw NetworkException.invalidPayload('markets');
     }
     return body.cast<Map<String, dynamic>>().map(Coin.fromCoinGecko).toList();
   }
 
   Future<Map<String, PriceTicker>> fetchSpotTickers() async {
     final uri = _binanceBase.replace(path: '${_binanceBase.path}ticker/24hr');
-    final response = await _client
-        .get(uri)
-        .timeout(NetworkConfig.defaultTimeout);
-    _throwIfFailed(response, 'Binance tickers');
-    final body = jsonDecode(response.body);
-    if (body is! List) throw const FormatException('Unexpected ticker payload');
+    final body = (await _client.getJson(uri, label: 'Binance tickers')).data;
+    if (body is! List) throw NetworkException.invalidPayload('ticker');
     return {
       for (final item in body.cast<Map<String, dynamic>>())
         if (item['symbol'] is String) ...{
@@ -73,13 +64,12 @@ class MarketApi {
         'sparkline': 'false',
       },
     );
-    final response = await _client
-        .get(uri)
-        .timeout(NetworkConfig.defaultTimeout);
-    _throwIfFailed(response, 'CoinGecko coin detail');
-    final body = jsonDecode(response.body);
+    final body = (await _client.getJson(
+      uri,
+      label: 'CoinGecko coin detail',
+    )).data;
     if (body is! Map<String, dynamic>) {
-      throw const FormatException('Unexpected coin detail payload');
+      throw NetworkException.invalidPayload('coin detail');
     }
     return CoinDetail.fromCoinGecko(body);
   }
@@ -97,12 +87,8 @@ class MarketApi {
         'limit': '$limit',
       },
     );
-    final response = await _client
-        .get(uri)
-        .timeout(NetworkConfig.defaultTimeout);
-    _throwIfFailed(response, 'Binance klines');
-    final body = jsonDecode(response.body);
-    if (body is! List) throw const FormatException('Unexpected kline payload');
+    final body = (await _client.getJson(uri, label: 'Binance klines')).data;
+    if (body is! List) throw NetworkException.invalidPayload('kline');
     return body.cast<List<dynamic>>().map(Kline.fromBinance).toList();
   }
 
@@ -119,12 +105,11 @@ class MarketApi {
         'limit': '$limit',
       },
     );
-    final response = await _client
-        .get(uri)
-        .timeout(NetworkConfig.defaultTimeout);
-    _throwIfFailed(response, 'Binance futures klines');
-    final body = jsonDecode(response.body);
-    if (body is! List) throw const FormatException('Unexpected kline payload');
+    final body = (await _client.getJson(
+      uri,
+      label: 'Binance futures klines',
+    )).data;
+    if (body is! List) throw NetworkException.invalidPayload('kline');
     return body.cast<List<dynamic>>().map(Kline.fromBinance).toList();
   }
 
@@ -137,33 +122,22 @@ class MarketApi {
       path: '${_binanceFuturesBase.path}openInterest',
       queryParameters: {'symbol': symbol},
     );
-    final premium = await _client
-        .get(premiumUri)
-        .timeout(NetworkConfig.defaultTimeout);
-    _throwIfFailed(premium, 'Binance futures premium');
-    final openInterest = await _client
-        .get(openInterestUri)
-        .timeout(NetworkConfig.defaultTimeout);
-    _throwIfFailed(openInterest, 'Binance futures open interest');
-    final premiumBody = jsonDecode(premium.body);
-    final openInterestBody = jsonDecode(openInterest.body);
+    final premiumBody = (await _client.getJson(
+      premiumUri,
+      label: 'Binance futures premium',
+    )).data;
+    final openInterestBody = (await _client.getJson(
+      openInterestUri,
+      label: 'Binance futures open interest',
+    )).data;
     if (premiumBody is! Map<String, dynamic> ||
         openInterestBody is! Map<String, dynamic>) {
-      throw const FormatException('Unexpected futures metrics payload');
+      throw NetworkException.invalidPayload('futures metrics');
     }
     return FuturesMetrics.fromBinance(premiumBody, openInterestBody);
   }
 
   void dispose() => _client.close();
-
-  static void _throwIfFailed(http.Response response, String label) {
-    if (response.statusCode >= 200 && response.statusCode < 300) return;
-    throw HttpException('$label failed: HTTP ${response.statusCode}');
-  }
-}
-
-class HttpException extends AppException {
-  const HttpException(super.message);
 }
 
 class FuturesMetrics {

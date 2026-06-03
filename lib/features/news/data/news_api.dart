@@ -1,16 +1,14 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
 import 'package:cryptolens_flutter/core/config/app_config.dart';
-import 'package:cryptolens_flutter/core/errors/app_exception.dart';
+import 'package:cryptolens_flutter/core/network/api_client.dart';
 import 'package:cryptolens_flutter/core/network/network_config.dart';
 import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
 
 class NewsApi {
-  NewsApi({http.Client? client}) : _client = client ?? http.Client();
+  NewsApi({http.Client? client}) : _client = ApiClient(client: client);
 
   static const _coinGeckoApiKey = AppConfig.coinGeckoProApiKey;
 
@@ -28,7 +26,7 @@ class NewsApi {
     ),
   ];
 
-  final http.Client _client;
+  final ApiClient _client;
 
   Future<List<NewsItem>> fetchNews({
     NewsFilter filter = NewsFilter.all,
@@ -56,11 +54,11 @@ class NewsApi {
         if (coinId != null && coinId.isNotEmpty) 'coin_id': coinId,
       },
     );
-    final response = await _client
-        .get(uri, headers: {'x-cg-pro-api-key': _coinGeckoApiKey})
-        .timeout(NetworkConfig.defaultTimeout);
-    _throwIfFailed(response, 'CoinGecko news');
-    final decoded = jsonDecode(response.body);
+    final decoded = (await _client.getJson(
+      uri,
+      label: 'CoinGecko news',
+      headers: {'x-cg-pro-api-key': _coinGeckoApiKey},
+    )).data;
     final items = decoded is List
         ? decoded
         : decoded is Map<String, dynamic> && decoded['data'] is List
@@ -82,11 +80,14 @@ class NewsApi {
     final results = <NewsItem>[];
     for (final source in _rssSources) {
       try {
-        final response = await _client
-            .get(source.url)
-            .timeout(NetworkConfig.rssTimeout);
-        if (response.statusCode < 200 || response.statusCode >= 300) continue;
-        results.addAll(_parseFeed(response.body, source));
+        final response = await _client.get(
+          source.url,
+          label: source.title,
+          timeout: NetworkConfig.rssTimeout,
+          throwOnHttpError: false,
+        );
+        if (!ApiClient.isSuccessStatus(response.statusCode)) continue;
+        results.addAll(_parseFeed(response.data, source));
       } catch (_) {
         continue;
       }
@@ -292,19 +293,10 @@ class NewsApi {
     ];
   }
 
-  static void _throwIfFailed(http.Response response, String label) {
-    if (response.statusCode >= 200 && response.statusCode < 300) return;
-    throw NewsApiException('$label failed: HTTP ${response.statusCode}');
-  }
-
   static T? _first<T>(Iterable<T> values) {
     final iterator = values.iterator;
     return iterator.moveNext() ? iterator.current : null;
   }
-}
-
-class NewsApiException extends AppException {
-  const NewsApiException(super.message);
 }
 
 class _RssSource {

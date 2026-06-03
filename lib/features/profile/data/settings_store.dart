@@ -1,24 +1,20 @@
-import 'dart:convert';
-
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
+import 'package:cryptolens_flutter/core/storage/json_preferences_store.dart';
 import 'package:cryptolens_flutter/features/profile/domain/settings.dart';
 
 class SettingsStore {
+  const SettingsStore();
+
   static const storageKey = StorageKeys.settings;
+  static const _store = JsonPreferencesStore(storageKey);
 
   Future<AppSettings> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(storageKey);
-    if (raw == null || raw.trim().isEmpty) return const AppSettings();
-    final decoded = jsonDecode(raw);
+    final decoded = await _store.load();
     if (decoded is! Map<String, Object?>) return const AppSettings();
     return AppSettings.fromJson(decoded);
   }
 
   Future<void> save(AppSettings settings) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(storageKey, jsonEncode(settings.toJson()));
+    await _store.save(settings.toJson());
   }
 }
