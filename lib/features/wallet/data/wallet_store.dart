@@ -2,10 +2,11 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
 import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
 
 class WalletStore {
-  static const storageKey = 'cryptolens.wallet.watchlist';
+  static const storageKey = StorageKeys.walletWatchlist;
 
   Future<List<WatchedWallet>> load() async {
     final prefs = await SharedPreferences.getInstance();

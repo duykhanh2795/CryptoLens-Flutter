@@ -2,19 +2,17 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'package:cryptolens_flutter/core/errors/app_exception.dart';
+import 'package:cryptolens_flutter/core/network/network_config.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/market/domain/kline.dart';
 
 class MarketApi {
   MarketApi({http.Client? client}) : _client = client ?? http.Client();
 
-  static final Uri _coinGeckoBase = Uri.parse(
-    'https://api.coingecko.com/api/v3/',
-  );
-  static final Uri _binanceBase = Uri.parse('https://api.binance.com/api/v3/');
-  static final Uri _binanceFuturesBase = Uri.parse(
-    'https://fapi.binance.com/fapi/v1/',
-  );
+  static final Uri _coinGeckoBase = NetworkConfig.coinGeckoBase;
+  static final Uri _binanceBase = NetworkConfig.binanceSpotBase;
+  static final Uri _binanceFuturesBase = NetworkConfig.binanceFuturesBase;
 
   final http.Client _client;
 
@@ -38,7 +36,7 @@ class MarketApi {
     );
     final response = await _client
         .get(uri)
-        .timeout(const Duration(seconds: 20));
+        .timeout(NetworkConfig.defaultTimeout);
     _throwIfFailed(response, 'CoinGecko markets');
     final body = jsonDecode(response.body);
     if (body is! List) {
@@ -51,7 +49,7 @@ class MarketApi {
     final uri = _binanceBase.replace(path: '${_binanceBase.path}ticker/24hr');
     final response = await _client
         .get(uri)
-        .timeout(const Duration(seconds: 20));
+        .timeout(NetworkConfig.defaultTimeout);
     _throwIfFailed(response, 'Binance tickers');
     final body = jsonDecode(response.body);
     if (body is! List) throw const FormatException('Unexpected ticker payload');
@@ -77,7 +75,7 @@ class MarketApi {
     );
     final response = await _client
         .get(uri)
-        .timeout(const Duration(seconds: 20));
+        .timeout(NetworkConfig.defaultTimeout);
     _throwIfFailed(response, 'CoinGecko coin detail');
     final body = jsonDecode(response.body);
     if (body is! Map<String, dynamic>) {
@@ -101,7 +99,7 @@ class MarketApi {
     );
     final response = await _client
         .get(uri)
-        .timeout(const Duration(seconds: 20));
+        .timeout(NetworkConfig.defaultTimeout);
     _throwIfFailed(response, 'Binance klines');
     final body = jsonDecode(response.body);
     if (body is! List) throw const FormatException('Unexpected kline payload');
@@ -123,7 +121,7 @@ class MarketApi {
     );
     final response = await _client
         .get(uri)
-        .timeout(const Duration(seconds: 20));
+        .timeout(NetworkConfig.defaultTimeout);
     _throwIfFailed(response, 'Binance futures klines');
     final body = jsonDecode(response.body);
     if (body is! List) throw const FormatException('Unexpected kline payload');
@@ -141,11 +139,11 @@ class MarketApi {
     );
     final premium = await _client
         .get(premiumUri)
-        .timeout(const Duration(seconds: 20));
+        .timeout(NetworkConfig.defaultTimeout);
     _throwIfFailed(premium, 'Binance futures premium');
     final openInterest = await _client
         .get(openInterestUri)
-        .timeout(const Duration(seconds: 20));
+        .timeout(NetworkConfig.defaultTimeout);
     _throwIfFailed(openInterest, 'Binance futures open interest');
     final premiumBody = jsonDecode(premium.body);
     final openInterestBody = jsonDecode(openInterest.body);
@@ -164,12 +162,8 @@ class MarketApi {
   }
 }
 
-class HttpException implements Exception {
-  const HttpException(this.message);
-  final String message;
-
-  @override
-  String toString() => message;
+class HttpException extends AppException {
+  const HttpException(super.message);
 }
 
 class FuturesMetrics {

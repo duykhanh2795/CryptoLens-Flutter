@@ -1,39 +1,19 @@
 import 'dart:math' as math;
 
+import 'package:cryptolens_flutter/features/home/domain/home_portfolio_summary.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 
-class HomePortfolioSummary {
-  const HomePortfolioSummary({
-    required this.totalValue,
-    required this.dayChange,
-    required this.dayChangePercent,
-    required this.totalPnl,
-    required this.assetCount,
-    required this.transactionCount,
-  });
+class HomePortfolioSummaryLoader {
+  const HomePortfolioSummaryLoader({PortfolioStore? store})
+    : _store = store ?? const PortfolioStore();
 
-  final double totalValue;
-  final double dayChange;
-  final double dayChangePercent;
-  final double totalPnl;
-  final int assetCount;
-  final int transactionCount;
+  final PortfolioStore _store;
 
-  static HomePortfolioSummary empty() => const HomePortfolioSummary(
-    totalValue: 0,
-    dayChange: 0,
-    dayChangePercent: 0,
-    totalPnl: 0,
-    assetCount: 0,
-    transactionCount: 0,
-  );
-
-  static Future<HomePortfolioSummary> load(MarketController controller) async {
-    final store = PortfolioStore();
-    final transactions = await store.load(
+  Future<HomePortfolioSummary> load(MarketController controller) async {
+    final transactions = await _store.load(
       coinResolver: (coinId, symbol, name, imageUrl) {
         for (final coin in controller.coins) {
           if (coin.id == coinId) return coin;
@@ -56,7 +36,7 @@ class HomePortfolioSummary {
         );
       },
     );
-    if (transactions.isEmpty) return empty();
+    if (transactions.isEmpty) return HomePortfolioSummary.empty();
 
     final byCoin = <String, List<PortfolioTransaction>>{};
     for (final tx in transactions) {

@@ -4,18 +4,17 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
+import 'package:cryptolens_flutter/core/config/app_config.dart';
+import 'package:cryptolens_flutter/core/errors/app_exception.dart';
+import 'package:cryptolens_flutter/core/network/network_config.dart';
 import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
 
 class NewsApi {
   NewsApi({http.Client? client}) : _client = client ?? http.Client();
 
-  static const _coinGeckoApiKey = String.fromEnvironment(
-    'COINGECKO_PRO_API_KEY',
-  );
+  static const _coinGeckoApiKey = AppConfig.coinGeckoProApiKey;
 
-  static final Uri _coinGeckoNewsBase = Uri.parse(
-    'https://pro-api.coingecko.com/api/v3/news',
-  );
+  static final Uri _coinGeckoNewsBase = NetworkConfig.coinGeckoNewsBase;
 
   static final _rssSources = <_RssSource>[
     _RssSource(
@@ -59,7 +58,7 @@ class NewsApi {
     );
     final response = await _client
         .get(uri, headers: {'x-cg-pro-api-key': _coinGeckoApiKey})
-        .timeout(const Duration(seconds: 20));
+        .timeout(NetworkConfig.defaultTimeout);
     _throwIfFailed(response, 'CoinGecko news');
     final decoded = jsonDecode(response.body);
     final items = decoded is List
@@ -85,7 +84,7 @@ class NewsApi {
       try {
         final response = await _client
             .get(source.url)
-            .timeout(const Duration(seconds: 12));
+            .timeout(NetworkConfig.rssTimeout);
         if (response.statusCode < 200 || response.statusCode >= 300) continue;
         results.addAll(_parseFeed(response.body, source));
       } catch (_) {
@@ -304,13 +303,8 @@ class NewsApi {
   }
 }
 
-class NewsApiException implements Exception {
-  const NewsApiException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => message;
+class NewsApiException extends AppException {
+  const NewsApiException(super.message);
 }
 
 class _RssSource {

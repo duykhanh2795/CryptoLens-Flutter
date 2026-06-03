@@ -1,9 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:cryptolens_flutter/features/alerts/data/alert_rule_store.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/alerts/domain/alert_rule.dart';
 import 'package:cryptolens_flutter/core/services/alert_realtime_service.dart';
@@ -31,8 +30,7 @@ class AlertCoinPrefill {
 }
 
 class _AlertsScreenState extends State<AlertsScreen> {
-  static const _storageKey = 'cryptolens.alerts.rules';
-
+  final AlertRuleStore _ruleStore = AlertRuleStore();
   final List<AlertRule> _rules = [];
   final Set<String> _notifiedRuleIds = {};
   Timer? _refreshTimer;
@@ -151,33 +149,17 @@ class _AlertsScreenState extends State<AlertsScreen> {
   }
 
   Future<void> _loadRules() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_storageKey);
-    if (!mounted || raw == null || raw.trim().isEmpty) return;
-    final decoded = jsonDecode(raw);
-    if (decoded is! List) return;
+    final rules = await _ruleStore.load();
+    if (!mounted) return;
     setState(() {
       _rules
         ..clear()
-        ..addAll(
-          decoded
-              .whereType<Map<String, Object?>>()
-              .map(AlertRule.fromJson)
-              .whereType<AlertRule>(),
-        );
+        ..addAll(rules);
     });
   }
 
   Future<void> _saveRules() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (_rules.isEmpty) {
-      await prefs.remove(_storageKey);
-    } else {
-      await prefs.setString(
-        _storageKey,
-        jsonEncode(_rules.map((rule) => rule.toJson()).toList()),
-      );
-    }
+    await _ruleStore.save(_rules);
     unawaited(AlertRealtimeService.schedulePeriodicCheck());
   }
 

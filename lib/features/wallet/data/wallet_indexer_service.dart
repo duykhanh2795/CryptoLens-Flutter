@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:http/http.dart' as http;
 
+import 'package:cryptolens_flutter/core/config/app_config.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
 
@@ -10,8 +11,8 @@ class WalletIndexerService {
   WalletIndexerService({http.Client? client})
     : _client = client ?? http.Client();
 
-  static const _moralisApiKey = String.fromEnvironment('MORALIS_API_KEY');
-  static const _alchemyApiKey = String.fromEnvironment('ALCHEMY_API_KEY');
+  static const _moralisApiKey = AppConfig.moralisApiKey;
+  static const _alchemyApiKey = AppConfig.alchemyApiKey;
 
   final http.Client _client;
 

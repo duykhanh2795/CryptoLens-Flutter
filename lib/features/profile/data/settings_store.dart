@@ -2,10 +2,11 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
 import 'package:cryptolens_flutter/features/profile/domain/settings.dart';
 
 class SettingsStore {
-  static const storageKey = 'cryptolens.settings';
+  static const storageKey = StorageKeys.settings;
 
   Future<AppSettings> load() async {
     final prefs = await SharedPreferences.getInstance();

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
-import 'package:cryptolens_flutter/features/home/presentation/state/home_portfolio_summary.dart';
+import 'package:cryptolens_flutter/features/home/data/home_portfolio_summary_loader.dart';
+import 'package:cryptolens_flutter/features/home/domain/home_portfolio_summary.dart';
 import 'package:cryptolens_flutter/features/home/presentation/widgets/home_format_helpers.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 
@@ -25,7 +26,7 @@ class BankingDashboardGrid extends StatelessWidget {
     return Column(
       children: [
         FutureBuilder<HomePortfolioSummary>(
-          future: HomePortfolioSummary.load(controller),
+          future: const HomePortfolioSummaryLoader().load(controller),
           builder: (context, snapshot) {
             return WalletHeroCard(
               summary: snapshot.data ?? HomePortfolioSummary.empty(),

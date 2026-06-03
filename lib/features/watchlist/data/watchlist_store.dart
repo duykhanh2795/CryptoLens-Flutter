@@ -1,7 +1,9 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
+
 class WatchlistStore {
-  static const _storageKey = 'cryptolens.watchlist.coin_ids';
+  static const _storageKey = StorageKeys.watchlistCoinIds;
 
   final Set<String> _coinIds = <String>{};
   bool _loaded = false;

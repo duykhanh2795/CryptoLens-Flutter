@@ -2,12 +2,16 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
+import 'package:cryptolens_flutter/core/errors/app_exception.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 
 class PortfolioStore {
-  static const storageKey = 'cryptolens.portfolio.transactions_csv';
-  static const snapshotsKey = 'cryptolens.portfolio.snapshots';
+  const PortfolioStore();
+
+  static const storageKey = StorageKeys.portfolioTransactionsCsv;
+  static const snapshotsKey = StorageKeys.portfolioSnapshots;
 
   Future<List<PortfolioTransaction>> load({
     required Coin Function(
@@ -236,22 +240,12 @@ class PortfolioStore {
 DateTime _dayStart(DateTime value) =>
     DateTime(value.year, value.month, value.day);
 
-class PortfolioCsvException implements Exception {
-  const PortfolioCsvException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => message;
+class PortfolioCsvException extends AppException {
+  const PortfolioCsvException(super.message);
 }
 
-class PortfolioValidationException implements Exception {
-  const PortfolioValidationException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => message;
+class PortfolioValidationException extends AppException {
+  const PortfolioValidationException(super.message);
 }
 
 extension PortfolioTransactionListOps on List<PortfolioTransaction> {

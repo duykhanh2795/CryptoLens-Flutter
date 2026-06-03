@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/converter/domain/conversion_quote.dart';
 import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_asset_picker.dart';
 import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_coin_picker_sheet.dart';
 import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_rate_widgets.dart';
@@ -42,14 +43,11 @@ class _ConverterScreenState extends State<ConverterScreen> {
   Widget build(BuildContext context) {
     final coins = widget.controller.coins.take(80).toList();
     final amount = double.tryParse(_amount.text) ?? 0;
-    final double fromUsdValue = _fromUsd
-        ? amount
-        : amount * (_from?.currentPrice ?? 0);
-    final double result = _toUsd
-        ? fromUsdValue
-        : (_to == null || _to!.currentPrice <= 0
-              ? 0.0
-              : fromUsdValue / _to!.currentPrice);
+    final quote = ConversionQuote.fromPrices(
+      amount: amount,
+      fromUsdPrice: _fromUsd ? 1.0 : (_from?.currentPrice ?? 0),
+      toUsdPrice: _toUsd ? 1.0 : (_to?.currentPrice ?? 0),
+    );
 
     return Scaffold(
       backgroundColor: ConverterColors.background,
@@ -133,8 +131,8 @@ class _ConverterScreenState extends State<ConverterScreen> {
                 const SizedBox(height: 8),
                 Text(
                   _toUsd
-                      ? formatPrice(result)
-                      : '${trimConverterValue(result)} ${_to?.symbol ?? ''}',
+                      ? formatPrice(quote.result)
+                      : '${trimConverterValue(quote.result)} ${_to?.symbol ?? ''}',
                   style: const TextStyle(
                     color: ConverterColors.textPrimary,
                     fontSize: 32,
@@ -156,8 +154,8 @@ class _ConverterScreenState extends State<ConverterScreen> {
           ConverterRateCard(
             fromLabel: _fromUsd ? 'USD' : (_from?.symbol ?? '--'),
             toLabel: _toUsd ? 'USD' : (_to?.symbol ?? '--'),
-            directRate: _directRate(),
-            inverseRate: _inverseRate(),
+            directRate: quote.directRate,
+            inverseRate: quote.inverseRate,
           ),
           const SizedBox(height: 14),
           ConverterMarketContext(
@@ -186,18 +184,6 @@ class _ConverterScreenState extends State<ConverterScreen> {
       if (!_fromUsd) _from = find(fromId) ?? _from;
       if (!_toUsd) _to = find(toId) ?? _to;
     });
-  }
-
-  double _directRate() {
-    final fromValue = _fromUsd ? 1.0 : (_from?.currentPrice ?? 0);
-    final toValue = _toUsd ? 1.0 : (_to?.currentPrice ?? 0);
-    if (fromValue <= 0 || toValue <= 0) return 0;
-    return fromValue / toValue;
-  }
-
-  double _inverseRate() {
-    final rate = _directRate();
-    return rate <= 0 ? 0 : 1 / rate;
   }
 
   void _showCoinPicker({

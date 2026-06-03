@@ -2,7 +2,21 @@ import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
-import 'package:cryptolens_flutter/features/watchlist/presentation/state/watchlist_state.dart';
+import 'package:cryptolens_flutter/features/watchlist/domain/watchlist_filters.dart';
+
+class WatchlistChipData {
+  const WatchlistChipData({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.sortIcon = false,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final bool sortIcon;
+}
 
 class WatchlistTabsAndFilters extends StatelessWidget {
   const WatchlistTabsAndFilters({

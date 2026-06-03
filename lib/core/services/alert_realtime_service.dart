@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
+import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
+import 'package:cryptolens_flutter/core/network/network_config.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
 import 'firebase_messaging_service.dart';
 
@@ -24,7 +26,7 @@ void cryptolensAlertWorkDispatcher() {
 class AlertRealtimeService {
   AlertRealtimeService._();
 
-  static const storageKey = 'cryptolens.alerts.rules';
+  static const storageKey = StorageKeys.alertsRules;
   static const periodicWorkName = 'price_alert_check';
   static const immediateWorkName = 'price_alert_check_immediate';
   static const taskName = 'cryptolens_alert_check';
@@ -119,7 +121,7 @@ class AlertRealtimeService {
         });
         final response = await httpClient
             .get(uri)
-            .timeout(const Duration(seconds: 20));
+            .timeout(NetworkConfig.defaultTimeout);
         if (response.statusCode < 200 || response.statusCode >= 300) continue;
         final body = jsonDecode(response.body);
         if (body is! List) continue;

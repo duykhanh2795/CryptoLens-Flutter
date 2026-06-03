@@ -1,24 +1,22 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:cryptolens_flutter/core/config/app_config.dart';
+import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
+import 'package:cryptolens_flutter/core/errors/app_exception.dart';
+import 'package:cryptolens_flutter/features/auth/domain/auth_models.dart';
+
+export 'package:cryptolens_flutter/features/auth/domain/auth_models.dart';
+
 class CryptoAuthService {
   CryptoAuthService({SupabaseClient? client})
     : _client = client ?? Supabase.instance.client;
 
-  static const supabaseUrl = String.fromEnvironment(
-    'SUPABASE_URL',
-    defaultValue: 'https://yhpbiqtadbycedossnhh.supabase.co',
-  );
-  static const supabaseAnonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
-    defaultValue:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
-        'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlocGJpcXRhZGJ5Y2Vkb3NzbmhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTAzMTUsImV4cCI6MjA5MzI2NjMxNX0.'
-        '3v8Sus5O-XvpnGh__IxZp06weW7OsCv6XnfudF_oaak',
-  );
+  static const supabaseUrl = AppConfig.supabaseUrl;
+  static const supabaseAnonKey = AppConfig.supabaseAnonKey;
 
-  static const _rememberLoginKey = 'cryptolens.auth.remember_login';
-  static const _rememberedEmailKey = 'cryptolens.auth.remembered_email';
+  static const _rememberLoginKey = StorageKeys.authRememberLogin;
+  static const _rememberedEmailKey = StorageKeys.authRememberedEmail;
 
   final SupabaseClient _client;
 
@@ -190,37 +188,6 @@ class CryptoAuthService {
   }
 }
 
-class CryptoAuthUser {
-  const CryptoAuthUser({
-    required this.id,
-    required this.email,
-    required this.displayName,
-    this.avatarUrl = '',
-    this.createdAt,
-  });
-
-  final String id;
-  final String email;
-  final String displayName;
-  final String avatarUrl;
-  final String? createdAt;
-}
-
-class LoginPreferences {
-  const LoginPreferences({
-    required this.rememberLogin,
-    required this.rememberedEmail,
-  });
-
-  final bool rememberLogin;
-  final String rememberedEmail;
-}
-
-class CryptoAuthException implements Exception {
-  const CryptoAuthException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => message;
+class CryptoAuthException extends AppException {
+  const CryptoAuthException(super.message);
 }

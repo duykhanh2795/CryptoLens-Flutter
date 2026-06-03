@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 enum WatchlistFilter { all, gainers, losers }
 
 enum WatchlistSortOrder {
@@ -9,20 +7,6 @@ enum WatchlistSortOrder {
   changeAsc,
   priceDesc,
   priceAsc,
-}
-
-class WatchlistChipData {
-  const WatchlistChipData({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    this.sortIcon = false,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-  final bool sortIcon;
 }
 
 extension WatchlistSortOrderX on WatchlistSortOrder {

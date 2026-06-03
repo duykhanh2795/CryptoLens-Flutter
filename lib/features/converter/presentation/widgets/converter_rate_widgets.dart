@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/features/converter/data/converter_quick_pair_repository.dart';
 import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_coin_picker_sheet.dart';
 import 'package:cryptolens_flutter/features/converter/presentation/widgets/converter_theme_helpers.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
@@ -17,21 +18,7 @@ class ConverterQuickPairs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ids = coins.map((coin) => coin.id).toSet();
-    final pairs =
-        [
-              ('BTC/ETH', 'bitcoin', 'ethereum'),
-              ('ETH/SOL', 'ethereum', 'solana'),
-              ('BTC/USD', 'bitcoin', 'usd'),
-              ('ETH/USD', 'ethereum', 'usd'),
-              ('SOL/USD', 'solana', 'usd'),
-            ]
-            .where(
-              (pair) =>
-                  (pair.$2 == 'usd' || ids.contains(pair.$2)) &&
-                  (pair.$3 == 'usd' || ids.contains(pair.$3)),
-            )
-            .toList();
+    final pairs = const ConverterQuickPairRepository().availablePairs(coins);
     if (pairs.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,8 +40,8 @@ class ConverterQuickPairs extends StatelessWidget {
             itemBuilder: (context, index) {
               final pair = pairs[index];
               return OutlinedButton(
-                onPressed: () => onSelected(pair.$2, pair.$3),
-                child: Text(pair.$1),
+                onPressed: () => onSelected(pair.fromId, pair.toId),
+                child: Text(pair.label),
               );
             },
           ),

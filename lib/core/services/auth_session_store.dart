@@ -1,8 +1,10 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
+
 class AuthSessionStore {
-  static const _displayNameKey = 'cryptolens.auth.display_name';
-  static const _emailKey = 'cryptolens.auth.email';
+  static const _displayNameKey = StorageKeys.authDisplayName;
+  static const _emailKey = StorageKeys.authEmail;
 
   Future<StoredUser?> load() async {
     final prefs = await SharedPreferences.getInstance();

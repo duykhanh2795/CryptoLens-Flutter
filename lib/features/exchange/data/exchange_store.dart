@@ -5,13 +5,15 @@ import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
+import 'package:cryptolens_flutter/core/network/network_config.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
 import 'package:cryptolens_flutter/features/exchange/domain/exchange.dart';
 
 class ExchangeStore {
-  static const storageKey = 'cryptolens.exchange.connections.v2';
+  static const storageKey = StorageKeys.exchangeConnectionsV2;
 
   Future<List<ExchangeConnection>> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -65,7 +67,7 @@ class BinanceExchangeService {
   BinanceExchangeService({http.Client? client})
     : _client = client ?? http.Client();
 
-  static final Uri _base = Uri.parse('https://api.binance.com/api/v3/');
+  static final Uri _base = NetworkConfig.binanceSpotBase;
   final http.Client _client;
 
   Future<ApiKeyValidation> validate(String apiKey, String secret) async {
@@ -208,7 +210,7 @@ class BinanceExchangeService {
     );
     return _client
         .get(uri, headers: {'X-MBX-APIKEY': apiKey})
-        .timeout(const Duration(seconds: 20));
+        .timeout(NetworkConfig.defaultTimeout);
   }
 }
 
