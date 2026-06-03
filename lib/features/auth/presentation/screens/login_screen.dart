@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:cryptolens_flutter/core/validation/validators.dart';
 import 'package:cryptolens_flutter/features/auth/presentation/widgets/auth_widgets.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -171,12 +172,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submit() async {
     final email = _email.text.trim();
     final password = _password.text;
-    if (!email.contains('@')) {
-      setState(() => _error = 'Enter a valid email.');
-      return;
-    }
-    if (password.length < 6) {
-      setState(() => _error = 'Password must be at least 6 characters.');
+    final validationError =
+        Validators.email(email) ??
+        Validators.minLength(password, 6, 'Password');
+    if (validationError != null) {
+      setState(() => _error = validationError);
       return;
     }
     setState(() {

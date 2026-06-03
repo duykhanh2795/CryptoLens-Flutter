@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/home/presentation/widgets/home_dashboard_widgets.dart';
 import 'package:cryptolens_flutter/features/home/presentation/widgets/home_market_widgets.dart';
@@ -51,10 +52,7 @@ class HomeScreen extends StatelessWidget {
               onOpenPortfolio: onOpenPortfolio,
             ),
             if (controller.isLoading)
-              const Padding(
-                padding: EdgeInsets.only(top: 40, bottom: 40),
-                child: Center(child: CircularProgressIndicator()),
-              )
+              const AppLoadingState(height: 120)
             else ...[
               const SizedBox(height: 14),
               TrendingSectionHeader(onTap: onOpenMarkets),

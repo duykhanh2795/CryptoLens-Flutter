@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cryptolens_flutter/core/config/app_config.dart';
 import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
 import 'package:cryptolens_flutter/core/errors/app_exception.dart';
+import 'package:cryptolens_flutter/core/validation/validators.dart';
 import 'package:cryptolens_flutter/features/auth/domain/auth_models.dart';
 
 export 'package:cryptolens_flutter/features/auth/domain/auth_models.dart';
@@ -34,9 +35,7 @@ class CryptoAuthService {
     required bool remember,
   }) async {
     _validateEmail(email);
-    if (password.length < 6) {
-      throw const CryptoAuthException('Password must be at least 6 characters');
-    }
+    _throwIfInvalid(Validators.minLength(password, 6, 'Password'));
     try {
       final response = await _client.auth.signInWithPassword(
         email: email.trim(),
@@ -59,16 +58,10 @@ class CryptoAuthService {
     required String password,
     required String confirmPassword,
   }) async {
-    if (displayName.trim().isEmpty) {
-      throw const CryptoAuthException('Name cannot be empty');
-    }
+    _throwIfInvalid(Validators.requiredText(displayName, 'Name'));
     _validateEmail(email);
-    if (password.length < 6) {
-      throw const CryptoAuthException('Password must be at least 6 characters');
-    }
-    if (password != confirmPassword) {
-      throw const CryptoAuthException('Passwords do not match');
-    }
+    _throwIfInvalid(Validators.minLength(password, 6, 'Password'));
+    _throwIfInvalid(Validators.matching(password, confirmPassword, 'Password'));
     try {
       final response = await _client.auth.signUp(
         email: email.trim(),
@@ -100,14 +93,10 @@ class CryptoAuthService {
     required String newPassword,
     required String confirmPassword,
   }) async {
-    if (newPassword.length < 6) {
-      throw const CryptoAuthException(
-        'New password must be at least 6 characters',
-      );
-    }
-    if (newPassword != confirmPassword) {
-      throw const CryptoAuthException('Passwords do not match');
-    }
+    _throwIfInvalid(Validators.minLength(newPassword, 6, 'New password'));
+    _throwIfInvalid(
+      Validators.matching(newPassword, confirmPassword, 'Password'),
+    );
     try {
       await _client.auth.updateUser(UserAttributes(password: newPassword));
     } on AuthException catch (error) {
@@ -161,14 +150,11 @@ class CryptoAuthService {
   }
 
   void _validateEmail(String email) {
-    final normalized = email.trim();
-    final valid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(normalized);
-    if (normalized.isEmpty) {
-      throw const CryptoAuthException('Email cannot be empty');
-    }
-    if (!valid) {
-      throw const CryptoAuthException('Invalid email address');
-    }
+    _throwIfInvalid(Validators.email(email));
+  }
+
+  void _throwIfInvalid(String? message) {
+    if (message != null) throw CryptoAuthException(message);
   }
 
   String _mapAuthError(String message) {

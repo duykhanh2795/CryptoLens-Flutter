@@ -7,12 +7,14 @@ class AppBottomSheetScaffold extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.fromLTRB(20, 12, 20, 24),
     this.showHandle = true,
+    this.handleColor,
     super.key,
   });
 
   final Widget child;
   final EdgeInsets padding;
   final bool showHandle;
+  final Color? handleColor;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,7 @@ class AppBottomSheetScaffold extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (showHandle) ...[
-              const Center(child: AppBottomSheetHandle()),
+              Center(child: AppBottomSheetHandle(color: handleColor)),
               const SizedBox(height: 18),
             ],
             child,
@@ -38,7 +40,9 @@ class AppBottomSheetScaffold extends StatelessWidget {
 }
 
 class AppBottomSheetHandle extends StatelessWidget {
-  const AppBottomSheetHandle({super.key});
+  const AppBottomSheetHandle({this.color, super.key});
+
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +50,7 @@ class AppBottomSheetHandle extends StatelessWidget {
       width: 40,
       height: 4,
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
+        color: color ?? AppColors.surfaceVariant,
         borderRadius: BorderRadius.circular(99),
       ),
     );

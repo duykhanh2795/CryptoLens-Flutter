@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/core/widgets/app_bottom_sheet.dart';
 import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
 import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_colors.dart';
 import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_format_helpers.dart';
@@ -18,7 +19,7 @@ void showTransactionSheet(BuildContext context, WalletTransaction tx) {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
     ),
-    builder: (context) => Padding(
+    builder: (context) => AppBottomSheetScaffold(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 26),
       child: Column(
         mainAxisSize: MainAxisSize.min,

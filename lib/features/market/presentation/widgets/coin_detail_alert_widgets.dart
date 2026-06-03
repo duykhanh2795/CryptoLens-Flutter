@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:cryptolens_flutter/core/widgets/app_bottom_sheet.dart';
 import 'package:cryptolens_flutter/features/alerts/domain/alert_rule.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_colors.dart';
@@ -18,23 +19,13 @@ class AlertTypePickerSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
-      child: Padding(
+      child: AppBottomSheetScaffold(
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
+        handleColor: CoinDetailColors.textTertiary,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 18),
-                decoration: BoxDecoration(
-                  color: CoinDetailColors.textTertiary,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              ),
-            ),
             Text(
               'Create ${coin.symbol} alert',
               style: const TextStyle(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:cryptolens_flutter/core/validation/validators.dart';
 import 'package:cryptolens_flutter/features/auth/presentation/widgets/auth_widgets.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -199,24 +200,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final name = _name.text.trim();
     final email = _email.text.trim();
     final password = _password.text;
-    if (name.length < 2) {
-      setState(() => _error = 'Enter your full name.');
-      return;
-    }
-    if (!email.contains('@')) {
-      setState(() => _error = 'Enter a valid email.');
-      return;
-    }
-    if (password.length < 6) {
-      setState(() => _error = 'Password must be at least 6 characters.');
-      return;
-    }
-    if (password != _confirm.text) {
-      setState(() => _error = 'Passwords do not match.');
-      return;
-    }
-    if (!_terms) {
-      setState(() => _error = 'Accept the terms to continue.');
+    final validationError =
+        Validators.minLength(name, 2, 'Full name') ??
+        Validators.email(email) ??
+        Validators.minLength(password, 6, 'Password') ??
+        Validators.matching(password, _confirm.text, 'Password') ??
+        (!_terms ? 'Accept the terms to continue.' : null);
+    if (validationError != null) {
+      setState(() => _error = validationError);
       return;
     }
     setState(() {

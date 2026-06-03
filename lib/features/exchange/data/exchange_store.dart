@@ -10,6 +10,7 @@ import 'package:cryptolens_flutter/core/network/api_response.dart';
 import 'package:cryptolens_flutter/core/network/network_config.dart';
 import 'package:cryptolens_flutter/core/storage/json_preferences_store.dart';
 import 'package:cryptolens_flutter/core/utils/json_readers.dart';
+import 'package:cryptolens_flutter/core/validation/validators.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin_resolver.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
@@ -73,11 +74,12 @@ class BinanceExchangeService {
   final ApiClient _client;
 
   Future<ApiKeyValidation> validate(String apiKey, String secret) async {
-    if (apiKey.trim().isEmpty || secret.trim().isEmpty) {
-      return const ApiKeyValidation(
-        isValid: false,
-        errorMessage: 'API Key and API Secret are required',
-      );
+    final validationError = Validators.exchangeCredentials(
+      apiKey: apiKey,
+      secret: secret,
+    );
+    if (validationError != null) {
+      return ApiKeyValidation(isValid: false, errorMessage: validationError);
     }
     try {
       final response = await _signedGet(

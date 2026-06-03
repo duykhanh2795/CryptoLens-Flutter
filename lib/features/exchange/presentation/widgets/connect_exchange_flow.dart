@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/validation/validators.dart';
 import 'package:cryptolens_flutter/features/exchange/data/exchange_store.dart';
 import 'package:cryptolens_flutter/features/exchange/domain/exchange.dart';
 import 'package:cryptolens_flutter/features/exchange/presentation/widgets/exchange_common_widgets.dart';
@@ -176,8 +177,12 @@ class ConnectExchangeScreenState extends State<ConnectExchangeScreen> {
   }
 
   Future<void> _validate() async {
-    if (_apiKey.text.trim().isEmpty || _secret.text.trim().isEmpty) {
-      _showMessage('API Key and API Secret are required');
+    final validationError = Validators.exchangeCredentials(
+      apiKey: _apiKey.text,
+      secret: _secret.text,
+    );
+    if (validationError != null) {
+      _showMessage(validationError);
       return;
     }
     setState(() => _busy = true);

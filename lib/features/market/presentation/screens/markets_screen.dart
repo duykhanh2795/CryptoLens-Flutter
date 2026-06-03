@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/widgets/coin_row.dart';
-import 'package:cryptolens_flutter/core/widgets/empty_state.dart';
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/market/presentation/widgets/markets_widgets.dart';
 import 'coin_detail_screen.dart';
 import '../market_controller.dart';
@@ -27,18 +27,12 @@ class MarketsScreen extends StatelessWidget {
           const SizedBox(height: 10),
           const MarketTableHeader(),
           if (controller.isLoading)
-            const Padding(
-              padding: EdgeInsets.only(top: 170),
-              child: Center(child: CircularProgressIndicator()),
-            )
+            const AppLoadingState(height: 360)
           else if (coins.isEmpty)
-            const SizedBox(
-              height: 420,
-              child: EmptyState(
-                icon: Icons.search_off_rounded,
-                title: 'No coins found',
-                message: 'Try another symbol or reset market filters.',
-              ),
+            const AppEmptyStateBlock(
+              icon: Icons.search_off_rounded,
+              title: 'No coins found',
+              message: 'Try another symbol or reset market filters.',
             )
           else
             for (final coin in coins)
