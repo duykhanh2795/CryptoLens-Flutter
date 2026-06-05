@@ -4,7 +4,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
+import 'package:cryptolens_flutter/core/storage/preferences_store.dart';
 
 @pragma('vm:entry-point')
 Future<void> cryptolensFirebaseMessagingBackgroundHandler(
@@ -19,8 +21,8 @@ class CryptoFirebaseMessagingService {
 
   static const _channelId = 'price_alerts';
   static const _channelName = 'Price alerts';
-  static const _prefsName = 'fcm';
-  static const _tokenKey = 'token';
+  static const _tokenKey = StorageKeys.firebaseMessagingToken;
+  static const _store = PreferencesStore();
 
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -55,8 +57,7 @@ class CryptoFirebaseMessagingService {
   }
 
   static Future<String?> currentToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('$_prefsName.$_tokenKey');
+    return _store.getString(_tokenKey);
   }
 
   static Future<void> requestNotificationPermission() async {
@@ -158,7 +159,6 @@ class CryptoFirebaseMessagingService {
   }
 
   static Future<void> _persistToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('$_prefsName.$_tokenKey', token);
+    await _store.setString(_tokenKey, token);
   }
 }

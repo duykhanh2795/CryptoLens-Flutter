@@ -1,9 +1,9 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:cryptolens_flutter/core/config/app_config.dart';
 import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
 import 'package:cryptolens_flutter/core/errors/app_exception.dart';
+import 'package:cryptolens_flutter/core/storage/preferences_store.dart';
 import 'package:cryptolens_flutter/core/validation/validators.dart';
 import 'package:cryptolens_flutter/features/auth/domain/auth_models.dart';
 
@@ -18,6 +18,7 @@ class CryptoAuthService {
 
   static const _rememberLoginKey = StorageKeys.authRememberLogin;
   static const _rememberedEmailKey = StorageKeys.authRememberedEmail;
+  static const _preferences = PreferencesStore();
 
   final SupabaseClient _client;
 
@@ -113,10 +114,9 @@ class CryptoAuthService {
   }
 
   Future<LoginPreferences> loadLoginPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
     return LoginPreferences(
-      rememberLogin: prefs.getBool(_rememberLoginKey) ?? false,
-      rememberedEmail: prefs.getString(_rememberedEmailKey) ?? '',
+      rememberLogin: await _preferences.getBool(_rememberLoginKey),
+      rememberedEmail: await _preferences.getString(_rememberedEmailKey) ?? '',
     );
   }
 
@@ -124,12 +124,11 @@ class CryptoAuthService {
     required bool rememberLogin,
     required String email,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_rememberLoginKey, rememberLogin);
+    await _preferences.setBool(_rememberLoginKey, rememberLogin);
     if (rememberLogin && email.trim().isNotEmpty) {
-      await prefs.setString(_rememberedEmailKey, email.trim());
+      await _preferences.setString(_rememberedEmailKey, email.trim());
     } else {
-      await prefs.remove(_rememberedEmailKey);
+      await _preferences.remove(_rememberedEmailKey);
     }
   }
 

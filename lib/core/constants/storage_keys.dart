@@ -7,6 +7,7 @@ class StorageKeys {
   static const authRememberLogin = 'cryptolens.auth.remember_login';
   static const authRememberedEmail = 'cryptolens.auth.remembered_email';
   static const exchangeConnectionsV2 = 'cryptolens.exchange.connections.v2';
+  static const firebaseMessagingToken = 'fcm.token';
   static const portfolioTransactionsCsv =
       'cryptolens.portfolio.transactions_csv';
   static const portfolioSnapshots = 'cryptolens.portfolio.snapshots';

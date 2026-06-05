@@ -1,31 +1,28 @@
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
+import 'package:cryptolens_flutter/core/storage/preferences_store.dart';
 
 class AuthSessionStore {
   static const _displayNameKey = StorageKeys.authDisplayName;
   static const _emailKey = StorageKeys.authEmail;
+  static const _store = PreferencesStore();
 
   Future<StoredUser?> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final email = prefs.getString(_emailKey);
+    final email = await _store.getString(_emailKey);
     if (email == null || email.trim().isEmpty) return null;
     return StoredUser(
-      displayName: prefs.getString(_displayNameKey) ?? email.split('@').first,
+      displayName:
+          await _store.getString(_displayNameKey) ?? email.split('@').first,
       email: email,
     );
   }
 
   Future<void> save(StoredUser user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_displayNameKey, user.displayName);
-    await prefs.setString(_emailKey, user.email);
+    await _store.setString(_displayNameKey, user.displayName);
+    await _store.setString(_emailKey, user.email);
   }
 
   Future<void> clear() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_displayNameKey);
-    await prefs.remove(_emailKey);
+    await _store.removeAll([_displayNameKey, _emailKey]);
   }
 }
 

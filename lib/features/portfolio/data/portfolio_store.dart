@@ -1,8 +1,7 @@
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:cryptolens_flutter/core/constants/storage_keys.dart';
 import 'package:cryptolens_flutter/core/errors/app_exception.dart';
 import 'package:cryptolens_flutter/core/storage/json_preferences_store.dart';
+import 'package:cryptolens_flutter/core/storage/preferences_store.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_csv_codec.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_transaction.dart';
@@ -12,6 +11,7 @@ class PortfolioStore {
 
   static const storageKey = StorageKeys.portfolioTransactionsCsv;
   static const snapshotsKey = StorageKeys.portfolioSnapshots;
+  static const _preferences = PreferencesStore();
   static const _snapshotStore = JsonPreferencesStore(snapshotsKey);
   static const _csvCodec = PortfolioCsvCodec();
 
@@ -24,26 +24,22 @@ class PortfolioStore {
     )
     coinResolver,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final csv = prefs.getString(storageKey);
+    final csv = await _preferences.getString(storageKey);
     if (csv == null || csv.trim().isEmpty) return const [];
     return _csvCodec.decode(csv, coinResolver: coinResolver);
   }
 
   Future<void> save(List<PortfolioTransaction> transactions) async {
-    final prefs = await SharedPreferences.getInstance();
     final csv = _csvCodec.encode(transactions);
     if (csv.isEmpty) {
-      await prefs.remove(storageKey);
+      await _preferences.remove(storageKey);
     } else {
-      await prefs.setString(storageKey, csv);
+      await _preferences.setString(storageKey, csv);
     }
   }
 
   Future<void> clear() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(storageKey);
-    await prefs.remove(snapshotsKey);
+    await _preferences.removeAll([storageKey, snapshotsKey]);
   }
 
   Future<List<PortfolioSnapshot>> loadSnapshots({int limit = 90}) async {
