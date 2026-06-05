@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/news/data/news_api.dart';
 import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
 import 'package:cryptolens_flutter/features/news/presentation/widgets/news_common_widgets.dart';
@@ -62,18 +63,18 @@ class _NewsPreviewSectionState extends State<NewsPreviewSection> {
             future: _future,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
-                return const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                );
+                return const AppLoadingState(height: 72, strokeWidth: 2);
               }
               final news = snapshot.data ?? const <NewsItem>[];
               if (snapshot.hasError || news.isEmpty) {
-                return const Padding(
+                return const AppAsyncMessage(
+                  message: 'News is unavailable right now.',
                   padding: EdgeInsets.fromLTRB(14, 8, 14, 18),
-                  child: Text(
-                    'News is unavailable right now.',
-                    style: TextStyle(color: AppColors.textSecondary),
+                  alignment: Alignment.centerLeft,
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w700,
                   ),
                 );
               }

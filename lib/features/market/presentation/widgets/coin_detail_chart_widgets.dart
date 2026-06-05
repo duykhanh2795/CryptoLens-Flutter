@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/market/domain/kline.dart';
 import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_colors.dart';
 import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_stats_widgets.dart';
@@ -30,20 +31,20 @@ class ChartPanel extends StatelessWidget {
       builder: (context, snapshot) {
         Widget child;
         if (snapshot.connectionState != ConnectionState.done) {
-          child = const Center(
-            child: CircularProgressIndicator(strokeWidth: 2),
+          child = const AppLoadingState(
+            height: 180,
+            strokeWidth: 2,
+            color: CoinDetailColors.textSecondary,
           );
         } else if (snapshot.hasError ||
             snapshot.data == null ||
             snapshot.data!.isEmpty) {
-          child = const Center(
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: Text(
-                'Chart data is unavailable for this market.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: CoinDetailColors.textSecondary),
-              ),
+          child = const AppAsyncMessage(
+            message: 'Chart data is unavailable for this market.',
+            padding: EdgeInsets.all(20),
+            style: TextStyle(
+              color: CoinDetailColors.textSecondary,
+              fontWeight: FontWeight.w700,
             ),
           );
         } else {

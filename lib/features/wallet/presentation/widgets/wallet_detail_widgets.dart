@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/wallet/domain/wallet.dart';
 import 'package:cryptolens_flutter/features/wallet/presentation/state/wallet_detail_state.dart';
 import 'package:cryptolens_flutter/features/wallet/presentation/widgets/wallet_colors.dart';
@@ -88,13 +89,10 @@ class WalletDetailHero extends StatelessWidget {
               ChangePill(percent: wallet.changePercent24h),
               if (isLoading) ...[
                 const SizedBox(width: 10),
-                const SizedBox(
-                  width: 12,
-                  height: 12,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: WalletColors.yellow,
-                  ),
+                const AppInlineLoader(
+                  dimension: 12,
+                  strokeWidth: 2,
+                  color: WalletColors.yellow,
                 ),
               ],
             ],
@@ -298,13 +296,10 @@ class WalletHistoryTab extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         if (filtered.isEmpty)
-          const Padding(
+          const AppAsyncMessage(
+            message: 'No transactions match this filter.',
             padding: EdgeInsets.only(top: 40),
-            child: Text(
-              'No transactions match this filter.',
-              style: WalletColors.sub,
-              textAlign: TextAlign.center,
-            ),
+            style: WalletColors.sub,
           )
         else
           for (final entry in groups.entries) ...[

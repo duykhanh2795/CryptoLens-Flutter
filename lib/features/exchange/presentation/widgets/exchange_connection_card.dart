@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/exchange/domain/exchange.dart';
 import 'package:cryptolens_flutter/features/exchange/presentation/widgets/exchange_common_widgets.dart';
 
@@ -75,10 +76,7 @@ class ExchangeConnectionCard extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: !connection.isActive || syncing ? null : onSync,
                   icon: syncing
-                      ? const SizedBox.square(
-                          dimension: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                      ? const AppInlineLoader(dimension: 16, strokeWidth: 2)
                       : const Icon(Icons.sync_rounded),
                   label: const Text('Sync'),
                 ),

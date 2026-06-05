@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/core/validation/validators.dart';
 import 'package:cryptolens_flutter/features/auth/presentation/widgets/auth_widgets.dart';
 
@@ -167,10 +168,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               onPressed: _submitting ? null : _submit,
               style: authYellowButton(),
               child: _submitting
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
+                  ? const AppInlineLoader(dimension: 18, strokeWidth: 2)
                   : const Text('Create Account'),
             ),
           ),

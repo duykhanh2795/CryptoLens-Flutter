@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin_resolver.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin_holding.dart';
@@ -138,7 +139,10 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
                   final coin = detail?.coin ?? widget.coin;
                   if (snapshot.connectionState != ConnectionState.done &&
                       detail == null) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const AppLoadingState(
+                      height: 520,
+                      color: CoinDetailColors.textSecondary,
+                    );
                   }
                   if (snapshot.hasError && detail == null) {
                     return CoinDetailError(

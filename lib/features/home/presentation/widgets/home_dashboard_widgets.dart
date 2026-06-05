@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/core/utils/formatters.dart';
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/home/data/home_portfolio_summary_loader.dart';
 import 'package:cryptolens_flutter/features/home/domain/home_portfolio_summary.dart';
 import 'package:cryptolens_flutter/features/home/presentation/widgets/home_format_helpers.dart';
@@ -197,9 +198,10 @@ class WalletHeroCard extends StatelessWidget {
                       ),
                       if (isLoading) ...[
                         const SizedBox(width: 8),
-                        const SizedBox.square(
+                        const AppInlineLoader(
                           dimension: 10,
-                          child: CircularProgressIndicator(strokeWidth: 1.6),
+                          strokeWidth: 1.6,
+                          color: AppColors.textSecondary,
                         ),
                       ],
                     ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
 import 'package:cryptolens_flutter/features/news/data/news_api.dart';
 import 'package:cryptolens_flutter/features/news/presentation/widgets/news_common_widgets.dart';
@@ -112,8 +113,9 @@ class _NewsScreenState extends State<NewsScreen> {
               future: _future,
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: NewsColors.yellow),
+                  return const AppLoadingState(
+                    height: 360,
+                    color: NewsColors.yellow,
                   );
                 }
                 if (snapshot.hasError) {

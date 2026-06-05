@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/core/validation/validators.dart';
 import 'package:cryptolens_flutter/features/exchange/data/exchange_store.dart';
 import 'package:cryptolens_flutter/features/exchange/domain/exchange.dart';
@@ -114,10 +115,7 @@ class ConnectExchangeScreenState extends State<ConnectExchangeScreen> {
         FilledButton(
           onPressed: _busy ? null : _validate,
           child: _busy
-              ? const SizedBox.square(
-                  dimension: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
+              ? const AppInlineLoader(dimension: 18, strokeWidth: 2)
               : const Text('Validate And Connect'),
         ),
       ],

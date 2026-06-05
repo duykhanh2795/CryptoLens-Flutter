@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/news/domain/news_item.dart';
 import 'package:cryptolens_flutter/features/market/presentation/widgets/coin_detail_colors.dart';
 
@@ -44,21 +45,22 @@ class CoinNewsSection extends StatelessWidget {
             future: future,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
-                return const Padding(
-                  padding: EdgeInsets.all(14),
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                return const AppLoadingState(
+                  height: 48,
+                  strokeWidth: 2,
+                  color: CoinDetailColors.textSecondary,
                 );
               }
               final news = snapshot.data ?? const <NewsItem>[];
               if (snapshot.hasError || news.isEmpty) {
-                return const Padding(
+                return const AppAsyncMessage(
+                  message: 'Related news is unavailable right now.',
                   padding: EdgeInsets.only(bottom: 12),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Related news is unavailable right now.',
-                      style: TextStyle(color: CoinDetailColors.textSecondary),
-                    ),
+                  alignment: Alignment.centerLeft,
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    color: CoinDetailColors.textSecondary,
+                    fontWeight: FontWeight.w700,
                   ),
                 );
               }

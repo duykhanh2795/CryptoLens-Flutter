@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 
 class MarketsHeader extends StatelessWidget {
@@ -48,10 +49,7 @@ class MarketsHeader extends StatelessWidget {
           tooltip: 'Refresh',
           onPressed: controller.isRefreshing ? null : controller.refresh,
           icon: controller.isRefreshing
-              ? const SizedBox.square(
-                  dimension: 24,
-                  child: CircularProgressIndicator(strokeWidth: 3),
-                )
+              ? const AppInlineLoader(dimension: 24, strokeWidth: 3)
               : const Icon(
                   Icons.refresh_rounded,
                   size: 25,

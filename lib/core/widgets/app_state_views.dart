@@ -52,11 +52,54 @@ class AppEmptyStateBlock extends StatelessWidget {
   }
 }
 
+class AppAsyncMessage extends StatelessWidget {
+  const AppAsyncMessage({
+    required this.message,
+    this.padding = const EdgeInsets.all(14),
+    this.alignment = Alignment.center,
+    this.textAlign = TextAlign.center,
+    this.style,
+    super.key,
+  });
+
+  final String message;
+  final EdgeInsetsGeometry padding;
+  final AlignmentGeometry alignment;
+  final TextAlign textAlign;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: padding,
+      child: Align(
+        alignment: alignment,
+        child: Text(
+          message,
+          textAlign: textAlign,
+          style:
+              style ??
+              const TextStyle(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      ),
+    );
+  }
+}
+
 class AppInlineLoader extends StatelessWidget {
-  const AppInlineLoader({this.dimension = 18, this.strokeWidth = 2, super.key});
+  const AppInlineLoader({
+    this.dimension = 18,
+    this.strokeWidth = 2,
+    this.color,
+    super.key,
+  });
 
   final double dimension;
   final double strokeWidth;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +107,7 @@ class AppInlineLoader extends StatelessWidget {
       dimension: dimension,
       child: CircularProgressIndicator(
         strokeWidth: strokeWidth,
-        color: AppColors.accent,
+        color: color ?? AppColors.accent,
       ),
     );
   }

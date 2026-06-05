@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 import 'package:cryptolens_flutter/features/auth/data/crypto_auth_service.dart';
 import 'package:cryptolens_flutter/features/portfolio/data/portfolio_store.dart';
 import 'package:cryptolens_flutter/features/profile/presentation/widgets/profile_colors.dart';
@@ -105,10 +106,7 @@ void showChangePassword(BuildContext context) {
               backgroundColor: ProfileColors.yellow,
             ),
             child: saving
-                ? const SizedBox.square(
-                    dimension: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                ? const AppInlineLoader(dimension: 16, strokeWidth: 2)
                 : const Text(
                     'Save',
                     style: TextStyle(color: Color(0xFF1A1400)),

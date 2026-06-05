@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/core/widgets/app_state_views.dart';
 
 class PortfolioTopBar extends StatelessWidget {
   const PortfolioTopBar({
@@ -33,10 +34,7 @@ class PortfolioTopBar extends StatelessWidget {
           ),
         ),
         if (isBusy) ...[
-          const SizedBox.square(
-            dimension: 18,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
+          const AppInlineLoader(dimension: 18, strokeWidth: 2),
           const SizedBox(width: 8),
         ],
         PortfolioHeaderIcon(
