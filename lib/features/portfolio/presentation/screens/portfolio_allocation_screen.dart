@@ -27,10 +27,12 @@ class PortfolioAllocationScreen extends StatelessWidget {
         foregroundColor: AppColors.textPrimary,
       ),
       body: assets.isEmpty
-          ? const PortfolioEmptyState(
-              icon: Icons.pie_chart_outline_rounded,
-              title: 'No allocation yet',
-              message: 'Add assets to see portfolio distribution.',
+          ? const Center(
+              child: PortfolioEmptyState(
+                icon: Icons.pie_chart_outline_rounded,
+                title: 'No allocation yet',
+                message: 'Add assets to see portfolio distribution.',
+              ),
             )
           : ListView(
               padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
