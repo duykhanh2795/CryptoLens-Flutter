@@ -3,61 +3,78 @@ import 'package:flutter/material.dart';
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/features/portfolio/domain/portfolio_models.dart';
 import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_allocation_widgets.dart';
-import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_shared_widgets.dart';
 
-class PortfolioAllocationScreen extends StatelessWidget {
+class PortfolioAllocationScreen extends StatefulWidget {
   const PortfolioAllocationScreen({required this.assets, super.key});
 
   final List<PortfolioAsset> assets;
 
   @override
+  State<PortfolioAllocationScreen> createState() =>
+      _PortfolioAllocationScreenState();
+}
+
+class _PortfolioAllocationScreenState extends State<PortfolioAllocationScreen> {
+  String _selectedRange = '24H';
+
+  @override
   Widget build(BuildContext context) {
-    final total = assets.fold<double>(
+    final assets = [...widget.assets]
+      ..removeWhere((asset) => asset.currentValue <= 0 && asset.quantity <= 0)
+      ..sort((a, b) => b.currentValue.compareTo(a.currentValue));
+    final displayAssets = assets.take(6).toList();
+    final totalValue = assets.fold<double>(
       0,
       (sum, asset) => sum + asset.currentValue,
     );
-    final sorted = [...assets]
-      ..sort((a, b) => b.currentValue.compareTo(a.currentValue));
+    final totalPnl = assets.fold<double>(
+      0,
+      (sum, asset) => sum + asset.unrealizedPnl + asset.realizedPnl,
+    );
+    final totalCost = assets.fold<double>(
+      0,
+      (sum, asset) => sum + asset.costBasis,
+    );
+    final totalPnlPercent = totalCost <= 0 ? 0.0 : totalPnl / totalCost * 100;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Allocation'),
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.textPrimary,
-      ),
-      body: assets.isEmpty
-          ? const Center(
-              child: PortfolioEmptyState(
-                icon: Icons.pie_chart_outline_rounded,
-                title: 'No allocation yet',
-                message: 'Add assets to see portfolio distribution.',
-              ),
-            )
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
-              children: [
-                AllocationSummaryCard(assets: sorted, total: total),
-                const SizedBox(height: 14),
-                const Text(
-                  'Assets',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                  ),
+      body: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: AllocationScreenHeader(
+                  onBack: () => Navigator.of(context).maybePop(),
                 ),
-                const SizedBox(height: 10),
-                for (var index = 0; index < sorted.length; index++)
-                  AllocationAssetRow(
-                    asset: sorted[index],
-                    color: allocationColor(index),
-                    percent: total <= 0
-                        ? 0
-                        : sorted[index].currentValue / total * 100,
-                  ),
-              ],
-            ),
+              ),
+              const AllocationPortfolioChip(),
+              const SizedBox(height: 18),
+              AllocationHero(
+                assets: displayAssets,
+                totalValue: totalValue,
+                totalPnl: totalPnl,
+                totalPnlPercent: totalPnlPercent,
+              ),
+              AllocationRangeSelector(
+                selectedRange: _selectedRange,
+                onRangeSelected: (range) =>
+                    setState(() => _selectedRange = range),
+              ),
+              const SizedBox(height: 22),
+              Expanded(
+                child: AllocationAssetsPanel(
+                  assets: displayAssets,
+                  totalValue: totalValue,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
