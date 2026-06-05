@@ -27,16 +27,18 @@ class CryptoFirebaseMessagingService {
       FlutterLocalNotificationsPlugin();
 
   static bool _localNotificationsReady = false;
+  static bool _notificationPermissionRequested = false;
 
   static Future<void> initialize() async {
     await Firebase.initializeApp();
     await _initializeLocalNotifications();
+    await requestNotificationPermission();
 
     FirebaseMessaging.onBackgroundMessage(
       cryptolensFirebaseMessagingBackgroundHandler,
     );
 
-    await _messaging.requestPermission(alert: true, badge: true, sound: true);
+    await _requestFirebasePermission();
     await _messaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
@@ -55,6 +57,22 @@ class CryptoFirebaseMessagingService {
   static Future<String?> currentToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('$_prefsName.$_tokenKey');
+  }
+
+  static Future<void> requestNotificationPermission() async {
+    if (_notificationPermissionRequested) return;
+    _notificationPermissionRequested = true;
+    try {
+      await _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.requestNotificationsPermission();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Local notification permission unavailable: $error\n$stackTrace',
+      );
+    }
   }
 
   static Future<void> showRemoteMessage(RemoteMessage message) async {
@@ -120,6 +138,14 @@ class CryptoFirebaseMessagingService {
           ),
         );
     _localNotificationsReady = true;
+  }
+
+  static Future<void> _requestFirebasePermission() async {
+    try {
+      await _messaging.requestPermission(alert: true, badge: true, sound: true);
+    } catch (error, stackTrace) {
+      debugPrint('FCM permission unavailable: $error\n$stackTrace');
+    }
   }
 
   static Future<void> _saveToken() async {
