@@ -12,6 +12,7 @@ import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/features/exchange/presentation/screens/manage_exchange_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/screens/coin_detail_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
+import 'package:cryptolens_flutter/features/portfolio/presentation/screens/portfolio_allocation_screen.dart';
 import 'package:cryptolens_flutter/features/portfolio/presentation/state/portfolio_tab.dart';
 import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_header_widgets.dart';
 import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_hero_widgets.dart';
@@ -72,7 +73,10 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
             onAdd: _showAddTransactionSheet,
           ),
           const SizedBox(height: 10),
-          PortfolioHero(summary: summary),
+          PortfolioHero(
+            summary: summary,
+            onOpenAllocation: () => _openAllocation(assets),
+          ),
           const SizedBox(height: 12),
           PortfolioTabs(
             selectedTab: _selectedTab,
@@ -129,6 +133,14 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       () => _transactions.removeWhere((tx) => tx.coin.id == asset.coin.id),
     );
     unawaited(_saveTransactions());
+  }
+
+  void _openAllocation(List<PortfolioAsset> assets) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PortfolioAllocationScreen(assets: assets),
+      ),
+    );
   }
 
   void _showAddTransactionSheet() {

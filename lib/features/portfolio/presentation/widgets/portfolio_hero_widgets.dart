@@ -7,9 +7,14 @@ import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portf
 import 'package:cryptolens_flutter/features/portfolio/presentation/widgets/portfolio_shared_widgets.dart';
 
 class PortfolioHero extends StatefulWidget {
-  const PortfolioHero({required this.summary, super.key});
+  const PortfolioHero({
+    required this.summary,
+    required this.onOpenAllocation,
+    super.key,
+  });
 
   final PortfolioSummary summary;
+  final VoidCallback onOpenAllocation;
 
   @override
   State<PortfolioHero> createState() => _PortfolioHeroState();
@@ -37,32 +42,39 @@ class _PortfolioHeroState extends State<PortfolioHero> {
               ),
             ),
             const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.pie_chart_outline_rounded,
-                    size: 15,
-                    color: AppColors.textSecondary,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    'Allocation',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+            InkWell(
+              onTap: widget.onOpenAllocation,
+              borderRadius: BorderRadius.circular(999),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.pie_chart_outline_rounded,
+                      size: 15,
                       color: AppColors.textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
                     ),
-                  ),
-                ],
+                    SizedBox(width: 6),
+                    Text(
+                      'Allocation',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
