@@ -1,17 +1,18 @@
-# cryptolens_flutter
+# CryptoLens Flutter
 
-A new Flutter project.
+## Run with AI
 
-## Getting Started
+CryptoLens AI uses Gemini through the REST API. Pass the API key at runtime:
 
-This project is a starting point for a Flutter application.
+```powershell
+flutter run --dart-define=GEMINI_API_KEY=your-gemini-api-key
+```
 
-A few resources to get you started if this is your first Flutter project:
+Other optional defines:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```powershell
+flutter run `
+  --dart-define=GEMINI_API_KEY=your-gemini-api-key `
+  --dart-define=MORALIS_API_KEY=your-moralis-key `
+  --dart-define=ALCHEMY_API_KEY=your-alchemy-key
+```

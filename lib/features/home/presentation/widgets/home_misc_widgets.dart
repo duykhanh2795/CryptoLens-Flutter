@@ -6,12 +6,14 @@ import 'package:cryptolens_flutter/core/theme/app_theme.dart';
 import 'package:cryptolens_flutter/features/market/domain/coin.dart';
 
 class AiInsightBanner extends StatelessWidget {
-  const AiInsightBanner({super.key});
+  const AiInsightBanner({required this.onTap, super.key});
+
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.all(16),

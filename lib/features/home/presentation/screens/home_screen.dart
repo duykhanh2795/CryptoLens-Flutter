@@ -18,6 +18,7 @@ class HomeScreen extends StatelessWidget {
     required this.onOpenNews,
     required this.onOpenWallets,
     required this.onOpenPortfolio,
+    required this.onOpenAi,
     super.key,
   });
 
@@ -26,6 +27,7 @@ class HomeScreen extends StatelessWidget {
   final VoidCallback onOpenNews;
   final VoidCallback onOpenWallets;
   final VoidCallback onOpenPortfolio;
+  final VoidCallback onOpenAi;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +83,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 22),
             NewsPreviewSection(onSeeAll: onOpenNews),
             const SizedBox(height: 14),
-            const AiInsightBanner(),
+            AiInsightBanner(onTap: onOpenAi),
             const SizedBox(height: 80),
           ],
         ),

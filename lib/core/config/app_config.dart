@@ -17,4 +17,5 @@ class AppConfig {
   );
   static const moralisApiKey = String.fromEnvironment('MORALIS_API_KEY');
   static const alchemyApiKey = String.fromEnvironment('ALCHEMY_API_KEY');
+  static const geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
 }

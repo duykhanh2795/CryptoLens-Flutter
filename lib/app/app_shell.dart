@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cryptolens_flutter/core/theme/app_theme.dart';
+import 'package:cryptolens_flutter/features/ai/presentation/screens/ai_assistant_screen.dart';
 import 'package:cryptolens_flutter/features/home/presentation/screens/home_screen.dart';
 import 'package:cryptolens_flutter/features/market/presentation/market_controller.dart';
 import 'package:cryptolens_flutter/features/market/presentation/screens/markets_screen.dart';
@@ -59,6 +60,7 @@ class _AppShellState extends State<AppShell> {
                 TrendingWalletsScreen(controller: widget.controller),
           ),
         ),
+        onOpenAi: () => _openAiAssistant(context),
       ),
       MarketsScreen(controller: widget.controller),
       WatchlistScreen(controller: widget.controller),
@@ -76,7 +78,7 @@ class _AppShellState extends State<AppShell> {
         child: Stack(
           children: [
             Positioned.fill(child: screens[_index]),
-            // const _AiAssistantOverlay(),
+            FloatingAiButton(onTap: () => _openAiAssistant(context)),
           ],
         ),
       ),
@@ -87,167 +89,11 @@ class _AppShellState extends State<AppShell> {
       backgroundColor: AppColors.background,
     );
   }
-}
 
-// ignore: unused_element
-class _AiAssistantOverlay extends StatelessWidget {
-  const _AiAssistantOverlay();
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      top: 92,
-      right: 16,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: () => _showAiSheet(context),
-          child: Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFFE8ECEF),
-                  Color(0xFF7C6FE8),
-                  Color(0xFF9EA4AD),
-                ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.38),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: AppColors.background.withValues(alpha: 0.66),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.auto_awesome_rounded,
-                color: AppColors.textPrimary,
-                size: 22,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showAiSheet(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-      ),
-      builder: (_) => const _AiSheet(),
-    );
-  }
-}
-
-class _AiSheet extends StatelessWidget {
-  const _AiSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    const prompts = [
-      ('Fast', 'Legal crypto news affecting the market'),
-      ('Fast', 'Why is Hyperliquid trending?'),
-      ('Deep Research', 'Altcoin setups: SUI, NEAR, LINK'),
-      ('Backtest', 'Top 5 crypto equal-weight vs market-cap'),
-    ];
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'AI Assistant',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded),
-                ),
-              ],
-            ),
-            const Text(
-              'Gemini chat parity is next; these prompts mirror the Kotlin assistant entry.',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 14),
-            for (final prompt in prompts)
-              Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.accentContainer,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        prompt.$1,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        prompt.$2,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      color: AppColors.textSecondary,
-                      size: 18,
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
+  void _openAiAssistant(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AiAssistantScreen(controller: widget.controller),
       ),
     );
   }
